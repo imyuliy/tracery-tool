@@ -24,5 +24,30 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-vars": "off",
     },
   },
+  // SAFEGUARD B — blokkeer imports van client.server.ts vanuit client-code (principe #6).
+  // De service-role-key mag NOOIT in de browser-bundel terechtkomen.
+  {
+    files: [
+      "src/routes/**/*.{ts,tsx}",
+      "src/components/**/*.{ts,tsx}",
+      "src/lib/**/*.{ts,tsx}",
+      "src/hooks/**/*.{ts,tsx}",
+      "src/integrations/supabase/client.ts",
+    ],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["**/client.server", "**/client.server.ts", "**/supabase/client.server*"],
+              message:
+                "client.server.ts gebruikt de service-role-key en mag uitsluitend in server-only modules (createServerFn, edge functions) geladen worden.",
+            },
+          ],
+        },
+      ],
+    },
+  },
   eslintPluginPrettier,
 );
