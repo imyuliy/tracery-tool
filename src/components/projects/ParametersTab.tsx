@@ -105,7 +105,7 @@ export function ParametersTab({ projectId }: { projectId: string }) {
         min_afstand_derden_m: 0.3,
         min_vertic_afst_kruising_m: 0.3,
         opslagfactor: 1.0,
-        risicotolerantie: "normaal",
+        risicotolerantie: values.risicotolerantie,
         is_active: true,
         created_by: userData.user?.id ?? null,
       });
