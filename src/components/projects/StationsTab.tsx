@@ -165,9 +165,13 @@ function StationForm({
         .single();
       if (insErr) throw insErr;
 
+      const update =
+        field === "start_station_id"
+          ? { start_station_id: station.id }
+          : { eind_station_id: station.id };
       const { error: updErr } = await supabase
         .from("traces")
-        .update({ [field]: station.id })
+        .update(update)
         .eq("id", traceId);
       if (updErr) throw updErr;
 
