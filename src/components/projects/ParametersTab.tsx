@@ -72,6 +72,7 @@ export function ParametersTab({ projectId }: { projectId: string }) {
       spanningsniveau_kv: (latest
         ? String(latest.spanningsniveau_kv)
         : "20") as "10" | "20" | "50",
+      risicotolerantie: (latest?.risicotolerantie as "laag" | "middel" | "hoog") ?? "middel",
       peildatum: latest?.peildatum ?? today(),
       nao_tarieflijst_versie:
         latest?.nao_tarieflijst_versie ?? "NAO-2026-Q1",
@@ -80,6 +81,7 @@ export function ParametersTab({ projectId }: { projectId: string }) {
 
   const kabeltype = watch("kabeltype");
   const spanning = watch("spanningsniveau_kv");
+  const risico = watch("risicotolerantie");
 
   const onSubmit = handleSubmit(async (values) => {
     setSubmitting(true);
