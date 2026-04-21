@@ -335,6 +335,167 @@ export type Database = {
           },
         ]
       }
+      eisen: {
+        Row: {
+          bron_prefix: string | null
+          brondocument: string | null
+          created_at: string | null
+          eis_code: string
+          eisenpakket_version_id: string
+          eistekst: string
+          eistitel: string
+          embedding: string | null
+          fase: string | null
+          id: string
+          objecttype: string
+          raw: Json | null
+          type_bewijsdocument: string | null
+          verantwoordelijke_rol: string | null
+          verificatiemethode: string | null
+        }
+        Insert: {
+          bron_prefix?: string | null
+          brondocument?: string | null
+          created_at?: string | null
+          eis_code: string
+          eisenpakket_version_id: string
+          eistekst: string
+          eistitel: string
+          embedding?: string | null
+          fase?: string | null
+          id?: string
+          objecttype: string
+          raw?: Json | null
+          type_bewijsdocument?: string | null
+          verantwoordelijke_rol?: string | null
+          verificatiemethode?: string | null
+        }
+        Update: {
+          bron_prefix?: string | null
+          brondocument?: string | null
+          created_at?: string | null
+          eis_code?: string
+          eisenpakket_version_id?: string
+          eistekst?: string
+          eistitel?: string
+          embedding?: string | null
+          fase?: string | null
+          id?: string
+          objecttype?: string
+          raw?: Json | null
+          type_bewijsdocument?: string | null
+          verantwoordelijke_rol?: string | null
+          verificatiemethode?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eisen_eisenpakket_version_id_fkey"
+            columns: ["eisenpakket_version_id"]
+            isOneToOne: false
+            referencedRelation: "eisenpakket_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      eisenpakket_versions: {
+        Row: {
+          eisenpakket_id: string
+          id: string
+          imported_at: string | null
+          imported_by: string | null
+          notes: string | null
+          row_count: number | null
+          source_file: string | null
+          source_file_hash: string | null
+          status: string | null
+          version_label: string
+        }
+        Insert: {
+          eisenpakket_id: string
+          id?: string
+          imported_at?: string | null
+          imported_by?: string | null
+          notes?: string | null
+          row_count?: number | null
+          source_file?: string | null
+          source_file_hash?: string | null
+          status?: string | null
+          version_label: string
+        }
+        Update: {
+          eisenpakket_id?: string
+          id?: string
+          imported_at?: string | null
+          imported_by?: string | null
+          notes?: string | null
+          row_count?: number | null
+          source_file?: string | null
+          source_file_hash?: string | null
+          status?: string | null
+          version_label?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eisenpakket_versions_eisenpakket_id_fkey"
+            columns: ["eisenpakket_id"]
+            isOneToOne: false
+            referencedRelation: "eisenpakketten"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eisenpakket_versions_imported_by_fkey"
+            columns: ["imported_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      eisenpakketten: {
+        Row: {
+          client: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+          org_id: string
+        }
+        Insert: {
+          client: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          org_id: string
+        }
+        Update: {
+          client?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          org_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eisenpakketten_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eisenpakketten_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exports: {
         Row: {
           expires_at: string | null
@@ -536,6 +697,48 @@ export type Database = {
           },
         ]
       }
+      project_eisen_scope: {
+        Row: {
+          created_at: string | null
+          fases: string[]
+          in_scope: boolean
+          notes: string | null
+          objecttype: string
+          project_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          fases?: string[]
+          in_scope?: boolean
+          notes?: string | null
+          objecttype: string
+          project_id: string
+        }
+        Update: {
+          created_at?: string | null
+          fases?: string[]
+          in_scope?: boolean
+          notes?: string | null
+          objecttype?: string
+          project_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_eisen_scope_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_eisen_scope_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "v_project_summary"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
           bbox: unknown
@@ -545,6 +748,7 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           description: string | null
+          eisenpakket_version_id: string | null
           id: string
           name: string
           org_id: string
@@ -564,6 +768,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           description?: string | null
+          eisenpakket_version_id?: string | null
           id?: string
           name: string
           org_id: string
@@ -583,6 +788,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           description?: string | null
+          eisenpakket_version_id?: string | null
           id?: string
           name?: string
           org_id?: string
@@ -600,6 +806,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_eisenpakket_version_id_fkey"
+            columns: ["eisenpakket_version_id"]
+            isOneToOne: false
+            referencedRelation: "eisenpakket_versions"
             referencedColumns: ["id"]
           },
           {
@@ -1425,6 +1638,47 @@ export type Database = {
         }
         Relationships: []
       }
+      v_eisen_coverage: {
+        Row: {
+          aantal_eisen_geciteerd: number | null
+          approved_at: string | null
+          eisen_refs: Json | null
+          generated_at: string | null
+          report_type: string | null
+          section_number: string | null
+          section_title: string | null
+          trace_id: string | null
+        }
+        Insert: {
+          aantal_eisen_geciteerd?: never
+          approved_at?: string | null
+          eisen_refs?: never
+          generated_at?: string | null
+          report_type?: string | null
+          section_number?: string | null
+          section_title?: string | null
+          trace_id?: string | null
+        }
+        Update: {
+          aantal_eisen_geciteerd?: never
+          approved_at?: string | null
+          eisen_refs?: never
+          generated_at?: string | null
+          report_type?: string | null
+          section_number?: string | null
+          section_title?: string | null
+          trace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_sections_trace_id_fkey"
+            columns: ["trace_id"]
+            isOneToOne: false
+            referencedRelation: "traces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_project_summary: {
         Row: {
           bto_reference: string | null
@@ -1636,6 +1890,19 @@ export type Database = {
           }
         | { Args: { schema_name: string; table_name: string }; Returns: string }
         | { Args: { table_name: string }; Returns: string }
+      eisen_for_project: {
+        Args: { p_project_id: string }
+        Returns: {
+          brondocument: string
+          eis_code: string
+          eis_id: string
+          eistekst: string
+          eistitel: string
+          embedding: string
+          fase: string
+          objecttype: string
+        }[]
+      }
       enablelongtransactions: { Args: never; Returns: string }
       equals: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
       geometry: { Args: { "": string }; Returns: unknown }
