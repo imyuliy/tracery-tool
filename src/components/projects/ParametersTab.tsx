@@ -194,6 +194,23 @@ export function ParametersTab({ projectId }: { projectId: string }) {
             >
               <Input {...register("nao_tarieflijst_versie")} />
             </Field>
+            <Field label="Risicotolerantie" error={errors.risicotolerantie?.message}>
+              <Select
+                value={risico}
+                onValueChange={(v) =>
+                  setValue("risicotolerantie", v as "laag" | "middel" | "hoog")
+                }
+              >
+                <SelectTrigger className="bg-paper">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="laag">Laag</SelectItem>
+                  <SelectItem value="middel">Middel</SelectItem>
+                  <SelectItem value="hoog">Hoog</SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
           </div>
 
           <Button
