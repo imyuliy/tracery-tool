@@ -1222,7 +1222,7 @@ export type Database = {
           analysis_status?: string | null
           created_at?: string | null
           eind_station_id?: string | null
-          geometry: unknown
+          geometry?: unknown
           id?: string
           length_m?: number | null
           parameter_version_used?: number | null
