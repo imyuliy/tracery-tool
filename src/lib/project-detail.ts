@@ -12,9 +12,16 @@ export function useProjectTraces(projectId: string) {
   const qc = useQueryClient();
 
   // Realtime channel — live status-updates op trace.analysis_status (Sprint 3+).
+  // Pattern: maak channel + registreer ALLE .on() handlers vóór .subscribe(),
+  // alles binnen useEffect, met removeChannel in cleanup om React 19 Strict
+  // Mode double-mount te ondervangen. Unieke topic-naam met timestamp voorkomt
+  // dat Supabase een nog niet opgeruimd channel met dezelfde naam hergebruikt
+  // tijdens de Strict-Mode dubbele mount.
   useEffect(() => {
+    if (!projectId) return;
+
     const channel = supabase
-      .channel(`traces-${projectId}`)
+      .channel(`traces-${projectId}-${Date.now()}`)
       .on(
         "postgres_changes",
         {
