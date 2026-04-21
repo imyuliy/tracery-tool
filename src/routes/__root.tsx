@@ -1,18 +1,6 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import {
-  Outlet,
-  Link,
-  createRootRouteWithContext,
-  HeadContent,
-  Scripts,
-} from "@tanstack/react-router";
-import { Toaster } from "@/components/ui/sonner";
+import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
-
-interface RouterContext {
-  queryClient: QueryClient;
-}
 
 function NotFoundComponent() {
   return (
@@ -36,7 +24,7 @@ function NotFoundComponent() {
   );
 }
 
-export const Route = createRootRouteWithContext<RouterContext>()({
+export const Route = createRootRoute({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -57,6 +45,12 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "De Tracémolen — Vayu Solutions" },
+      { name: "description", content: "TraceWise Copilot is an engineering copilot for MS cable route designs." },
+      { property: "og:description", content: "TraceWise Copilot is an engineering copilot for MS cable route designs." },
+      { name: "twitter:description", content: "TraceWise Copilot is an engineering copilot for MS cable route designs." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/400f9744-64d7-43a4-947f-0f0e64049048/id-preview-47685b69--9367b7e4-8cae-4a45-9281-7618a92b6cac.lovable.app-1776766210130.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/400f9744-64d7-43a4-947f-0f0e64049048/id-preview-47685b69--9367b7e4-8cae-4a45-9281-7618a92b6cac.lovable.app-1776766210130.png" },
     ],
     links: [
       {
@@ -85,11 +79,5 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
-  const { queryClient } = Route.useRouteContext();
-  return (
-    <QueryClientProvider client={queryClient}>
-      <Outlet />
-      <Toaster />
-    </QueryClientProvider>
-  );
+  return <Outlet />;
 }
