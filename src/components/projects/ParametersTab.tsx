@@ -34,6 +34,7 @@ const paramsSchema = z
       .string()
       .refine((v) => Number(v) >= 0.01 && Number(v) <= 10.0, "0.01 – 10.00 m"),
     spanningsniveau_kv: z.enum(["10", "20", "50"]),
+    risicotolerantie: z.enum(["laag", "middel", "hoog"]),
     peildatum: z.string().min(1, "Verplicht"),
     nao_tarieflijst_versie: z.string().trim().min(1, "Verplicht"),
   })
@@ -71,6 +72,7 @@ export function ParametersTab({ projectId }: { projectId: string }) {
       spanningsniveau_kv: (latest
         ? String(latest.spanningsniveau_kv)
         : "20") as "10" | "20" | "50",
+      risicotolerantie: (latest?.risicotolerantie as "laag" | "middel" | "hoog") ?? "middel",
       peildatum: latest?.peildatum ?? today(),
       nao_tarieflijst_versie:
         latest?.nao_tarieflijst_versie ?? "NAO-2026-Q1",
@@ -79,6 +81,7 @@ export function ParametersTab({ projectId }: { projectId: string }) {
 
   const kabeltype = watch("kabeltype");
   const spanning = watch("spanningsniveau_kv");
+  const risico = watch("risicotolerantie");
 
   const onSubmit = handleSubmit(async (values) => {
     setSubmitting(true);
@@ -102,7 +105,7 @@ export function ParametersTab({ projectId }: { projectId: string }) {
         min_afstand_derden_m: 0.3,
         min_vertic_afst_kruising_m: 0.3,
         opslagfactor: 1.0,
-        risicotolerantie: "normaal",
+        risicotolerantie: values.risicotolerantie,
         is_active: true,
         created_by: userData.user?.id ?? null,
       });
@@ -190,6 +193,23 @@ export function ParametersTab({ projectId }: { projectId: string }) {
               error={errors.nao_tarieflijst_versie?.message}
             >
               <Input {...register("nao_tarieflijst_versie")} />
+            </Field>
+            <Field label="Risicotolerantie" error={errors.risicotolerantie?.message}>
+              <Select
+                value={risico}
+                onValueChange={(v) =>
+                  setValue("risicotolerantie", v as "laag" | "middel" | "hoog")
+                }
+              >
+                <SelectTrigger className="bg-paper">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="laag">Laag</SelectItem>
+                  <SelectItem value="middel">Middel</SelectItem>
+                  <SelectItem value="hoog">Hoog</SelectItem>
+                </SelectContent>
+              </Select>
             </Field>
           </div>
 
