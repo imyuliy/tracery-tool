@@ -34,6 +34,7 @@ const paramsSchema = z
       .string()
       .refine((v) => Number(v) >= 0.01 && Number(v) <= 10.0, "0.01 – 10.00 m"),
     spanningsniveau_kv: z.enum(["10", "20", "50"]),
+    risicotolerantie: z.enum(["laag", "middel", "hoog"]),
     peildatum: z.string().min(1, "Verplicht"),
     nao_tarieflijst_versie: z.string().trim().min(1, "Verplicht"),
   })
