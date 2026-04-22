@@ -106,14 +106,31 @@ export async function runSegmentTraceByBgt(opts: {
     allFeatures.push(...features);
   }
 
+  // Dedupe op (feature_type, lokaal_id) — PDOK paginering kan dezelfde feature
+  // meerdere keren teruggeven; ON CONFLICT DO UPDATE faalt anders met
+  // "command cannot affect row a second time".
+  const seen = new Set<string>();
+  const dedupedFeatures: PdokFeature[] = [];
+  for (const f of allFeatures) {
+    const key = `${f.feature_type}::${f.lokaal_id}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    dedupedFeatures.push(f);
+  }
+  log("dedupe", {
+    raw: allFeatures.length,
+    deduped: dedupedFeatures.length,
+    duplicates: allFeatures.length - dedupedFeatures.length,
+  });
+
   await supabaseAdmin
     .from("bgt_features_staging")
     .delete()
     .eq("trace_id", opts.traceId);
 
   let stagingInserted = 0;
-  for (let i = 0; i < allFeatures.length; i += STAGING_BATCH) {
-    const batch = allFeatures.slice(i, i + STAGING_BATCH);
+  for (let i = 0; i < dedupedFeatures.length; i += STAGING_BATCH) {
+    const batch = dedupedFeatures.slice(i, i + STAGING_BATCH);
     const { data: inserted, error: insErr } = await supabaseAdmin.rpc(
       "bgt_staging_insert_batch",
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
