@@ -45,24 +45,32 @@ export function PhaseWidget({
           setTarget(phaseKey);
           setOpen(true);
         }}
-        className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 font-sans text-xs font-medium text-ink transition-colors hover:border-ink/40"
+        className="group inline-flex items-center gap-2 rounded-full border border-border bg-ink/40 px-3.5 py-1.5 font-sans text-xs font-medium text-bone transition-all hover:border-blood hover:bg-blood/15 hover:shadow-[0_0_16px_-4px_oklch(0.60_0.22_24/0.6)]"
       >
-        <span className="h-2 w-2 rounded-full bg-signal" />
-        Fase: {PHASE_LABELS[phaseKey]}
-        <ChevronRight className="h-3 w-3 text-muted-foreground" />
+        <span className="relative flex h-2 w-2">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blood opacity-75" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-blood" />
+        </span>
+        <span className="font-mono text-[10px] uppercase tracking-widest text-bone/60">
+          Fase
+        </span>
+        <span className="font-display font-semibold">{PHASE_LABELS[phaseKey]}</span>
+        <ChevronRight className="h-3 w-3 text-bone/50 transition-transform group-hover:translate-x-0.5" />
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        <DialogContent className="border-border bg-overlay-strong text-bone">
           <DialogHeader>
-            <DialogTitle>Fase promoten</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="font-display uppercase tracking-wider">
+              Fase promoten
+            </DialogTitle>
+            <DialogDescription className="text-bone/60">
               Kies de doelfase. In Sprint 5 worden hier validatie-gates aan
               toegevoegd. Nu zonder controles.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
-            <label className="font-sans text-xs uppercase tracking-wide text-muted-foreground">
+            <label className="font-mono text-[10px] uppercase tracking-widest text-bone/50">
               Doelfase
             </label>
             <Select value={target} onValueChange={(v) => setTarget(v as PhaseState)}>
@@ -88,7 +96,6 @@ export function PhaseWidget({
                 setOpen(false);
               }}
               disabled={promote.isPending || target === phaseKey}
-              className="bg-signal text-paper hover:bg-signal/90"
             >
               Promoten
             </Button>

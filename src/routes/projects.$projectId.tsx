@@ -32,16 +32,14 @@ export const Route = createFileRoute("/projects/$projectId")({
   errorComponent: ({ error }) => {
     const router = useRouter();
     return (
-      <div className="flex min-h-screen items-center justify-center bg-paper px-4">
-        <Card className="max-w-md border-destructive/30 bg-card p-6">
-          <h2 className="font-display text-xl text-ink">
-            Project kon niet worden geladen
-          </h2>
+      <div className="flex min-h-screen items-center justify-center bg-ink px-4">
+        <Card className="max-w-md border-blood/40 bg-overlay-strong p-6 text-bone">
+          <h2 className="font-display text-xl">Project kon niet worden geladen</h2>
           <p className="mt-2 font-sans text-sm text-muted-foreground">
             {error.message}
           </p>
           <button
-            className="mt-4 inline-flex items-center rounded-md bg-ink px-4 py-2 font-sans text-sm text-paper"
+            className="mt-4 inline-flex items-center rounded-md bg-blood px-4 py-2 font-sans text-sm text-bone transition-colors hover:bg-ember"
             onClick={() => router.invalidate()}
           >
             Opnieuw proberen
@@ -51,12 +49,12 @@ export const Route = createFileRoute("/projects/$projectId")({
     );
   },
   notFoundComponent: () => (
-    <div className="flex min-h-screen items-center justify-center bg-paper px-4">
-      <Card className="max-w-md border-border bg-card p-6 text-center">
-        <h2 className="font-display text-2xl text-ink">Project niet gevonden</h2>
+    <div className="flex min-h-screen items-center justify-center bg-ink px-4">
+      <Card className="max-w-md border-border bg-overlay-strong p-6 text-center text-bone">
+        <h2 className="font-display text-2xl">Project niet gevonden</h2>
         <Link
           to="/dashboard"
-          className="mt-4 inline-flex items-center gap-1.5 font-sans text-sm text-cyan hover:underline"
+          className="mt-4 inline-flex items-center gap-1.5 font-sans text-sm text-blood transition-colors hover:text-ember hover:underline"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           Terug naar dashboard
@@ -97,26 +95,47 @@ function Workspace() {
   if (!project) throw notFound();
 
   return (
-    <div className="flex h-screen w-screen flex-col overflow-hidden bg-paper">
-      <WorkspaceHeader project={project} />
-      <div className="flex min-h-0 flex-1">
-        <LeftAccordion project={project} />
-        <main className="flex min-w-0 flex-1 flex-col">
-          <div className="min-h-0 flex-1">
-            <MapPanel
-              data={mapData}
-              isLoading={mapLoading}
-              highlightedLokaalId={highlightedLokaalId}
-              onSegmentClick={handleSegmentClick}
-            />
-          </div>
+    <div className="relative h-screen w-screen overflow-hidden bg-ink text-bone">
+      {/* Fullscreen map as canvas */}
+      <div className="absolute inset-0">
+        <MapPanel
+          data={mapData}
+          isLoading={mapLoading}
+          highlightedLokaalId={highlightedLokaalId}
+          onSegmentClick={handleSegmentClick}
+        />
+      </div>
+
+      {/* Floating header — full width, glass */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-20">
+        <div className="pointer-events-auto">
+          <WorkspaceHeader project={project} />
+        </div>
+      </div>
+
+      {/* Left floating panel */}
+      <div className="pointer-events-none absolute left-4 top-[76px] bottom-[calc(var(--drawer-h,260px)+16px)] z-10 w-[340px]">
+        <div className="pointer-events-auto h-full">
+          <LeftAccordion project={project} />
+        </div>
+      </div>
+
+      {/* Right floating panel */}
+      <div className="pointer-events-none absolute right-4 top-[76px] bottom-[calc(var(--drawer-h,260px)+16px)] z-10 w-[320px]">
+        <div className="pointer-events-auto h-full">
+          <RightProducts traceId={traceId} />
+        </div>
+      </div>
+
+      {/* Bottom drawer */}
+      <div className="pointer-events-none absolute inset-x-4 bottom-4 z-10">
+        <div className="pointer-events-auto">
           <BottomDrawer
             traceId={traceId}
             highlightedLokaalId={highlightedLokaalId}
             onPillClick={handlePillClick}
           />
-        </main>
-        <RightProducts traceId={traceId} />
+        </div>
       </div>
     </div>
   );

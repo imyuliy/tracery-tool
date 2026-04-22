@@ -26,24 +26,26 @@ export function BottomDrawer({
 
   return (
     <div
-      className={`shrink-0 border-t border-border bg-card transition-all ${
-        open ? "h-[260px]" : "h-9"
+      className={`glass overflow-hidden rounded-xl shadow-2xl shadow-black/40 transition-all duration-300 ease-out ${
+        open ? "h-[260px]" : "h-10"
       }`}
     >
-      <div className="flex h-9 items-center justify-between border-b border-border px-3">
+      <div className="flex h-10 items-center justify-between border-b border-border px-4">
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="flex items-center gap-2 font-sans text-xs font-medium text-ink"
+          className="group flex items-center gap-2 rounded-md px-2 py-1 font-sans text-xs font-medium text-bone transition-colors hover:bg-blood/10"
         >
           {open ? (
-            <ChevronDown className="h-3.5 w-3.5" />
+            <ChevronDown className="h-3.5 w-3.5 text-blood transition-transform" />
           ) : (
-            <ChevronUp className="h-3.5 w-3.5" />
+            <ChevronUp className="h-3.5 w-3.5 text-blood transition-transform" />
           )}
-          Tracé-omschrijving
+          <span className="font-display uppercase tracking-wider">
+            Tracé-omschrijving
+          </span>
           {section?.generated_at && (
-            <span className="ml-2 font-sans text-[11px] text-muted-foreground">
+            <span className="ml-2 font-mono text-[10px] uppercase tracking-wider text-bone/50">
               {new Date(section.generated_at).toLocaleString("nl-NL")}
             </span>
           )}
@@ -69,18 +71,18 @@ export function BottomDrawer({
         )}
       </div>
       {open && (
-        <div className="h-[calc(100%-2.25rem)] overflow-y-auto px-5 py-4">
+        <div className="h-[calc(100%-2.5rem)] overflow-y-auto px-6 py-4">
           {!traceId ? (
-            <p className="font-sans text-sm text-muted-foreground">
+            <p className="font-sans text-sm text-bone/50">
               Geen tracé.
             </p>
           ) : !section ? (
-            <p className="font-sans text-sm text-muted-foreground">
-              Nog geen tracé-omschrijving. Klik rechts op “Tracé-omschrijving”
+            <p className="font-sans text-sm text-bone/50">
+              Nog geen tracé-omschrijving. Klik rechts op &ldquo;Tracé-omschrijving&rdquo;
               om er een te genereren.
             </p>
           ) : (
-            <article className="prose prose-sm max-w-none font-sans text-sm leading-relaxed text-ink">
+            <article className="prose prose-sm max-w-none font-sans text-sm leading-relaxed text-bone">
               {rendered}
             </article>
           )}
@@ -104,13 +106,13 @@ function renderMarkdownWithPills(
     if (heading) {
       const text = heading[2];
       return (
-        <h3 key={i} className="mb-2 mt-3 font-display text-base font-semibold text-ink">
+        <h3 key={i} className="mb-2 mt-3 font-display text-base font-semibold uppercase tracking-wider text-bone">
           {renderInline(text, opts)}
         </h3>
       );
     }
     return (
-      <p key={i} className="mb-3 text-ink">
+      <p key={i} className="mb-3 text-bone/90">
         {renderInline(block, opts)}
       </p>
     );
@@ -124,7 +126,6 @@ function renderInline(
     onPillClick: (lokaalId: string) => void;
   },
 ) {
-  // Match [BGT-xxx] of [SEG-N]
   const re = /\[(BGT-[A-Za-z0-9.\-_]+|SEG-\d+)\]/g;
   const parts: React.ReactNode[] = [];
   let lastIdx = 0;
@@ -142,12 +143,12 @@ function renderInline(
         key={`p-${key++}`}
         type="button"
         onClick={() => lokaalId && opts.onPillClick(lokaalId)}
-        className={`mx-0.5 inline-flex items-center rounded-full border px-1.5 py-0.5 font-mono text-[11px] transition-colors ${
+        className={`mx-0.5 inline-flex items-center rounded-full border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider transition-all ${
           isActive
-            ? "border-signal bg-signal/15 text-signal"
+            ? "border-blood bg-blood text-bone shadow-[0_0_12px_-2px_oklch(0.60_0.22_24/0.7)]"
             : isBgt
-              ? "border-cyan/30 bg-cyan/10 text-cyan hover:border-cyan/60"
-              : "border-border bg-muted text-ink/80"
+              ? "border-blood/40 bg-blood/10 text-blood hover:border-blood hover:bg-blood/20"
+              : "border-border bg-ink/40 text-bone/70 hover:border-bone/40 hover:text-bone"
         }`}
       >
         {tag}
