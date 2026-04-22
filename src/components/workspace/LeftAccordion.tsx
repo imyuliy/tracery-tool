@@ -189,19 +189,43 @@ function TraceSection({
         // 1. Parse KML client-side voor we de DB-row aanmaken — als parsing
         //    faalt willen we geen verweesde trace zonder geometrie.
         let parsedWkt: string | null = null;
+        let chosenLayer: string | null = null;
+        let availableLayers: { name: string; lineCount: number; pointCount: number }[] = [];
         if (ext === "kml") {
           const text = await file.text();
           const parsed = parseKmlToMultiLineStringWkt(text);
           parsedWkt = parsed.wkt;
+          chosenLayer = parsed.chosenLayer;
+          availableLayers = parsed.availableLayers.map((l) => ({
+            name: l.name,
+            lineCount: l.lineCount,
+            pointCount: l.pointCount,
+          }));
+          // Diagnostische toast — laat zien wat er gevonden is.
+          const others = availableLayers
+            .filter((l) => l.name !== chosenLayer)
+            .map((l) => `${l.name} (${l.lineCount})`)
+            .join(", ");
+          toast.message(
+            `KML gelezen: ${parsed.lineCount} lijnen, ${parsed.pointCount} punten`,
+            {
+              description:
+                `Gekozen laag: ${chosenLayer}` +
+                (others ? ` · andere lagen: ${others}` : ""),
+            },
+          );
         }
 
         // 2. Insert trace-row.
+        const variantLabel = chosenLayer
+          ? `Variant A — ${chosenLayer}`
+          : "Variant A";
         const { data: traceRow, error } = await supabase
           .from("traces")
           .insert({
             project_id: projectId,
             variant: "A",
-            variant_label: "Variant A",
+            variant_label: variantLabel,
             source_file: file.name,
             source_format: ext,
             analysis_status: "pending",
