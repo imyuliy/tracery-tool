@@ -132,33 +132,36 @@ export async function runGenerateSegmentScanV1(opts: {
   }
   log(`project ok name=${project.name}`);
 
-  // Segmenten met context-view — expliciete kolommen (GEEN geometry; die maakt
-  // de PostgREST-respons enorm en hangt de Worker bij 100+ segmenten).
+  // Segmenten — gebruik base-tabel `segments` ipv `v_segment_with_context`,
+  // want die view doet on-the-fly spatial joins (panden/water/kruisingen)
+  // en hangt bij 481 segmenten. We halen alleen wat we nodig hebben en
+  // limiten op maxSegments aan de DB-kant.
+  log("fetch segments…");
   const { data: segments, error: segErr } = await opts.supabase
-    .from("v_segment_with_context")
+    .from("segments")
     .select(
-      "id, trace_id, sequence, km_start, km_end, length_m, bgt_type, bgt_subtype, bgt_fysiek_voorkomen, bgt_lokaal_id, beheerder, beheerder_type, aanbevolen_techniek, nearby_features, pand_count, waterdeel_count, wegkruising_count, aandacht_flags_auto, aandacht_reden_auto, prev_segment_id, next_segment_id",
+      "id, trace_id, sequence, km_start, km_end, length_m, bgt_type, bgt_subtype, bgt_fysiek_voorkomen, bgt_lokaal_id, beheerder, beheerder_type, aanbevolen_techniek, bgt_feature_type",
     )
     .eq("trace_id", opts.traceId)
-    .order("sequence");
-  if (segErr) throw new Error(`Segments: ${segErr.message}`);
+    .order("sequence")
+    .limit(maxSegments);
+  if (segErr) {
+    log(`segments error: ${segErr.message}`);
+    throw new Error(`Segments: ${segErr.message}`);
+  }
   if (!segments || segments.length === 0) {
     throw new Error("Geen segmenten gevonden. Draai eerst BGT-segmentatie.");
-  }
-  if (segments.length > maxSegments) {
-    warnings.push(
-      `Tracé heeft ${segments.length} segmenten — gecapt op ${maxSegments}.`,
-    );
-    segments.splice(maxSegments);
   }
   log(`segments=${segments.length}`);
 
   // Candidate-eisen voor dit project (via RPC)
+  log("fetch candidate eisen…");
   const { data: candidateRows, error: eisenErr } = await opts.supabase.rpc(
     "eisen_for_project",
     { p_project_id: project.id },
   );
   if (eisenErr) {
+    log(`eisen error: ${eisenErr.message}`);
     throw new Error(`eisen_for_project: ${eisenErr.message}`);
   }
   const candidates = (candidateRows ?? []) as Array<{
