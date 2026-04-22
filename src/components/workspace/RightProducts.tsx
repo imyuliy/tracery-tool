@@ -10,6 +10,7 @@ import {
   useExportBrondocumentV1,
   useGenerateSegmentScan,
   useGenerateTraceDescription,
+  useGenerateTrekParts,
   useProductCatalog,
   useSegmentDescriptions,
 } from "@/lib/workspace";
@@ -24,9 +25,25 @@ export function RightProducts({
   const { data: products = [], isLoading } = useProductCatalog();
   const generateDesc = useGenerateTraceDescription();
   const generateScan = useGenerateSegmentScan();
+  const generateTrekParts = useGenerateTrekParts();
   const exportBrondoc = useExportBrondocumentV1();
   const { data: segDescriptions = [] } = useSegmentDescriptions(traceId);
   const hasScan = segDescriptions.length > 0;
+
+  // Sprint 4.6: na succesvolle scan automatisch trek-parts aggregeren.
+  const runScanWithTrekParts = async () => {
+    if (!traceId) return;
+    try {
+      await generateScan.mutateAsync({ traceId });
+    } catch {
+      return;
+    }
+    try {
+      await generateTrekParts.mutateAsync(traceId);
+    } catch {
+      // toast al getoond
+    }
+  };
 
   return (
     <aside className="glass flex h-full w-full flex-col overflow-hidden rounded-xl shadow-xl shadow-ink/10">
@@ -55,16 +72,18 @@ export function RightProducts({
                         type="button"
                         variant="default"
                         size="sm"
-                        disabled={!traceId || generateScan.isPending}
-                        onClick={() =>
-                          traceId && generateScan.mutate({ traceId })
+                        disabled={
+                          !traceId ||
+                          generateScan.isPending ||
+                          generateTrekParts.isPending
                         }
+                        onClick={runScanWithTrekParts}
                         className="w-full justify-start gap-2.5 px-3"
                       >
                         <span className="font-mono text-[10px] text-paper/70">
                           0{idx + 1}
                         </span>
-                        {generateScan.isPending ? (
+                        {generateScan.isPending || generateTrekParts.isPending ? (
                           <Loader2 className="h-3.5 w-3.5 animate-spin" />
                         ) : (
                           <Sparkles className="h-3.5 w-3.5" />
