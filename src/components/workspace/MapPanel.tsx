@@ -55,11 +55,24 @@ export function MapPanel({
   const mapRef = useRef<MlMap | null>(null);
   const [bgtVisible, setBgtVisible] = useState(true);
   const [ready, setReady] = useState(false);
+  const [debug, setDebug] = useState({
+    status: "init",
+    tilesLoaded: 0,
+    tileErrors: 0,
+    size: "0×0",
+  });
 
   // Init map once.
   useEffect(() => {
     const node = containerRef.current;
     if (!node || mapRef.current) return;
+    setDebug((d) => ({
+      ...d,
+      status: "creating",
+      size: `${node.clientWidth}×${node.clientHeight}`,
+    }));
+    let tilesLoaded = 0;
+    let tileErrors = 0;
     const map = new maplibregl.Map({
       container: node,
       style: {
@@ -98,6 +111,11 @@ export function MapPanel({
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
     map.on("load", () => {
       setReady(true);
+      setDebug((d) => ({
+        ...d,
+        status: "loaded",
+        size: `${node.clientWidth}×${node.clientHeight}`,
+      }));
       requestAnimationFrame(() => {
         map.resize();
         map.fitBounds(
@@ -110,11 +128,34 @@ export function MapPanel({
       });
       setTimeout(() => map.resize(), 200);
     });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    map.on("error", (e: any) => {
+      if (e?.tile) {
+        tileErrors += 1;
+        setDebug((d) => ({ ...d, tileErrors }));
+      } else {
+        setDebug((d) => ({
+          ...d,
+          status: `err: ${e?.error?.message ?? "unknown"}`,
+        }));
+      }
+    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    map.on("data", (e: any) => {
+      if (e.dataType === "source" && e.tile) {
+        tilesLoaded += 1;
+        setDebug((d) => ({ ...d, tilesLoaded }));
+      }
+    });
     mapRef.current = map;
 
-    // ResizeObserver — vangt latere layout-changes af (BottomDrawer open/dicht,
-    // window-resize, panel-resize). Zonder dit blijft de map de oude size houden.
-    const ro = new ResizeObserver(() => map.resize());
+    const ro = new ResizeObserver(() => {
+      map.resize();
+      setDebug((d) => ({
+        ...d,
+        size: `${node.clientWidth}×${node.clientHeight}`,
+      }));
+    });
     ro.observe(node);
 
     return () => {
