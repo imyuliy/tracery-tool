@@ -27,8 +27,11 @@ export function RightProducts({
   const generateScan = useGenerateSegmentScan();
   const generateTrekParts = useGenerateTrekParts();
   const exportBrondoc = useExportBrondocumentV1();
+  const exportTrekDoc = useExportTrekDocx();
   const { data: segDescriptions = [] } = useSegmentDescriptions(traceId);
+  const { data: trekParts = [] } = useTrekParts(traceId);
   const hasScan = segDescriptions.length > 0;
+  const hasTreks = trekParts.length > 0;
 
   // Sprint 4.6: na succesvolle scan automatisch trek-parts aggregeren.
   const runScanWithTrekParts = async () => {

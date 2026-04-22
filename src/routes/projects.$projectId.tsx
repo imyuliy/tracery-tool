@@ -83,6 +83,8 @@ function Workspace() {
   const traceId = trace?.id ?? null;
   const { data: mapData, isLoading: mapLoading } = useTraceMapData(traceId);
   const [highlightedLokaalId, setHighlightedLokaalId] = useState<string | null>(null);
+  const [selectedTrekIdx, setSelectedTrekIdx] = useState<number | null>(null);
+  const { data: trekSegmentIds = [] } = useTrekSegments(traceId, selectedTrekIdx);
 
   const handleSegmentClick = useCallback(
     (props: { bgt_lokaal_id: string }) => {
