@@ -111,9 +111,14 @@ function DashboardContent() {
                         {p.bto_reference}
                       </p>
                     )}
-                    <p className="mt-4 font-sans text-xs text-muted-foreground">
-                      Aangemaakt {formatRelativeDate(p.created_at)}
-                    </p>
+                    <div className="mt-4 flex items-center justify-between">
+                      <span className="rounded-full border border-cyan/30 bg-cyan/10 px-2 py-0.5 font-sans text-[11px] text-cyan">
+                        {p.phase_state ?? "VO_fase_1"}
+                      </span>
+                      <p className="font-sans text-xs text-muted-foreground">
+                        {formatRelativeDate(p.created_at)}
+                      </p>
+                    </div>
                   </Card>
                 </Link>
               );
