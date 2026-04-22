@@ -36,6 +36,7 @@ export interface MapPanelProps {
   data: MapData | undefined;
   isLoading: boolean;
   highlightedLokaalId: string | null;
+  highlightedSegmentIds?: string[];
   onSegmentClick: (props: {
     bgt_lokaal_id: string;
     bgt_feature_type: string;
@@ -49,6 +50,7 @@ export function MapPanel({
   data,
   isLoading,
   highlightedLokaalId,
+  highlightedSegmentIds,
   onSegmentClick,
 }: MapPanelProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -244,17 +246,34 @@ export function MapPanel({
     }
   }, [data, ready, highlightedLokaalId, onSegmentClick]);
 
-  // Update highlight paint when highlightedLokaalId changes.
+  // Update highlight paint when highlightedLokaalId or trek-selection changes.
   useEffect(() => {
     const m = mapRef.current;
     if (!m || !ready || !m.getLayer("segments-line")) return;
-    m.setPaintProperty("segments-line", "line-width", [
+    const trekIds = highlightedSegmentIds ?? [];
+    const widthExpr: maplibregl.ExpressionSpecification = [
       "case",
       ["==", ["get", "bgt_lokaal_id"], highlightedLokaalId ?? ""],
       9,
+      trekIds.length > 0
+        ? (["in", ["get", "id"], ["literal", trekIds]] as unknown as maplibregl.ExpressionSpecification)
+        : false,
+      7,
       4,
-    ]);
-  }, [highlightedLokaalId, ready]);
+    ] as maplibregl.ExpressionSpecification;
+    m.setPaintProperty("segments-line", "line-width", widthExpr);
+    if (trekIds.length > 0) {
+      const opacityExpr = [
+        "case",
+        ["in", ["get", "id"], ["literal", trekIds]],
+        1,
+        0.2,
+      ] as maplibregl.ExpressionSpecification;
+      m.setPaintProperty("segments-line", "line-opacity", opacityExpr);
+    } else {
+      m.setPaintProperty("segments-line", "line-opacity", 0.85);
+    }
+  }, [highlightedLokaalId, highlightedSegmentIds, ready]);
 
   return (
     <div
