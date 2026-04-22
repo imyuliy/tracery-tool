@@ -134,20 +134,22 @@ export function parseKmlToMultiLineStringWkt(text: string): KmlParseResult {
     });
   }
 
-  // Kies primaire laag op basis van prioriteit, daarna op grootste lineCount.
-  const ranked = [...layers].sort((a, b) => {
-    const sa = scoreFolder(a.name);
-    const sb = scoreFolder(b.name);
-    if (sb !== sa) return sb - sa;
-    return b.lineCount - a.lineCount;
-  });
-  const chosen = ranked[0];
+  // Plat alles tot ÉÉN MultiLineString — alle LineStrings uit alle folders
+  // samen. Geen folder-prioriteit meer; we behandelen het tracé als geheel.
+  // Dit voorkomt dat we per ongeluk alleen de mantelbuis óf alleen het
+  // kabelnet pakken — de gebruiker krijgt altijd alle lijnen te zien.
+  const allLines = extractLineStringsFrom(stripped);
+  if (allLines.length === 0) {
+    throw new Error("Geen LineString-geometrieën gevonden in KML.");
+  }
+  const totalPoints = allLines.reduce((a, b) => a + b.pointCount, 0);
+  const flatWkt = `MULTILINESTRING(${allLines.map((l) => l.wktInner).join(", ")})`;
 
   return {
-    wkt: chosen.wkt,
-    lineCount: chosen.lineCount,
-    pointCount: chosen.pointCount,
-    chosenLayer: chosen.name,
+    wkt: flatWkt,
+    lineCount: allLines.length,
+    pointCount: totalPoints,
+    chosenLayer: layers.length > 1 ? `${layers.length} lagen samengevoegd` : layers[0].name,
     availableLayers: layers,
   };
 }
