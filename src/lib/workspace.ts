@@ -354,3 +354,40 @@ export function useExportBrondocumentV1() {
     onError: (err: Error) => toast.error(err.message),
   });
 }
+
+// ─── Query: trek-part descriptions (Sprint 4.6) ────────────────────────
+export function useTrekParts(traceId: string | null) {
+  return useQuery({
+    queryKey: ["trek-parts", traceId],
+    enabled: !!traceId,
+    staleTime: 30_000,
+    queryFn: async () => {
+      if (!traceId) return [];
+      const { data, error } = await supabase
+        .from("trek_part_descriptions")
+        .select("*")
+        .eq("trace_id", traceId)
+        .eq("version", 1)
+        .order("part_idx", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+// ─── Mutation: trek-part generatie (Sprint 4.6) ────────────────────────
+export function useGenerateTrekParts() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (traceId: string) => {
+      return await generateTrekPartDescriptions({
+        data: { trace_id: traceId },
+      });
+    },
+    onSuccess: (_r, traceId) => {
+      qc.invalidateQueries({ queryKey: ["trek-parts", traceId] });
+      toast.success("Trek-overzicht gegenereerd");
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
