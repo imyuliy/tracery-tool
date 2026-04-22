@@ -294,7 +294,7 @@ export function MapPanel({
   }, [highlightedLokaalId, ready]);
 
   return (
-    <div className="relative h-full w-full bg-bone">
+    <div className="absolute inset-0 bg-bone">
       <div ref={containerRef} className="absolute inset-0" />
       {/* DEBUG — verwijder later. Zit rechts onder de header zodat je 'm zeker ziet. */}
       <div className="pointer-events-none absolute right-[336px] top-[76px] z-[6] rounded-md bg-black/85 px-3 py-2 font-mono text-[10px] leading-relaxed text-white shadow-lg">
