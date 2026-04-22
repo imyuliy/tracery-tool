@@ -20,20 +20,22 @@ export function RightProducts({
   const generate = useGenerateTraceDescription();
 
   return (
-    <aside className="flex h-full w-[320px] shrink-0 flex-col border-l border-border bg-card">
+    <aside className="glass flex h-full w-full flex-col overflow-hidden rounded-xl shadow-2xl shadow-black/40">
       <div className="border-b border-border px-4 py-3">
-        <h2 className="font-display text-sm font-semibold text-ink">Producten</h2>
-        <p className="mt-0.5 font-sans text-xs text-muted-foreground">
-          Genereer artefacten op basis van het actieve tracé.
+        <h2 className="font-display text-sm font-semibold uppercase tracking-wider text-bone">
+          Producten
+        </h2>
+        <p className="mt-0.5 font-mono text-[10px] uppercase tracking-wider text-bone/50">
+          Artefacten op basis van actief tracé
         </p>
       </div>
       <div className="flex-1 overflow-y-auto p-3">
         {isLoading ? (
-          <p className="font-sans text-xs text-muted-foreground">Laden…</p>
+          <p className="font-sans text-xs text-bone/50">Laden…</p>
         ) : (
           <TooltipProvider delayDuration={200}>
             <ul className="space-y-2">
-              {products.map((p) => {
+              {products.map((p, idx) => {
                 const enabled = p.code === "trace_description";
                 const isActive = enabled && p.is_active !== false;
                 const handleClick = () => {
@@ -47,10 +49,11 @@ export function RightProducts({
                     size="sm"
                     disabled={!isActive || !traceId || generate.isPending}
                     onClick={handleClick}
-                    className={`w-full justify-start gap-2 ${
-                      isActive ? "bg-signal text-paper hover:bg-signal/90" : ""
-                    }`}
+                    className="w-full justify-start gap-2.5 px-3"
                   >
+                    <span className="font-mono text-[10px] text-bone/50">
+                      0{idx + 1}
+                    </span>
                     {isActive ? (
                       generate.isPending ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />

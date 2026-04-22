@@ -5,24 +5,29 @@ import type { Project } from "@/lib/projects";
 
 export function WorkspaceHeader({ project }: { project: Project }) {
   return (
-    <header className="flex h-[60px] shrink-0 items-center justify-between border-b border-border bg-card px-4">
-      <div className="flex items-center gap-3">
+    <header className="glass-strong flex h-[60px] shrink-0 items-center justify-between px-5">
+      <div className="flex items-center gap-4">
         <Link
           to="/dashboard"
-          className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 font-sans text-xs text-muted-foreground hover:bg-muted hover:text-ink"
+          className="group inline-flex items-center gap-1.5 rounded-md px-2 py-1 font-sans text-xs text-bone/60 transition-colors hover:bg-blood/10 hover:text-bone"
         >
-          <ArrowLeft className="h-3.5 w-3.5" />
+          <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
           Dashboard
         </Link>
-        <div className="h-5 w-px bg-border" />
-        <div className="flex flex-col">
-          <h1 className="font-display text-base font-semibold leading-tight text-ink">
-            {project.name}
-          </h1>
-          <p className="font-sans text-[11px] leading-tight text-muted-foreground">
-            {project.client ?? "—"}
-            {project.perceel ? ` · ${project.perceel}` : ""}
-          </p>
+        <div className="h-6 w-px bg-border" />
+        <div className="flex items-center gap-3">
+          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-blood font-display text-sm font-bold text-bone shadow-[0_0_16px_-2px_oklch(0.60_0.22_24/0.6)]">
+            T
+          </div>
+          <div className="flex flex-col">
+            <h1 className="font-display text-base font-semibold leading-tight tracking-tight text-bone">
+              {project.name}
+            </h1>
+            <p className="font-mono text-[10px] uppercase leading-tight tracking-widest text-bone/50">
+              {project.client ?? "—"}
+              {project.perceel ? ` · ${project.perceel}` : ""}
+            </p>
+          </div>
         </div>
       </div>
       <div className="flex items-center gap-3">
