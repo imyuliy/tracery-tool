@@ -33,12 +33,16 @@ export const projectQueryOptions = (id: string) =>
   queryOptions({
     queryKey: ["projects", id],
     queryFn: async (): Promise<Project> => {
+      // maybeSingle: voorkomt PGRST116 als RLS het project verbergt of
+      // het id niet bestaat — we gooien dan een nette Error die de
+      // notFoundComponent in de route oppakt.
       const { data, error } = await supabase
         .from("projects")
         .select("*")
         .eq("id", id)
-        .single();
+        .maybeSingle();
       if (error) throw error;
+      if (!data) throw new Error("Project niet gevonden");
       return data;
     },
   });
