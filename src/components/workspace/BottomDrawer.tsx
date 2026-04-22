@@ -58,10 +58,14 @@ interface EisMatch {
 export function BottomDrawer({
   traceId,
   highlightedLokaalId,
+  selectedTrekIdx,
+  onSelectTrek,
   onPillClick,
 }: {
   traceId: string | null;
   highlightedLokaalId: string | null;
+  selectedTrekIdx: number | null;
+  onSelectTrek: (partIdx: number | null) => void;
   onPillClick: (lokaalId: string) => void;
 }) {
   const [open, setOpen] = useState(true);
@@ -154,6 +158,13 @@ export function BottomDrawer({
               highlightedLokaalId={highlightedLokaalId}
               onPillClick={onPillClick}
             />
+          ) : tab === "treks" ? (
+            <TreksTab
+              traceId={traceId}
+              treks={trekParts}
+              selectedTrekIdx={selectedTrekIdx}
+              onSelectTrek={onSelectTrek}
+            />
           ) : (
             <SegmentsTab
               traceId={traceId}
@@ -164,6 +175,60 @@ export function BottomDrawer({
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+// ───────────────────── Treks tab ─────────────────────
+function TreksTab({
+  traceId,
+  treks,
+  selectedTrekIdx,
+  onSelectTrek,
+}: {
+  traceId: string | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  treks: any[];
+  selectedTrekIdx: number | null;
+  onSelectTrek: (partIdx: number | null) => void;
+}) {
+  const [expanded, setExpanded] = useState<Set<number>>(new Set());
+  if (!traceId) {
+    return <p className="px-6 py-4 font-sans text-sm text-ink/50">Geen tracé.</p>;
+  }
+  if (!treks || treks.length === 0) {
+    return (
+      <p className="px-6 py-4 font-sans text-sm text-ink/50">
+        Nog geen trek-overzicht. Start de scan rechts; trek-aggregatie volgt
+        automatisch.
+      </p>
+    );
+  }
+  return (
+    <div className="h-full space-y-2 overflow-y-auto px-4 py-3">
+      {treks.map((trek) => {
+        const isHighlighted = selectedTrekIdx === trek.part_idx;
+        const isExpanded = expanded.has(trek.part_idx);
+        return (
+          <TrekBlock
+            key={trek.id}
+            trek={trek}
+            isHighlighted={isHighlighted}
+            isExpanded={isExpanded}
+            onToggleExpand={() => {
+              setExpanded((prev) => {
+                const next = new Set(prev);
+                if (next.has(trek.part_idx)) next.delete(trek.part_idx);
+                else next.add(trek.part_idx);
+                return next;
+              });
+            }}
+            onTrekClick={() =>
+              onSelectTrek(isHighlighted ? null : trek.part_idx)
+            }
+          />
+        );
+      })}
     </div>
   );
 }
