@@ -9,6 +9,10 @@ import {
   exportTraceDescriptionDocx,
   type TraceMapData,
 } from "@/lib/server/trace.functions";
+import {
+  generateSegmentScanV1,
+  exportBrondocumentV1Docx,
+} from "@/lib/server/scan.functions";
 
 export type PhaseState =
   | "VO_fase_1"
