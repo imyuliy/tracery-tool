@@ -143,12 +143,31 @@ export function LeftAccordion({ project }: { project: Project }) {
                 {s.id === "scope" && <ScopeSection scope={scope ?? []} />}
                 {s.id === "params" && <ParamsSection params={params} />}
                 {s.id === "stations" && <StationsSection trace={trace} />}
+                {s.id === "scan" && (
+                  <ScanSection count={segDescriptions.length} />
+                )}
               </AccordionContent>
             </AccordionItem>
           ))}
         </Accordion>
       </div>
     </aside>
+  );
+}
+
+function ScanSection({ count }: { count: number }) {
+  if (count === 0) {
+    return (
+      <p className="font-sans text-xs text-ink/50">
+        Nog geen segment-scan. Start via &ldquo;Brondocument v1&rdquo; rechts.
+      </p>
+    );
+  }
+  return (
+    <dl className="space-y-1.5 font-sans text-xs">
+      <Row label="Segmenten gescand" value={String(count)} />
+      <Row label="Status" value="✓ klaar voor export" />
+    </dl>
   );
 }
 
