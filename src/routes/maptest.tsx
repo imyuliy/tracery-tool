@@ -72,19 +72,10 @@ function MapTestPage() {
         console.error("[maptest] map error:", e);
         setStatus(`error: ${e.error?.message ?? "unknown"}`);
       });
-      map.on("data", (e) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      map.on("data", (e: any) => {
         if (e.dataType === "source" && e.tile) {
           loaded += 1;
-          setTileEvents({ loaded, errors });
-        }
-      });
-      map.on("dataloading", () => {
-        // noop — useful breakpoint
-      });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      map.on("error", (e: any) => {
-        if (e?.tile) {
-          errors += 1;
           setTileEvents({ loaded, errors });
         }
       });
