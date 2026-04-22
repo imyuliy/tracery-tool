@@ -26,7 +26,17 @@ type SupabaseLike = SupabaseClient<Database>;
 
 const BATCH_SIZE = 25;
 const MAX_PARALLEL = 5;
-const MAX_SEGMENTS = 1000;
+const MAX_SEGMENTS_DEFAULT = 1000;
+// Env-cap (Stap 0 validatie): SCAN_MAX_SEGMENTS=1 om end-to-end flow te testen.
+function resolveMaxSegments(override?: number): number {
+  if (typeof override === "number" && override > 0) return override;
+  const env = process.env.SCAN_MAX_SEGMENTS;
+  if (env) {
+    const n = Number.parseInt(env, 10);
+    if (Number.isFinite(n) && n > 0) return n;
+  }
+  return MAX_SEGMENTS_DEFAULT;
+}
 const TOP_K_RULES = 8;
 const TOP_K_VECTOR = 6;
 const MIN_VECTOR_SCORE = 0.55;
