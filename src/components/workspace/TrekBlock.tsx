@@ -76,12 +76,18 @@ export function TrekBlock({
       {eisen.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-1.5">
           {eisen.slice(0, 8).map((code) => (
-            <span
+            <button
+              type="button"
               key={code}
-              className="inline-flex items-center rounded-full border border-ink/20 bg-bone px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-ink/70"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigator.clipboard?.writeText(code);
+              }}
+              title={`Kopieer ${code}`}
+              className="inline-flex items-center rounded-full border border-ink/20 bg-bone px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-ink/70 transition-colors hover:border-blood/40 hover:bg-blood/8 hover:text-blood"
             >
               {code}
-            </span>
+            </button>
           ))}
           {eisen.length > 8 && (
             <span className="font-mono text-[9px] uppercase tracking-wider text-ink/40">

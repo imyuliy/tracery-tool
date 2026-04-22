@@ -10,7 +10,7 @@ import { ArrowLeft } from "lucide-react";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { Card } from "@/components/ui/card";
 import { projectQueryOptions } from "@/lib/projects";
-import { useLatestTrace, useTraceMapData } from "@/lib/workspace";
+import { useLatestTrace, useTraceMapData, useTrekSegments } from "@/lib/workspace";
 import { WorkspaceHeader } from "@/components/workspace/WorkspaceHeader";
 import { LeftAccordion } from "@/components/workspace/LeftAccordion";
 import { MapPanel } from "@/components/workspace/MapPanel";
@@ -120,6 +120,7 @@ function Workspace() {
         data={mapData}
         isLoading={mapLoading}
         highlightedLokaalId={highlightedLokaalId}
+        highlightedSegmentIds={trekSegmentIds}
         onSegmentClick={handleSegmentClick}
       />
 
@@ -150,6 +151,8 @@ function Workspace() {
           <BottomDrawer
             traceId={traceId}
             highlightedLokaalId={highlightedLokaalId}
+            selectedTrekIdx={selectedTrekIdx}
+            onSelectTrek={setSelectedTrekIdx}
             onPillClick={handlePillClick}
           />
         </div>

@@ -93,7 +93,8 @@ export function RightProducts({
                       {hasScan && (
                         <div className="flex flex-col gap-1 pl-2">
                           <p className="font-mono text-[9px] uppercase tracking-wider text-ink/50">
-                            {segDescriptions.length} segmenten gescand
+                            {segDescriptions.length} segmenten
+                            {hasTreks ? ` · ${trekParts.length} treks` : ""}
                           </p>
                           <Button
                             type="button"
@@ -110,8 +111,27 @@ export function RightProducts({
                             ) : (
                               <Download className="h-3 w-3" />
                             )}
-                            Download .docx
+                            Per-segment .docx
                           </Button>
+                          {hasTreks && (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              disabled={!traceId || exportTrekDoc.isPending}
+                              onClick={() =>
+                                traceId && exportTrekDoc.mutate(traceId)
+                              }
+                              className="h-7 justify-start gap-1.5 text-[11px]"
+                            >
+                              {exportTrekDoc.isPending ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <Download className="h-3 w-3" />
+                              )}
+                              Per-trek .docx
+                            </Button>
+                          )}
                         </div>
                       )}
                     </li>
