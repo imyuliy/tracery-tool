@@ -266,7 +266,10 @@ async function fetchPdokFeatures(
             (props.bgt_type as string) ??
             (props.bgtType as string) ??
             (props["function"] as string) ??
-            null,
+            // Fallback: segments.bgt_type is NOT NULL en sommige BGT-collecties
+            // (bv. pand, overigbouwwerk) hebben geen 'functie' property. Gebruik
+            // dan de collection-naam zelf zodat segment_trace_by_bgt niet crasht.
+            collectionId,
           bgt_subtype:
             (props.fysiek_voorkomen as string) ??
             (props.bgt_functie as string) ??
