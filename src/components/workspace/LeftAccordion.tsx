@@ -284,9 +284,15 @@ function TraceSection({
             Sleep tracé hier of klik
           </p>
           <p className="mt-0.5 font-mono text-[10px] uppercase tracking-wider text-ink/40">
-            zip · kml · geojson · gpx
+            kml (geojson · gpx · zip volgen)
           </p>
         </div>
+      )}
+      {ingesting && (
+        <p className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-blood">
+          <Loader2 className="h-3 w-3 animate-spin" />
+          Pipeline draait — BGT + omschrijving
+        </p>
       )}
       {trace?.id && (
         <Button
@@ -294,12 +300,12 @@ function TraceSection({
           variant="outline"
           className="w-full"
           onClick={onSegment}
-          disabled={segmenting}
+          disabled={segmenting || ingesting}
         >
           {segmenting ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
           ) : (
-            "BGT-segmentatie draaien"
+            "BGT-segmentatie opnieuw draaien"
           )}
         </Button>
       )}
