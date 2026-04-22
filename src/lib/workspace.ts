@@ -7,6 +7,7 @@ import {
   segmentTraceByBgt,
   generateTraceDescription,
   exportTraceDescriptionDocx,
+  setTraceGeometryFromWkt,
   type TraceMapData,
 } from "@/lib/server/trace.functions";
 
@@ -237,6 +238,23 @@ export function useExportDocx() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["project-artifacts"] });
       toast.success("DOCX-export klaar");
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
+// ─── Mutation: KML-ingest (zet geometry vanuit WKT 4326) ───────────────
+export function useSetTraceGeometryFromWkt() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: { traceId: string; wkt4326: string }) => {
+      return await setTraceGeometryFromWkt({
+        data: { trace_id: vars.traceId, wkt_4326: vars.wkt4326 },
+      });
+    },
+    onSuccess: (_r, vars) => {
+      qc.invalidateQueries({ queryKey: ["trace-map", vars.traceId] });
+      qc.invalidateQueries({ queryKey: ["latest-trace"] });
     },
     onError: (err: Error) => toast.error(err.message),
   });

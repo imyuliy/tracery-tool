@@ -12,10 +12,13 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import {
   useActiveParameters,
+  useGenerateTraceDescription,
   useLatestTrace,
   useProjectScope,
   useSegmentTrace,
+  useSetTraceGeometryFromWkt,
 } from "@/lib/workspace";
+import { parseKmlToMultiLineStringWkt } from "@/lib/kml-parser";
 import { Button } from "@/components/ui/button";
 import type { Project } from "@/lib/projects";
 
@@ -42,6 +45,8 @@ export function LeftAccordion({ project }: { project: Project }) {
   const { data: params } = useActiveParameters(project.id);
   const { data: scope } = useProjectScope(project.id);
   const segment = useSegmentTrace();
+  const setGeom = useSetTraceGeometryFromWkt();
+  const generateDesc = useGenerateTraceDescription();
 
   const sections: Section[] = [
     { id: "project", title: "Projectinfo", complete: !!project.client },
@@ -55,6 +60,22 @@ export function LeftAccordion({ project }: { project: Project }) {
     },
   ];
   const completed = sections.filter((s) => s.complete).length;
+
+  const runFullPipeline = useCallback(
+    async (traceId: string) => {
+      try {
+        await segment.mutateAsync(traceId);
+      } catch {
+        return; // toast al getoond
+      }
+      try {
+        await generateDesc.mutateAsync(traceId);
+      } catch {
+        // toast al getoond — segmentatie was wel succes
+      }
+    },
+    [segment, generateDesc],
+  );
 
   return (
     <aside className="glass flex h-full w-full flex-col overflow-hidden rounded-xl shadow-xl shadow-ink/10">
@@ -100,10 +121,16 @@ export function LeftAccordion({ project }: { project: Project }) {
                     onUploaded={() => {
                       qc.invalidateQueries({ queryKey: ["latest-trace", project.id] });
                     }}
+                    onIngestKml={async (traceId, wkt4326) => {
+                      await setGeom.mutateAsync({ traceId, wkt4326 });
+                      toast.success("Tracé ingelezen — pipeline draait");
+                      void runFullPipeline(traceId);
+                    }}
                     onSegment={() =>
                       trace && segment.mutate(trace.id)
                     }
                     segmenting={segment.isPending}
+                    ingesting={setGeom.isPending || generateDesc.isPending}
                   />
                 )}
                 {s.id === "scope" && <ScopeSection scope={scope ?? []} />}
@@ -132,14 +159,18 @@ function TraceSection({
   projectId,
   trace,
   onUploaded,
+  onIngestKml,
   onSegment,
   segmenting,
+  ingesting,
 }: {
   projectId: string;
   trace: { id: string; source_file: string | null; length_m: number | null } | null | undefined;
   onUploaded: () => void;
+  onIngestKml: (traceId: string, wkt4326: string) => Promise<void>;
   onSegment: () => void;
   segmenting: boolean;
+  ingesting: boolean;
 }) {
   const [uploading, setUploading] = useState(false);
 
@@ -154,6 +185,17 @@ function TraceSection({
       setUploading(true);
       try {
         const ext = file.name.split(".").pop()?.toLowerCase() ?? "bin";
+
+        // 1. Parse KML client-side voor we de DB-row aanmaken — als parsing
+        //    faalt willen we geen verweesde trace zonder geometrie.
+        let parsedWkt: string | null = null;
+        if (ext === "kml") {
+          const text = await file.text();
+          const parsed = parseKmlToMultiLineStringWkt(text);
+          parsedWkt = parsed.wkt;
+        }
+
+        // 2. Insert trace-row.
         const { data: traceRow, error } = await supabase
           .from("traces")
           .insert({
@@ -167,6 +209,8 @@ function TraceSection({
           .select("id")
           .single();
         if (error) throw error;
+
+        // 3. Upload originele file (raw, voor audit).
         const path = `${projectId}/${traceRow.id}.${ext}`;
         const { error: upErr } = await supabase.storage
           .from("traces")
@@ -178,15 +222,23 @@ function TraceSection({
           await supabase.from("traces").delete().eq("id", traceRow.id);
           throw upErr;
         }
+
         toast.success("Tracé geüpload");
         onUploaded();
+
+        // 4. Als KML: zet geometrie + draai pipeline.
+        if (parsedWkt) {
+          await onIngestKml(traceRow.id, parsedWkt);
+        } else {
+          toast.message("Alleen KML-parsing is momenteel actief.");
+        }
       } catch (err) {
         toast.error((err as Error).message);
       } finally {
         setUploading(false);
       }
     },
-    [projectId, onUploaded],
+    [projectId, onUploaded, onIngestKml],
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -197,9 +249,12 @@ function TraceSection({
     disabled: uploading,
   });
 
+  const [showReplace, setShowReplace] = useState(false);
+  const showDropzone = !trace?.source_file || showReplace;
+
   return (
     <div className="space-y-3">
-      {trace?.source_file ? (
+      {trace?.source_file && !showReplace && (
         <div className="rounded-md border border-border bg-paper px-3 py-2 transition-colors hover:border-blood/40">
           <div className="flex items-center gap-2 font-sans text-xs text-ink">
             <FileText className="h-3.5 w-3.5 text-blood" />
@@ -210,8 +265,16 @@ function TraceSection({
               {Math.round(trace.length_m)} m
             </p>
           )}
+          <button
+            type="button"
+            className="mt-2 font-mono text-[10px] uppercase tracking-wider text-blood hover:text-ember"
+            onClick={() => setShowReplace(true)}
+          >
+            Vervang tracé →
+          </button>
         </div>
-      ) : (
+      )}
+      {showDropzone && (
         <div
           {...getRootProps()}
           className={`cursor-pointer rounded-md border-2 border-dashed p-4 text-center transition-all ${
@@ -232,9 +295,15 @@ function TraceSection({
             Sleep tracé hier of klik
           </p>
           <p className="mt-0.5 font-mono text-[10px] uppercase tracking-wider text-ink/40">
-            zip · kml · geojson · gpx
+            kml (geojson · gpx · zip volgen)
           </p>
         </div>
+      )}
+      {ingesting && (
+        <p className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-blood">
+          <Loader2 className="h-3 w-3 animate-spin" />
+          Pipeline draait — BGT + omschrijving
+        </p>
       )}
       {trace?.id && (
         <Button
@@ -242,12 +311,12 @@ function TraceSection({
           variant="outline"
           className="w-full"
           onClick={onSegment}
-          disabled={segmenting}
+          disabled={segmenting || ingesting}
         >
           {segmenting ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
           ) : (
-            "BGT-segmentatie draaien"
+            "BGT-segmentatie opnieuw draaien"
           )}
         </Button>
       )}

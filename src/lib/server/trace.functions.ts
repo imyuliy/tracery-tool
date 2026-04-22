@@ -82,3 +82,27 @@ export const getTraceMapData = createServerFn({ method: "POST" })
       bbox_4326: null,
     }) as unknown as TraceMapData;
   });
+
+// ─── set_trace_geometry_from_wkt_4326 ──────────────────────────────────
+// Zet geometrie op een trace vanuit MultiLineString WKT in EPSG:4326
+// (bv. uit KML). RPC handelt transformatie naar 28992 + length_m af.
+const setGeomSchema = z.object({
+  trace_id: z.string().uuid(),
+  wkt_4326: z.string().min(20),
+});
+
+export const setTraceGeometryFromWkt = createServerFn({ method: "POST" })
+  .middleware([withSupabaseAuth, requireSupabaseAuth])
+  .inputValidator((input: unknown) => setGeomSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { data: rows, error } = await context.supabase.rpc(
+      "set_trace_geometry_from_wkt_4326",
+      { p_trace_id: data.trace_id, p_wkt: data.wkt_4326 },
+    );
+    if (error) throw new Error(`set_trace_geometry: ${error.message}`);
+    const row = Array.isArray(rows) ? rows[0] : rows;
+    return {
+      trace_id: data.trace_id,
+      length_m: Number(row?.length_m ?? 0),
+    };
+  });

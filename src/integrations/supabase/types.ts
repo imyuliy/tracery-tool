@@ -2274,6 +2274,13 @@ export type Database = {
       postgis_version: { Args: never; Returns: string }
       postgis_wagyu_version: { Args: never; Returns: string }
       segment_trace_by_bgt: { Args: { p_trace_id: string }; Returns: number }
+      set_trace_geometry_from_wkt_4326: {
+        Args: { p_trace_id: string; p_wkt: string }
+        Returns: {
+          length_m: number
+          trace_id: string
+        }[]
+      }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       st_3dclosestpoint: {
