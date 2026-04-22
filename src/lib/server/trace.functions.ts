@@ -3,6 +3,7 @@
 // worden ook gedeeld met de smoke-test route (api.public.smoketest-sprint4.ts).
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import type { Feature, FeatureCollection, Polygon } from "geojson";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { withSupabaseAuth } from "@/integrations/supabase/auth-client-middleware";
 import {
@@ -59,10 +60,10 @@ export const exportTraceDescriptionDocx = createServerFn({ method: "POST" })
 const mapDataSchema = z.object({ trace_id: z.string().uuid() });
 
 export interface TraceMapData {
-  trace_geojson: GeoJSON.Feature | null;
-  segments_geojson: GeoJSON.FeatureCollection;
-  stations_geojson: GeoJSON.FeatureCollection;
-  bbox_4326: GeoJSON.Polygon | null;
+  trace_geojson: Feature | null;
+  segments_geojson: FeatureCollection;
+  stations_geojson: FeatureCollection;
+  bbox_4326: Polygon | null;
 }
 
 export const getTraceMapData = createServerFn({ method: "POST" })
