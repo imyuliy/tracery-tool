@@ -13,7 +13,10 @@ import {
   generateSegmentScanV1,
   exportBrondocumentV1Docx,
 } from "@/lib/server/scan.functions";
-import { generateTrekPartDescriptions } from "@/lib/server/trek_part.functions";
+import {
+  generateTrekPartDescriptions,
+  exportTrekHierarchyDocx,
+} from "@/lib/server/trek_part.functions";
 
 export type PhaseState =
   | "VO_fase_1"
@@ -389,5 +392,41 @@ export function useGenerateTrekParts() {
       toast.success("Trek-overzicht gegenereerd");
     },
     onError: (err: Error) => toast.error(err.message),
+  });
+}
+
+// ─── Mutation: trek-hiërarchie DOCX-export (Sprint 4.6) ────────────────
+export function useExportTrekDocx() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (traceId: string) => {
+      return await exportTrekHierarchyDocx({ data: { trace_id: traceId } });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["project-artifacts"] });
+      toast.success("Trek-DOCX klaar");
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
+// ─── Query: segmenten van één trek (voor map-highlight) ────────────────
+export function useTrekSegments(traceId: string | null, partIdx: number | null) {
+  return useQuery({
+    queryKey: ["trek-segments", traceId, partIdx],
+    enabled: !!traceId && partIdx !== null,
+    staleTime: 60_000,
+    queryFn: async () => {
+      if (!traceId || partIdx === null) return [];
+      const { data, error } = await supabase.rpc("segments_with_part_idx", {
+        p_trace_id: traceId,
+      });
+      if (error) throw error;
+      const rows = (data ?? []) as Array<{
+        segment_id: string;
+        part_idx: number;
+      }>;
+      return rows.filter((r) => r.part_idx === partIdx).map((r) => r.segment_id);
+    },
   });
 }
