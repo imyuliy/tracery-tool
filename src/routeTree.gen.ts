@@ -15,6 +15,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProjectsProjectIdRouteImport } from './routes/projects.$projectId'
 import { Route as AdminEisenpakkettenRouteImport } from './routes/admin.eisenpakketten'
+import { Route as ApiPublicSmoketestSprint4TriggerRouteImport } from './routes/api.public.smoketest-sprint4-trigger'
 import { Route as ApiPublicSmoketestSprint4RouteImport } from './routes/api.public.smoketest-sprint4'
 
 const SettingsRoute = SettingsRouteImport.update({
@@ -47,6 +48,12 @@ const AdminEisenpakkettenRoute = AdminEisenpakkettenRouteImport.update({
   path: '/admin/eisenpakketten',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicSmoketestSprint4TriggerRoute =
+  ApiPublicSmoketestSprint4TriggerRouteImport.update({
+    id: '/api/public/smoketest-sprint4-trigger',
+    path: '/api/public/smoketest-sprint4-trigger',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicSmoketestSprint4Route =
   ApiPublicSmoketestSprint4RouteImport.update({
     id: '/api/public/smoketest-sprint4',
@@ -62,6 +69,7 @@ export interface FileRoutesByFullPath {
   '/admin/eisenpakketten': typeof AdminEisenpakkettenRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/api/public/smoketest-sprint4': typeof ApiPublicSmoketestSprint4Route
+  '/api/public/smoketest-sprint4-trigger': typeof ApiPublicSmoketestSprint4TriggerRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -71,6 +79,7 @@ export interface FileRoutesByTo {
   '/admin/eisenpakketten': typeof AdminEisenpakkettenRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/api/public/smoketest-sprint4': typeof ApiPublicSmoketestSprint4Route
+  '/api/public/smoketest-sprint4-trigger': typeof ApiPublicSmoketestSprint4TriggerRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -81,6 +90,7 @@ export interface FileRoutesById {
   '/admin/eisenpakketten': typeof AdminEisenpakkettenRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/api/public/smoketest-sprint4': typeof ApiPublicSmoketestSprint4Route
+  '/api/public/smoketest-sprint4-trigger': typeof ApiPublicSmoketestSprint4TriggerRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -92,6 +102,7 @@ export interface FileRouteTypes {
     | '/admin/eisenpakketten'
     | '/projects/$projectId'
     | '/api/public/smoketest-sprint4'
+    | '/api/public/smoketest-sprint4-trigger'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -101,6 +112,7 @@ export interface FileRouteTypes {
     | '/admin/eisenpakketten'
     | '/projects/$projectId'
     | '/api/public/smoketest-sprint4'
+    | '/api/public/smoketest-sprint4-trigger'
   id:
     | '__root__'
     | '/'
@@ -110,6 +122,7 @@ export interface FileRouteTypes {
     | '/admin/eisenpakketten'
     | '/projects/$projectId'
     | '/api/public/smoketest-sprint4'
+    | '/api/public/smoketest-sprint4-trigger'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -120,6 +133,7 @@ export interface RootRouteChildren {
   AdminEisenpakkettenRoute: typeof AdminEisenpakkettenRoute
   ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
   ApiPublicSmoketestSprint4Route: typeof ApiPublicSmoketestSprint4Route
+  ApiPublicSmoketestSprint4TriggerRoute: typeof ApiPublicSmoketestSprint4TriggerRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -166,6 +180,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminEisenpakkettenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/smoketest-sprint4-trigger': {
+      id: '/api/public/smoketest-sprint4-trigger'
+      path: '/api/public/smoketest-sprint4-trigger'
+      fullPath: '/api/public/smoketest-sprint4-trigger'
+      preLoaderRoute: typeof ApiPublicSmoketestSprint4TriggerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/smoketest-sprint4': {
       id: '/api/public/smoketest-sprint4'
       path: '/api/public/smoketest-sprint4'
@@ -184,6 +205,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminEisenpakkettenRoute: AdminEisenpakkettenRoute,
   ProjectsProjectIdRoute: ProjectsProjectIdRoute,
   ApiPublicSmoketestSprint4Route: ApiPublicSmoketestSprint4Route,
+  ApiPublicSmoketestSprint4TriggerRoute: ApiPublicSmoketestSprint4TriggerRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

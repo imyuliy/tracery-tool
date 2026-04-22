@@ -17,6 +17,12 @@
 //
 // SECURITY: deze route is ALLEEN bedoeld voor smoke-tests. De `x-smoketest-secret`
 // moet random + 32+ chars zijn. Niet gebruiken voor user-facing logic.
+//
+// TODO(Sprint 5): remove smoketest bypass, replace with user-JWT auth.
+// Deze route is een tijdelijk alternatief auth-pad voor invoke-server-function
+// tijdens Sprint 4-verificatie. De productie server-fns in trace.functions.ts
+// behouden requireSupabaseAuth — die middleware wordt NIET vervangen door deze
+// secret. Deze route hergebruikt alleen de helpers in trace.helpers.server.ts.
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import {
