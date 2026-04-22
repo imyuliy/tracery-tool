@@ -12,8 +12,10 @@ import {
   parseVector,
 } from "./ai-provider.server";
 
+export const config = { maxDuration: 60 };
+
 const EMBEDDING_DIM = 1536;
-const EMBEDDING_BATCH = 200;
+const EMBEDDING_BATCH = 256;
 const INSERT_BATCH = 500;
 const TOP_K_EISEN = 15;
 const MAX_TOKENS = 4000;
@@ -329,11 +331,21 @@ export const importEisenpakketXlsx = createServerFn({ method: "POST" })
       }
       log("inserts-done", { total: inserted });
 
-      await supabaseAdmin
+      const { data: activatedVersion, error: activateErr } = await supabaseAdmin
         .from("eisenpakket_versions")
         .update({ status: "active" })
-        .eq("id", version_id);
-      log("version-activated");
+        .eq("id", version_id)
+        .select("id, status")
+        .single();
+      if (activateErr) {
+        log("FAIL version-activate", { error: activateErr.message, version_id });
+        throw new Error(`Kan versie niet activeren: ${activateErr.message}`);
+      }
+      if (activatedVersion?.status !== "active") {
+        log("FAIL version-activate-verify", { version_id, activatedVersion });
+        throw new Error("Versie kon niet bevestigd actief worden gezet.");
+      }
+      log("version-activated", { version_id });
 
       await supabaseAdmin.from("audit_log").insert({
         action: "eisenpakket_import",
