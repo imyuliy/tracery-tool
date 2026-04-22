@@ -66,7 +66,44 @@ function MapTestPage() {
 
       map.addControl(new maplibregl.NavigationControl(), "top-right");
 
-      map.on("load", () => setStatus("loaded"));
+      map.on("load", () => {
+        setStatus("loaded");
+        // Force resize na load — vangt container-size=0-bug af
+        setTimeout(() => map.resize(), 0);
+        setTimeout(() => map.resize(), 200);
+      });
+
+      // ResizeObserver — als container later van 0 naar non-zero gaat
+      const ro = new ResizeObserver(() => map.resize());
+      ro.observe(containerRef.current);
+
+      mapRef.current = map;
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("[maptest] init threw:", err);
+      setStatus(`throw: ${(err as Error).message}`);
+    }
+
+    return () => {
+      mapRef.current?.remove();
+      mapRef.current = null;
+    };
+  }, []);
+
+  return (
+    <div style={{ position: "fixed", inset: 0, width: "100vw", height: "100vh" }}>
+      <div
+        ref={containerRef}
+        style={{ width: "100%", height: "100%", background: "#ddd" }}
+      />
+      <div className="pointer-events-none absolute left-4 top-4 z-10 rounded-md bg-white/90 px-3 py-2 font-mono text-xs shadow-md">
+        <div>status: {status}</div>
+        <div>tiles loaded: {tileEvents.loaded}</div>
+        <div>tile errors: {tileEvents.errors}</div>
+      </div>
+    </div>
+  );
+}
       map.on("error", (e) => {
         // eslint-disable-next-line no-console
         console.error("[maptest] map error:", e);
