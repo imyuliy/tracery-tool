@@ -15,6 +15,8 @@ export interface GenerateOptions {
   system: string;
   user: string;
   maxTokens?: number;
+  /** Optionele override van het generation-model voor deze enkele call. */
+  model?: string;
 }
 
 export interface GenerateResult {
@@ -54,7 +56,8 @@ export function getAIProvider(): AIProvider {
     embeddingModel,
     generationModel,
     embed: (opts) => openaiEmbed(openaiKey, embeddingModel, opts),
-    generate: (opts) => lovableGenerate(lovableKey, generationModel, opts),
+    generate: (opts) =>
+      lovableGenerate(lovableKey, opts.model ?? generationModel, opts),
   };
 }
 

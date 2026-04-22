@@ -12,8 +12,10 @@ if (typeof window !== "undefined") {
 
 type SupabaseLike = SupabaseClient<Database>;
 
-const MAX_TOKENS_PER_TREK = 1200;
-const MAX_CONCURRENT_TREKS = 4;
+const MAX_TOKENS_PER_TREK = 800;
+const MAX_CONCURRENT_TREKS = 8;
+// Snel + goedkoop model voor templated trek-narratives.
+const TREK_MODEL = "google/gemini-2.5-flash-lite";
 
 interface TrekPartRow {
   part_idx: number;
@@ -275,6 +277,7 @@ async function generateOneTrekPart(args: {
         system: TREK_NARRATIVE_SYSTEM_PROMPT,
         user: buildTrekPrompt(part, segments, bgtVerdeling, [...aandachtSet]),
         maxTokens: MAX_TOKENS_PER_TREK,
+        model: TREK_MODEL,
       });
       narrative = (gen.text ?? "").trim();
       promptTokens = gen.input_tokens;
