@@ -15,6 +15,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProjectsProjectIdRouteImport } from './routes/projects.$projectId'
 import { Route as AdminEisenpakkettenRouteImport } from './routes/admin.eisenpakketten'
+import { Route as ApiPublicSmoketestSprint4RouteImport } from './routes/api.public.smoketest-sprint4'
 
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
@@ -46,6 +47,12 @@ const AdminEisenpakkettenRoute = AdminEisenpakkettenRouteImport.update({
   path: '/admin/eisenpakketten',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicSmoketestSprint4Route =
+  ApiPublicSmoketestSprint4RouteImport.update({
+    id: '/api/public/smoketest-sprint4',
+    path: '/api/public/smoketest-sprint4',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/admin/eisenpakketten': typeof AdminEisenpakkettenRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
+  '/api/public/smoketest-sprint4': typeof ApiPublicSmoketestSprint4Route
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +70,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/admin/eisenpakketten': typeof AdminEisenpakkettenRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
+  '/api/public/smoketest-sprint4': typeof ApiPublicSmoketestSprint4Route
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,6 +80,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/admin/eisenpakketten': typeof AdminEisenpakkettenRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
+  '/api/public/smoketest-sprint4': typeof ApiPublicSmoketestSprint4Route
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -81,6 +91,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/admin/eisenpakketten'
     | '/projects/$projectId'
+    | '/api/public/smoketest-sprint4'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -89,6 +100,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/admin/eisenpakketten'
     | '/projects/$projectId'
+    | '/api/public/smoketest-sprint4'
   id:
     | '__root__'
     | '/'
@@ -97,6 +109,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/admin/eisenpakketten'
     | '/projects/$projectId'
+    | '/api/public/smoketest-sprint4'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -106,6 +119,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   AdminEisenpakkettenRoute: typeof AdminEisenpakkettenRoute
   ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
+  ApiPublicSmoketestSprint4Route: typeof ApiPublicSmoketestSprint4Route
 }
 
 declare module '@tanstack/react-router' {
@@ -152,6 +166,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminEisenpakkettenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/smoketest-sprint4': {
+      id: '/api/public/smoketest-sprint4'
+      path: '/api/public/smoketest-sprint4'
+      fullPath: '/api/public/smoketest-sprint4'
+      preLoaderRoute: typeof ApiPublicSmoketestSprint4RouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -162,6 +183,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   AdminEisenpakkettenRoute: AdminEisenpakkettenRoute,
   ProjectsProjectIdRoute: ProjectsProjectIdRoute,
+  ApiPublicSmoketestSprint4Route: ApiPublicSmoketestSprint4Route,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
