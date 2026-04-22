@@ -258,6 +258,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "clashes_segment_id_fkey"
+            columns: ["segment_id"]
+            isOneToOne: false
+            referencedRelation: "v_segment_with_context"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "clashes_trace_id_fkey"
             columns: ["trace_id"]
             isOneToOne: false
@@ -939,7 +946,7 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           description: string | null
-          eisenpakket_version_id: string | null
+          eisenpakket_version_id: string
           id: string
           name: string
           org_id: string
@@ -960,7 +967,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           description?: string | null
-          eisenpakket_version_id?: string | null
+          eisenpakket_version_id: string
           id?: string
           name: string
           org_id: string
@@ -981,7 +988,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           description?: string | null
-          eisenpakket_version_id?: string | null
+          eisenpakket_version_id?: string
           id?: string
           name?: string
           org_id?: string
@@ -1218,6 +1225,102 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "v_project_summary"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      segment_descriptions: {
+        Row: {
+          aandacht_flags: Json
+          aandacht_reden: string | null
+          ai_aandacht: boolean | null
+          ai_aandacht_reden: string | null
+          ai_voorgestelde_techniek: string | null
+          completion_tokens: number | null
+          context_summary: string | null
+          eisen_matches: Json
+          generated_at: string
+          generated_by: string | null
+          generation_run_id: string | null
+          id: string
+          model: string | null
+          narrative_md: string
+          prompt_tokens: number | null
+          segment_id: string
+          trace_id: string
+        }
+        Insert: {
+          aandacht_flags?: Json
+          aandacht_reden?: string | null
+          ai_aandacht?: boolean | null
+          ai_aandacht_reden?: string | null
+          ai_voorgestelde_techniek?: string | null
+          completion_tokens?: number | null
+          context_summary?: string | null
+          eisen_matches?: Json
+          generated_at?: string
+          generated_by?: string | null
+          generation_run_id?: string | null
+          id?: string
+          model?: string | null
+          narrative_md: string
+          prompt_tokens?: number | null
+          segment_id: string
+          trace_id: string
+        }
+        Update: {
+          aandacht_flags?: Json
+          aandacht_reden?: string | null
+          ai_aandacht?: boolean | null
+          ai_aandacht_reden?: string | null
+          ai_voorgestelde_techniek?: string | null
+          completion_tokens?: number | null
+          context_summary?: string | null
+          eisen_matches?: Json
+          generated_at?: string
+          generated_by?: string | null
+          generation_run_id?: string | null
+          id?: string
+          model?: string | null
+          narrative_md?: string
+          prompt_tokens?: number | null
+          segment_id?: string
+          trace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "segment_descriptions_generated_by_fkey"
+            columns: ["generated_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "segment_descriptions_segment_id_fkey"
+            columns: ["segment_id"]
+            isOneToOne: false
+            referencedRelation: "segments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "segment_descriptions_segment_id_fkey"
+            columns: ["segment_id"]
+            isOneToOne: false
+            referencedRelation: "v_segment_detail"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "segment_descriptions_segment_id_fkey"
+            columns: ["segment_id"]
+            isOneToOne: false
+            referencedRelation: "v_segment_with_context"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "segment_descriptions_trace_id_fkey"
+            columns: ["trace_id"]
+            isOneToOne: false
+            referencedRelation: "traces"
             referencedColumns: ["id"]
           },
         ]
@@ -1921,6 +2024,41 @@ export type Database = {
           sequence: number | null
           trace_id: string | null
           warnings: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "segments_trace_id_fkey"
+            columns: ["trace_id"]
+            isOneToOne: false
+            referencedRelation: "traces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_segment_with_context: {
+        Row: {
+          aanbevolen_techniek: string | null
+          aandacht_flags_auto: string[] | null
+          aandacht_reden_auto: string | null
+          beheerder: string | null
+          beheerder_type: string | null
+          bgt_fysiek_voorkomen: string | null
+          bgt_lokaal_id: string | null
+          bgt_subtype: string | null
+          bgt_type: string | null
+          geometry: unknown
+          id: string | null
+          km_end: number | null
+          km_start: number | null
+          length_m: number | null
+          nearby_features: Json | null
+          next_segment_id: string | null
+          pand_count: number | null
+          prev_segment_id: string | null
+          sequence: number | null
+          trace_id: string | null
+          waterdeel_count: number | null
+          wegkruising_count: number | null
         }
         Relationships: [
           {
