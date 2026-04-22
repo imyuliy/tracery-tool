@@ -14,9 +14,9 @@ import {
 type MapData = NonNullable<ReturnType<typeof useTraceMapData>["data"]>;
 
 const PDOK_BRT =
-  "https://service.pdok.nl/brt/achtergrondkaart/wmts/v2_0/standaard/EPSG:3857/{z}/{x}/{y}.png";
+  "https://service.pdok.nl/brt/achtergrondkaart/wmts/v2_0/standaard/EPSG:3857/{z}/{y}/{x}.png";
 const PDOK_BGT =
-  "https://service.pdok.nl/lv/bgt/wmts/v1_0/achtergrondvisualisatie/EPSG:3857/{z}/{x}/{y}.png";
+  "https://service.pdok.nl/lv/bgt/wmts/v1_0/achtergrondvisualisatie/EPSG:3857/{z}/{y}/{x}.png";
 
 // match-expression voor BGT segment kleuren
 function bgtColorMatch(): maplibregl.ExpressionSpecification {
@@ -83,7 +83,6 @@ export function MapPanel({
             paint: { "raster-opacity": 0.4 },
           },
         ],
-        glyphs: undefined,
       },
       center: [5.1214, 52.0907], // NL fallback (Utrecht)
       zoom: 7,
