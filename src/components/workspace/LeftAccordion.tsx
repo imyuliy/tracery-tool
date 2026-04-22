@@ -49,9 +49,12 @@ export function LeftAccordion({ project }: { project: Project }) {
   const { data: params } = useActiveParameters(project.id);
   const { data: scope } = useProjectScope(project.id);
   const { data: segDescriptions = [] } = useSegmentDescriptions(trace?.id ?? null);
+  const { data: trekParts = [] } = useTrekParts(trace?.id ?? null);
   const segment = useSegmentTrace();
   const setGeom = useSetTraceGeometryFromWkt();
   const generateDesc = useGenerateTraceDescription();
+  const generateScan = useGenerateSegmentScan();
+  const generateTrekParts = useGenerateTrekParts();
 
   const sections: Section[] = [
     { id: "project", title: "Projectinfo", complete: !!project.client },
@@ -66,11 +69,12 @@ export function LeftAccordion({ project }: { project: Project }) {
     {
       id: "scan",
       title: "Scan & analyse",
-      complete: segDescriptions.length > 0,
+      complete: segDescriptions.length > 0 && trekParts.length > 0,
     },
   ];
   const completed = sections.filter((s) => s.complete).length;
 
+  // Sprint 4.6 — pipeline: BGT-segmentatie → scan → trek-part aggregatie.
   const runFullPipeline = useCallback(
     async (traceId: string) => {
       try {
@@ -79,12 +83,17 @@ export function LeftAccordion({ project }: { project: Project }) {
         return; // toast al getoond
       }
       try {
-        await generateDesc.mutateAsync(traceId);
+        await generateScan.mutateAsync({ traceId });
       } catch {
-        // toast al getoond — segmentatie was wel succes
+        return; // scan faalde — trek-parts heeft geen zin zonder scan
+      }
+      try {
+        await generateTrekParts.mutateAsync(traceId);
+      } catch {
+        // toast al getoond — scan was succes, trek-parts kunnen handmatig
       }
     },
-    [segment, generateDesc],
+    [segment, generateScan, generateTrekParts],
   );
 
   return (
