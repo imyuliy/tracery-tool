@@ -92,6 +92,7 @@ export async function runGenerateSegmentScanV1(opts: {
   supabase: SupabaseLike;
   traceId: string;
   userId: string | null;
+  maxSegments?: number;
 }): Promise<ScanRunResult> {
   const t0 = Date.now();
   const log = (msg: string, extra?: Record<string, unknown>) =>
@@ -103,6 +104,8 @@ export async function runGenerateSegmentScanV1(opts: {
   const ai = getAIProvider();
   const generationRunId = crypto.randomUUID();
   const warnings: string[] = [];
+  const maxSegments = resolveMaxSegments(opts.maxSegments);
+  log(`max_segments=${maxSegments}`);
 
   // Trace + project ophalen
   const { data: trace, error: traceErr } = await opts.supabase
