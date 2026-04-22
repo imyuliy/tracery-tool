@@ -220,7 +220,7 @@ export const importEisenpakketXlsx = createServerFn({ method: "POST" })
           verificatiemethode: e.verificatiemethode,
           type_bewijsdocument: e.type_bewijsdocument,
           embedding: toVectorLiteral(embeddings[start + idx]),
-          raw: e.raw,
+          raw: e.raw as never,
         }));
         const { error: insertErr } = await supabaseAdmin
           .from("eisen")
