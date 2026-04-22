@@ -131,11 +131,11 @@ export async function runGenerateSegmentScanV1(opts: {
   if (!segments || segments.length === 0) {
     throw new Error("Geen segmenten gevonden. Draai eerst BGT-segmentatie.");
   }
-  if (segments.length > MAX_SEGMENTS) {
+  if (segments.length > maxSegments) {
     warnings.push(
-      `Tracé heeft ${segments.length} segmenten — gecapt op ${MAX_SEGMENTS}.`,
+      `Tracé heeft ${segments.length} segmenten — gecapt op ${maxSegments}.`,
     );
-    segments.splice(MAX_SEGMENTS);
+    segments.splice(maxSegments);
   }
   log(`segments=${segments.length}`);
 
