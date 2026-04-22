@@ -5,37 +5,30 @@ import {
   useRouter,
 } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useCallback, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { RequireAuth } from "@/components/auth/RequireAuth";
-import { TopNav } from "@/components/nav/TopNav";
 import { Card } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  PROJECT_STATUS_LABELS,
-  projectQueryOptions,
-} from "@/lib/projects";
-import { OverviewTab } from "@/components/projects/OverviewTab";
-import { StationsTab } from "@/components/projects/StationsTab";
-import { TraceTab } from "@/components/projects/TraceTab";
-import { ParametersTab } from "@/components/projects/ParametersTab";
-import { ReportsTab } from "@/components/projects/ReportsTab";
-import { useProjectTraces } from "@/lib/project-detail";
+import { projectQueryOptions } from "@/lib/projects";
+import { useLatestTrace, useTraceMapData } from "@/lib/workspace";
+import { WorkspaceHeader } from "@/components/workspace/WorkspaceHeader";
+import { LeftAccordion } from "@/components/workspace/LeftAccordion";
+import { MapPanel } from "@/components/workspace/MapPanel";
+import { RightProducts } from "@/components/workspace/RightProducts";
+import { BottomDrawer } from "@/components/workspace/BottomDrawer";
 
 export const Route = createFileRoute("/projects/$projectId")({
   head: ({ params }) => ({
     meta: [
-      { title: `Project — De Tracémolen` },
+      { title: `Workspace — De Tracémolen` },
       {
         name: "description",
-        content: `Project ${params.projectId} in De Tracémolen.`,
+        content: `Tracé-workspace voor project ${params.projectId}.`,
       },
     ],
   }),
-  loader: ({ params, context }) => {
-    return context.queryClient.ensureQueryData(
-      projectQueryOptions(params.projectId),
-    );
-  },
+  loader: ({ params, context }) =>
+    context.queryClient.ensureQueryData(projectQueryOptions(params.projectId)),
   errorComponent: ({ error }) => {
     const router = useRouter();
     return (
@@ -71,118 +64,60 @@ export const Route = createFileRoute("/projects/$projectId")({
       </Card>
     </div>
   ),
-  component: ProjectPage,
+  component: ProjectWorkspaceRoute,
 });
 
-function ProjectPage() {
+function ProjectWorkspaceRoute() {
   return (
     <RequireAuth>
-      <ProjectContent />
+      <Workspace />
     </RequireAuth>
   );
 }
 
-function ProjectContent() {
+function Workspace() {
   const { projectId } = Route.useParams();
-  const { data: project } = useQuery({
-    ...projectQueryOptions(projectId),
-  });
+  const { data: project } = useQuery(projectQueryOptions(projectId));
+  const { data: trace } = useLatestTrace(projectId);
+  const traceId = trace?.id ?? null;
+  const { data: mapData, isLoading: mapLoading } = useTraceMapData(traceId);
+  const [highlightedLokaalId, setHighlightedLokaalId] = useState<string | null>(null);
 
-  // Realtime channel activeren via traces-hook (side-effect).
-  useProjectTraces(projectId);
-
-  if (!project) {
-    throw notFound();
-  }
-
-  const status =
-    PROJECT_STATUS_LABELS[project.status ?? "draft"] ??
-    PROJECT_STATUS_LABELS.draft;
-
-  return (
-    <div className="min-h-screen bg-paper">
-      <TopNav />
-
-      <main className="mx-auto max-w-6xl px-6 py-10">
-        <Link
-          to="/dashboard"
-          className="mb-6 inline-flex items-center gap-1.5 font-sans text-sm text-muted-foreground hover:text-ink"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          Dashboard
-        </Link>
-
-        <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="font-display text-3xl font-semibold tracking-tight text-ink">
-                {project.name}
-              </h1>
-              <span
-                className={`rounded-full border px-2.5 py-0.5 font-sans text-xs ${status.tone}`}
-              >
-                {status.label}
-              </span>
-            </div>
-            <p className="mt-1 font-sans text-sm text-muted-foreground">
-              {project.client ?? "—"}
-              {project.perceel ? ` · ${project.perceel}` : ""}
-              {project.bto_reference ? ` · ${project.bto_reference}` : ""}
-            </p>
-          </div>
-        </div>
-
-        <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="mb-6 flex flex-wrap gap-1 bg-card">
-            <TabsTrigger value="overview">Overzicht</TabsTrigger>
-            <TabsTrigger value="stations">Stations</TabsTrigger>
-            <TabsTrigger value="trace">Tracé</TabsTrigger>
-            <TabsTrigger value="parameters">Parameters</TabsTrigger>
-            <TabsTrigger value="analyse">Analyse</TabsTrigger>
-            <TabsTrigger value="reports">Rapporten</TabsTrigger>
-            <TabsTrigger value="exports">Exports</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview">
-            <OverviewTab project={project} />
-          </TabsContent>
-          <TabsContent value="stations">
-            <StationsTab projectId={projectId} />
-          </TabsContent>
-          <TabsContent value="trace">
-            <TraceTab projectId={projectId} />
-          </TabsContent>
-          <TabsContent value="parameters">
-            <ParametersTab projectId={projectId} />
-          </TabsContent>
-          <TabsContent value="analyse">
-            <Placeholder
-              title="Analyse"
-              text="Wacht op backend-engine. BGT-segmentatie, KLIC-clashes en techniek-keuze worden in Sprint 3 toegevoegd."
-            />
-          </TabsContent>
-          <TabsContent value="reports">
-            <ReportsTab projectId={projectId} />
-          </TabsContent>
-          <TabsContent value="exports">
-            <Placeholder
-              title="Exports"
-              text="DOCX, XLSX en PDF-artefacten worden gegenereerd in Sprint 3."
-            />
-          </TabsContent>
-        </Tabs>
-      </main>
-    </div>
+  const handleSegmentClick = useCallback(
+    (props: { bgt_lokaal_id: string }) => {
+      setHighlightedLokaalId(props.bgt_lokaal_id);
+    },
+    [],
   );
-}
 
-function Placeholder({ title, text }: { title: string; text: string }) {
+  const handlePillClick = useCallback((lokaalId: string) => {
+    setHighlightedLokaalId((prev) => (prev === lokaalId ? null : lokaalId));
+  }, []);
+
+  if (!project) throw notFound();
+
   return (
-    <Card className="border-border bg-card p-10 text-center">
-      <h3 className="font-display text-xl text-ink">{title}</h3>
-      <p className="mx-auto mt-2 max-w-md font-sans text-sm text-muted-foreground">
-        {text}
-      </p>
-    </Card>
+    <div className="flex h-screen w-screen flex-col overflow-hidden bg-paper">
+      <WorkspaceHeader project={project} />
+      <div className="flex min-h-0 flex-1">
+        <LeftAccordion project={project} />
+        <main className="flex min-w-0 flex-1 flex-col">
+          <div className="min-h-0 flex-1">
+            <MapPanel
+              data={mapData}
+              isLoading={mapLoading}
+              highlightedLokaalId={highlightedLokaalId}
+              onSegmentClick={handleSegmentClick}
+            />
+          </div>
+          <BottomDrawer
+            traceId={traceId}
+            highlightedLokaalId={highlightedLokaalId}
+            onPillClick={handlePillClick}
+          />
+        </main>
+        <RightProducts traceId={traceId} />
+      </div>
+    </div>
   );
 }
