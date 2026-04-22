@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import * as XLSX from "xlsx";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { withSupabaseAuth } from "@/integrations/supabase/auth-client-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import {
   getAIProvider,
@@ -59,7 +60,7 @@ const importSchema = z.object({
 });
 
 export const importEisenpakketXlsx = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([withSupabaseAuth, requireSupabaseAuth])
   .inputValidator((input: unknown) => importSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
@@ -293,7 +294,7 @@ const SECTION_CONFIG: Record<string, SectionConfig> = {
 };
 
 export const generateReportSection = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([withSupabaseAuth, requireSupabaseAuth])
   .inputValidator((input: unknown) => generateSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
