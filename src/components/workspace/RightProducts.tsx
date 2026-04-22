@@ -1,4 +1,4 @@
-import { Loader2, Sparkles, Lock, FileText, Download } from "lucide-react";
+import { Loader2, Sparkles, Lock, FileText, Download, FlaskConical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
