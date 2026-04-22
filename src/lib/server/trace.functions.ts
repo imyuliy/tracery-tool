@@ -3,6 +3,7 @@
 // worden ook gedeeld met de smoke-test route (api.public.smoketest-sprint4.ts).
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import type { Feature, FeatureCollection, Polygon } from "geojson";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { withSupabaseAuth } from "@/integrations/supabase/auth-client-middleware";
 import {
@@ -54,4 +55,30 @@ export const exportTraceDescriptionDocx = createServerFn({ method: "POST" })
       sectionId: data.section_id,
       userId: context.userId,
     });
+  });
+
+const mapDataSchema = z.object({ trace_id: z.string().uuid() });
+
+export interface TraceMapData {
+  trace_geojson: Feature | null;
+  segments_geojson: FeatureCollection;
+  stations_geojson: FeatureCollection;
+  bbox_4326: Polygon | null;
+}
+
+export const getTraceMapData = createServerFn({ method: "POST" })
+  .middleware([withSupabaseAuth, requireSupabaseAuth])
+  .inputValidator((input: unknown) => mapDataSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { data: row, error } = await context.supabase.rpc(
+      "get_trace_map_data",
+      { p_trace_id: data.trace_id },
+    );
+    if (error) throw new Error(`get_trace_map_data: ${error.message}`);
+    return (row ?? {
+      trace_geojson: null,
+      segments_geojson: { type: "FeatureCollection", features: [] },
+      stations_geojson: { type: "FeatureCollection", features: [] },
+      bbox_4326: null,
+    }) as unknown as TraceMapData;
   });
