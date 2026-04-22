@@ -1,0 +1,1 @@
+DELETE FROM public.eisenpakket_versions WHERE id = 'e459a76d-fa0e-4382-a564-520670989f86' AND status = 'draft';

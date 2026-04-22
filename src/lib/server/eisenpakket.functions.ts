@@ -88,13 +88,15 @@ export const importEisenpakketXlsx = createServerFn({ method: "POST" })
     }
     log("pakket-ok");
 
-    // Idempotency
+    // Idempotency — alleen ACTIVE versies tellen als duplicaat.
+    // Drafts = mislukte imports, die ruimen we hieronder op.
     if (data.source_file_hash) {
       const { data: existing } = await supabaseAdmin
         .from("eisenpakket_versions")
         .select("id, row_count")
         .eq("eisenpakket_id", data.eisenpakket_id)
         .eq("source_file_hash", data.source_file_hash)
+        .eq("status", "active")
         .maybeSingle();
       if (existing) {
         log("DUPLICATE — skipping", { existing_id: existing.id });
@@ -109,6 +111,19 @@ export const importEisenpakketXlsx = createServerFn({ method: "POST" })
       }
     }
     log("idempotency-check-ok");
+
+    // Ruim mislukte drafts voor dit pakket op (rollback van vorige poging)
+    const { data: stuckDrafts } = await supabaseAdmin
+      .from("eisenpakket_versions")
+      .select("id")
+      .eq("eisenpakket_id", data.eisenpakket_id)
+      .eq("status", "draft");
+    if (stuckDrafts && stuckDrafts.length > 0) {
+      const draftIds = stuckDrafts.map((d) => d.id);
+      await supabaseAdmin.from("eisen").delete().in("eisenpakket_version_id", draftIds);
+      await supabaseAdmin.from("eisenpakket_versions").delete().in("id", draftIds);
+      log("cleaned-stuck-drafts", { count: draftIds.length });
+    }
 
     // Download xlsx via admin (storage RLS bypass)
     const { data: fileBlob, error: dlErr } = await supabaseAdmin.storage
@@ -182,11 +197,34 @@ export const importEisenpakketXlsx = createServerFn({ method: "POST" })
       });
     }
 
-    if (eisen.length === 0) {
+    // Dedup binnen XLSX op (objecttype, eis_code) — eerste voorkomen wint
+    const seen = new Set<string>();
+    const dedupedEisen: EisRow[] = [];
+    let duplicatesInFile = 0;
+    for (const e of eisen) {
+      const key = `${e.objecttype}||${e.eis_code}`;
+      if (seen.has(key)) {
+        duplicatesInFile++;
+        errors.push(`Duplicaat (objecttype="${e.objecttype}", eis_code="${e.eis_code}") — overgeslagen`);
+        continue;
+      }
+      seen.add(key);
+      dedupedEisen.push(e);
+    }
+    log("dedup-done", {
+      input: eisen.length,
+      after_dedup: dedupedEisen.length,
+      duplicates_skipped: duplicatesInFile,
+    });
+
+    if (dedupedEisen.length === 0) {
       throw new Error(
-        `Geen valide rijen. Errors: ${errors.slice(0, 5).join("; ")}`,
+        `Geen valide rijen na dedup. Errors: ${errors.slice(0, 5).join("; ")}`,
       );
     }
+
+    // Vervang eisen met dedup'd versie voor de rest van de pipeline
+    const finalEisen = dedupedEisen;
 
     // Draft version row
     const fileName = data.storage_path.split("/").pop() ?? data.storage_path;
@@ -198,7 +236,7 @@ export const importEisenpakketXlsx = createServerFn({ method: "POST" })
         status: "draft",
         source_file: fileName,
         source_file_hash: data.source_file_hash ?? null,
-        row_count: eisen.length,
+        row_count: finalEisen.length,
         imported_by: userId,
       })
       .select("id")
@@ -211,15 +249,15 @@ export const importEisenpakketXlsx = createServerFn({ method: "POST" })
       );
     }
     const version_id = versionRow.id;
-    log("version-row-ok", { version_id, parse_errors: errors.length, valid_rows: eisen.length });
+    log("version-row-ok", { version_id, parse_errors: errors.length, valid_rows: finalEisen.length });
 
     try {
       // Embeddings batched
-      const embeddings: number[][] = new Array(eisen.length);
-      const totalBatches = Math.ceil(eisen.length / EMBEDDING_BATCH);
-      for (let start = 0; start < eisen.length; start += EMBEDDING_BATCH) {
+      const embeddings: number[][] = new Array(finalEisen.length);
+      const totalBatches = Math.ceil(finalEisen.length / EMBEDDING_BATCH);
+      for (let start = 0; start < finalEisen.length; start += EMBEDDING_BATCH) {
         const batchNum = Math.floor(start / EMBEDDING_BATCH) + 1;
-        const batch = eisen.slice(start, start + EMBEDDING_BATCH);
+        const batch = finalEisen.slice(start, start + EMBEDDING_BATCH);
         const inputs = batch.map((e) => `${e.eistitel}\n\n${e.eistekst}`);
         const tBatch = Date.now();
         const batchEmbeds = await ai.embed({
@@ -238,11 +276,11 @@ export const importEisenpakketXlsx = createServerFn({ method: "POST" })
 
       // Insert
       let inserted = 0;
-      const totalInsertBatches = Math.ceil(eisen.length / INSERT_BATCH);
-      for (let start = 0; start < eisen.length; start += INSERT_BATCH) {
+      const totalInsertBatches = Math.ceil(finalEisen.length / INSERT_BATCH);
+      for (let start = 0; start < finalEisen.length; start += INSERT_BATCH) {
         const batchNum = Math.floor(start / INSERT_BATCH) + 1;
         const tBatch = Date.now();
-        const batch = eisen.slice(start, start + INSERT_BATCH).map((e, idx) => ({
+        const batch = finalEisen.slice(start, start + INSERT_BATCH).map((e, idx) => ({
           eisenpakket_version_id: version_id,
           objecttype: e.objecttype,
           eis_code: e.eis_code,
@@ -289,6 +327,7 @@ export const importEisenpakketXlsx = createServerFn({ method: "POST" })
           source_file: data.storage_path,
           row_count: inserted,
           parse_errors: errors.length,
+          duplicates_in_file: duplicatesInFile,
           embedding_model: ai.embeddingModel,
         },
       });
@@ -296,9 +335,9 @@ export const importEisenpakketXlsx = createServerFn({ method: "POST" })
       log("DONE", { total_ms: Date.now() - t0, inserted });
       return {
         version_id,
-        row_count: eisen.length,
+        row_count: finalEisen.length,
         inserted,
-        skipped_duplicates: 0,
+        skipped_duplicates: duplicatesInFile,
         embedding_model: ai.embeddingModel,
         parse_errors: errors.length,
         first_errors: errors.slice(0, 10),
