@@ -11,7 +11,7 @@ function IndexRedirect() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="font-mono text-xs uppercase tracking-widest text-bone/50">Laden…</div>
+        <div className="font-mono text-xs uppercase tracking-widest text-ink/50">Laden…</div>
       </div>
     );
   }

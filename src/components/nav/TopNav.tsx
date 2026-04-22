@@ -25,13 +25,13 @@ export function TopNav() {
   };
 
   return (
-    <header className="border-b border-border bg-ink/80 backdrop-blur-md">
+    <header className="border-b border-border bg-paper/70 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
         <Link
           to="/dashboard"
-          className="inline-flex items-center gap-2.5 font-display text-xl font-semibold tracking-tight text-bone transition-colors hover:text-blood"
+          className="inline-flex items-center gap-2.5 font-display text-xl font-semibold tracking-tight text-ink transition-colors hover:text-blood"
         >
-          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-blood font-display text-sm font-bold text-bone shadow-[0_0_16px_-2px_oklch(0.60_0.22_24/0.6)]">
+          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-blood font-display text-sm font-bold text-ink shadow-[0_0_16px_-2px_oklch(0.60_0.22_24/0.6)]">
             T
           </span>
           De Tracémolen
@@ -48,7 +48,7 @@ export function TopNav() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel className="font-mono text-[10px] uppercase tracking-widest text-bone/50">
+            <DropdownMenuLabel className="font-mono text-[10px] uppercase tracking-widest text-ink/50">
               {user?.email ?? "Niet ingelogd"}
             </DropdownMenuLabel>
             <DropdownMenuSeparator />

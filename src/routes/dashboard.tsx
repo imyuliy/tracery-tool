@@ -47,13 +47,13 @@ function DashboardContent() {
       <main className="mx-auto max-w-6xl px-6 py-12">
         <div className="mb-8 flex items-end justify-between gap-4">
           <div>
-            <p className="font-mono text-[10px] uppercase tracking-widest text-bone/50">
+            <p className="font-mono text-[10px] uppercase tracking-widest text-ink/50">
               Workspace
             </p>
-            <h1 className="mt-1 font-display text-4xl font-semibold tracking-tight text-bone">
+            <h1 className="mt-1 font-display text-4xl font-semibold tracking-tight text-ink">
               Welkom, {displayName(user)}
             </h1>
-            <p className="mt-2 font-sans text-base text-bone/60">
+            <p className="mt-2 font-sans text-base text-ink/60">
               Begin een nieuw tracé-ontwerp of open een bestaand project.
             </p>
           </div>
@@ -90,9 +90,9 @@ function DashboardContent() {
                   params={{ projectId: p.id }}
                   className="group"
                 >
-                  <Card className="h-full border-border bg-carbon/60 p-6 backdrop-blur-sm transition-all hover:border-blood/60 hover:bg-carbon/80 hover:shadow-[0_0_32px_-8px_oklch(0.60_0.22_24/0.4)]">
+                  <Card className="h-full border-border bg-paper p-6 backdrop-blur-sm transition-all hover:border-blood/60 hover:bg-paper hover:shadow-[0_0_32px_-8px_oklch(0.60_0.22_24/0.4)]">
                     <div className="flex items-start justify-between gap-3">
-                      <h2 className="font-display text-xl font-semibold leading-tight text-bone transition-colors group-hover:text-blood">
+                      <h2 className="font-display text-xl font-semibold leading-tight text-ink transition-colors group-hover:text-blood">
                         {p.name}
                       </h2>
                       <span
@@ -101,7 +101,7 @@ function DashboardContent() {
                         {status.label}
                       </span>
                     </div>
-                    <div className="mt-3 flex items-center gap-1.5 font-sans text-sm text-bone/60">
+                    <div className="mt-3 flex items-center gap-1.5 font-sans text-sm text-ink/60">
                       <Building2 className="h-3.5 w-3.5" />
                       <span>
                         {p.client ?? "—"}
@@ -109,7 +109,7 @@ function DashboardContent() {
                       </span>
                     </div>
                     {p.bto_reference && (
-                      <p className="mt-1 font-mono text-[10px] uppercase tracking-wider text-bone/40">
+                      <p className="mt-1 font-mono text-[10px] uppercase tracking-wider text-ink/40">
                         {p.bto_reference}
                       </p>
                     )}
@@ -117,7 +117,7 @@ function DashboardContent() {
                       <span className="rounded-full border border-blood/40 bg-blood/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-blood">
                         {p.phase_state ?? "VO_fase_1"}
                       </span>
-                      <p className="font-sans text-xs text-bone/40">
+                      <p className="font-sans text-xs text-ink/40">
                         {formatRelativeDate(p.created_at)}
                       </p>
                     </div>
@@ -136,13 +136,13 @@ function DashboardContent() {
 
 function EmptyState({ onCreate }: { onCreate: () => void }) {
   return (
-    <Card className="border-dashed border-border bg-carbon/40 p-12 backdrop-blur-sm">
+    <Card className="border-dashed border-border bg-paper p-12 backdrop-blur-sm">
       <div className="flex flex-col items-center text-center">
         <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-blood/10 ring-1 ring-blood/30">
           <FolderOpen className="h-8 w-8 text-blood" />
         </div>
-        <h2 className="font-display text-2xl text-bone">Nog geen projecten</h2>
-        <p className="mt-2 max-w-md font-sans text-sm text-bone/60">
+        <h2 className="font-display text-2xl text-ink">Nog geen projecten</h2>
+        <p className="mt-2 max-w-md font-sans text-sm text-ink/60">
           Je hebt nog geen tracé-projecten. Start een nieuw project om een
           kabeltracé te uploaden, ontwerpparameters in te vullen en de analyse
           te starten.
@@ -160,7 +160,7 @@ function ProjectGridSkeleton() {
   return (
     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {Array.from({ length: 3 }).map((_, i) => (
-        <Card key={i} className="h-40 animate-pulse border-border bg-carbon/40 p-6" />
+        <Card key={i} className="h-40 animate-pulse border-border bg-paper p-6" />
       ))}
     </div>
   );
