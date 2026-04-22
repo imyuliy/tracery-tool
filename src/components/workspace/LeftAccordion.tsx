@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Upload, FileText, Loader2, Check, Circle } from "lucide-react";
+import { Upload, FileText, Loader2 } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -87,11 +87,7 @@ export function LeftAccordion({ project }: { project: Project }) {
                   <span className="font-mono text-[10px] text-ink/40">
                     0{i + 1}
                   </span>
-                  {s.complete ? (
-                    <Check className="h-3.5 w-3.5 text-blood" />
-                  ) : (
-                    <Circle className="h-3.5 w-3.5 text-ink/30" />
-                  )}
+                  <CompletenessDot state={s.complete ? "complete" : "incomplete"} />
                   {s.title}
                 </span>
               </AccordionTrigger>
@@ -270,11 +266,44 @@ function ScopeSection({ scope }: { scope: Array<{ objecttype: string; in_scope: 
     <ul className="space-y-1 font-sans text-xs">
       {scope.map((s) => (
         <li key={s.objecttype} className="flex items-center gap-2 text-ink">
-          <Check className="h-3 w-3 text-blood" />
+          <CompletenessDot state="complete" />
           {s.objecttype}
         </li>
       ))}
     </ul>
+  );
+}
+
+// Completeness-dot — UI-chrome palette (zwart/grijs/rood, geen groen/oranje).
+//   complete   → gevulde zwarte cirkel
+//   incomplete → open grijze cirkel
+//   error      → rood vierkantje
+function CompletenessDot({
+  state,
+}: {
+  state: "complete" | "incomplete" | "error";
+}) {
+  if (state === "error") {
+    return (
+      <span
+        aria-label="fout"
+        className="inline-block h-2.5 w-2.5 rounded-[1px] bg-blood shadow-[0_0_6px_-1px_oklch(0.58_0.22_24/0.6)]"
+      />
+    );
+  }
+  if (state === "complete") {
+    return (
+      <span
+        aria-label="compleet"
+        className="inline-block h-2.5 w-2.5 rounded-full bg-ink"
+      />
+    );
+  }
+  return (
+    <span
+      aria-label="incompleet"
+      className="inline-block h-2.5 w-2.5 rounded-full border border-ink/40 bg-transparent"
+    />
   );
 }
 

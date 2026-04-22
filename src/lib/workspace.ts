@@ -33,18 +33,38 @@ export const PHASE_LABELS: Record<PhaseState, string> = {
   Realisatie: "Realisatie",
 };
 
-// BGT feature_type kleurpalet — paper-vriendelijk, signalen onderscheidbaar.
+// BGT feature_type kleurpalet — data-viz palette (los van UI-chrome).
+// Grijstinten + rood-accent. Twee afwijkingen: groen (gras) + blauw (water)
+// omdat NL publiek dat verwacht op topografische kaart.
 export const BGT_COLORS: Record<string, string> = {
-  wegdeel: "#7BA7BD",
-  pand: "#C77B5C",
-  waterdeel: "#3E7A9C",
-  begroeidterreindeel: "#7FA46B",
-  onbegroeidterreindeel: "#B5A37A",
-  ondersteunendwegdeel: "#9DBBC9",
-  scheiding: "#8B7B6E",
-  overigbouwwerk: "#A38478",
-  spoor: "#5D5547",
-  default: "#6B7E78",
+  wegdeel: "#2D2D2D",                 // donkergrijs
+  ondersteunendwegdeel: "#707070",    // middengrijs
+  begroeidterreindeel: "#8A9A5B",     // lichtgrijs-groen (afwijking: gras)
+  onbegroeidterreindeel: "#C4A572",   // zandkleur
+  waterdeel: "#1F3A5F",               // donkerblauw (afwijking: water)
+  pand: "#D62828",                    // signaal-rood (alarmkleur)
+  overigbouwwerk: "#5D2A5D",          // diep-paars
+  scheiding: "#000000",               // zwart
+  scheiding_vlak: "#000000",          // zwart (PDOK collection-naam)
+  spoor: "#404040",                   // donkergrijs (legacy)
+  default: "#9A9A9A",                 // neutraal grijs
+};
+
+// Tracé-lijn zelf — helderder rood, krijgt witte outline in MapPanel.
+export const TRACE_COLOR = "#E63946";
+export const TRACE_OUTLINE_COLOR = "#FFFFFF";
+
+// BGT-legend labels (Nederlands, voor UI).
+export const BGT_LABELS: Record<string, string> = {
+  wegdeel: "Wegdeel",
+  ondersteunendwegdeel: "Ondersteunend wegdeel",
+  begroeidterreindeel: "Begroeid terrein",
+  onbegroeidterreindeel: "Onbegroeid terrein",
+  waterdeel: "Waterdeel",
+  pand: "Pand",
+  overigbouwwerk: "Overig bouwwerk",
+  scheiding: "Scheiding",
+  scheiding_vlak: "Scheiding",
 };
 
 export const BGT_FEATURE_TYPES = Object.keys(BGT_COLORS).filter(

@@ -20,6 +20,15 @@ export const Route = createFileRoute("/api/public/smoketest-sprint4")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        // TODO(Sprint 5): replace with service_tokens flow (migratie 007)
+        // Smoke-test bypass werkt alléén in non-prod. In production valt
+        // deze route automatisch dicht — geen secret = geen bypass.
+        if (process.env.NODE_ENV === "production") {
+          return Response.json(
+            { success: false, error: "Smoketest endpoint disabled in production" },
+            { status: 404 },
+          );
+        }
         const secret = request.headers.get("x-smoketest-secret");
         const expected = process.env.SMOKETEST_SECRET;
         if (!expected) {

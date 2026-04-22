@@ -14,6 +14,14 @@ export const Route = createFileRoute("/api/public/smoketest-sprint4-trigger")({
   server: {
     handlers: {
       GET: async ({ request }) => {
+        // TODO(Sprint 5): replace with service_tokens flow (migratie 007)
+        // Bypass alleen in non-prod actief.
+        if (process.env.NODE_ENV === "production") {
+          return Response.json(
+            { error: "Smoketest endpoint disabled in production" },
+            { status: 404 },
+          );
+        }
         const secret = process.env.SMOKETEST_SECRET;
         if (!secret) {
           return Response.json(

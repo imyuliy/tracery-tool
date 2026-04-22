@@ -833,6 +833,19 @@ export async function runExportTraceDescriptionDocx(opts: {
     .eq("report_section_id", section.id)
     .eq("product_code", "trace_description");
 
+  // Sprint 4 export-tracking: schrijf rij in `exports` (migratie 007).
+  // manifest_hash hergebruikt audit_hash van de gegenereerde report_section
+  // zodat herleidbaar blijft welke versie van de tekst geëxporteerd is.
+  await supabaseAdmin.from("exports").insert({
+    project_id: project.id,
+    trace_id: opts.traceId,
+    export_type: "trace_description_docx",
+    storage_path: storagePath,
+    file_size_bytes: buffer.byteLength,
+    manifest_hash: section.audit_hash ?? null,
+    generated_by: opts.userId,
+  });
+
   await supabaseAdmin.from("audit_log").insert({
     project_id: project.id,
     user_id: opts.userId,
