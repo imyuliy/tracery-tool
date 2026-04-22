@@ -106,7 +106,8 @@ export const segmentTraceByBgt = createServerFn({ method: "POST" })
       const batch = allFeatures.slice(i, i + STAGING_BATCH);
       const { data: inserted, error: insErr } = await supabaseAdmin.rpc(
         "bgt_staging_insert_batch",
-        { p_trace_id: data.trace_id, p_features: batch },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        { p_trace_id: data.trace_id, p_features: batch as any },
       );
       if (insErr) throw new Error(`staging-batch ${i}: ${insErr.message}`);
       stagingInserted += inserted ?? 0;
