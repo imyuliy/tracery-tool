@@ -19,15 +19,17 @@ function MapTestPage() {
   });
 
   useEffect(() => {
-    if (!containerRef.current || mapRef.current) return;
+    const node = containerRef.current;
+    if (!node || mapRef.current) return;
     setStatus("creating map");
 
     let loaded = 0;
     let errors = 0;
+    let ro: ResizeObserver | null = null;
 
     try {
       const map = new maplibregl.Map({
-        container: containerRef.current,
+        container: node,
         style: {
           version: 8,
           sources: {
@@ -41,26 +43,10 @@ function MapTestPage() {
               tileSize: 256,
               attribution: "© OpenStreetMap contributors",
             },
-            pdok_brt: {
-              type: "raster",
-              tiles: [
-                "https://service.pdok.nl/brt/achtergrondkaart/wmts/v2_0/standaard/EPSG:3857/{z}/{y}/{x}.png",
-              ],
-              tileSize: 256,
-              attribution: "© Kadaster (PDOK BRT)",
-            },
           },
-          layers: [
-            { id: "osm", type: "raster", source: "osm" },
-            {
-              id: "pdok_brt",
-              type: "raster",
-              source: "pdok_brt",
-              paint: { "raster-opacity": 0.6 },
-            },
-          ],
+          layers: [{ id: "osm", type: "raster", source: "osm" }],
         },
-        center: [4.535, 52.17], // Warmond/Leiden — past bij je KML
+        center: [4.535, 52.17], // Warmond/Leiden
         zoom: 13,
       });
 
@@ -73,9 +59,28 @@ function MapTestPage() {
         setTimeout(() => map.resize(), 200);
       });
 
-      // ResizeObserver — als container later van 0 naar non-zero gaat
-      const ro = new ResizeObserver(() => map.resize());
-      ro.observe(containerRef.current);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      map.on("error", (e: any) => {
+        if (e?.tile) {
+          errors += 1;
+          setTileEvents({ loaded, errors });
+        } else {
+          // eslint-disable-next-line no-console
+          console.error("[maptest] map error:", e);
+          setStatus(`error: ${e?.error?.message ?? "unknown"}`);
+        }
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      map.on("data", (e: any) => {
+        if (e.dataType === "source" && e.tile) {
+          loaded += 1;
+          setTileEvents({ loaded, errors });
+        }
+      });
+
+      ro = new ResizeObserver(() => map.resize());
+      ro.observe(node);
 
       mapRef.current = map;
     } catch (err) {
@@ -85,6 +90,7 @@ function MapTestPage() {
     }
 
     return () => {
+      ro?.disconnect();
       mapRef.current?.remove();
       mapRef.current = null;
     };
@@ -96,44 +102,21 @@ function MapTestPage() {
         ref={containerRef}
         style={{ width: "100%", height: "100%", background: "#ddd" }}
       />
-      <div className="pointer-events-none absolute left-4 top-4 z-10 rounded-md bg-white/90 px-3 py-2 font-mono text-xs shadow-md">
-        <div>status: {status}</div>
-        <div>tiles loaded: {tileEvents.loaded}</div>
-        <div>tile errors: {tileEvents.errors}</div>
-      </div>
-    </div>
-  );
-}
-      map.on("error", (e) => {
-        // eslint-disable-next-line no-console
-        console.error("[maptest] map error:", e);
-        setStatus(`error: ${e.error?.message ?? "unknown"}`);
-      });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      map.on("data", (e: any) => {
-        if (e.dataType === "source" && e.tile) {
-          loaded += 1;
-          setTileEvents({ loaded, errors });
-        }
-      });
-
-      mapRef.current = map;
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error("[maptest] init threw:", err);
-      setStatus(`throw: ${(err as Error).message}`);
-    }
-
-    return () => {
-      mapRef.current?.remove();
-      mapRef.current = null;
-    };
-  }, []);
-
-  return (
-    <div className="relative h-screen w-screen">
-      <div ref={containerRef} className="absolute inset-0" />
-      <div className="pointer-events-none absolute left-4 top-4 z-10 rounded-md bg-white/90 px-3 py-2 font-mono text-xs shadow-md">
+      <div
+        style={{
+          position: "absolute",
+          top: 16,
+          left: 16,
+          zIndex: 10,
+          background: "rgba(255,255,255,0.9)",
+          padding: "8px 12px",
+          fontFamily: "monospace",
+          fontSize: 12,
+          borderRadius: 6,
+          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+          pointerEvents: "none",
+        }}
+      >
         <div>status: {status}</div>
         <div>tiles loaded: {tileEvents.loaded}</div>
         <div>tile errors: {tileEvents.errors}</div>
