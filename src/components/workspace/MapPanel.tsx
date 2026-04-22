@@ -210,23 +210,24 @@ export function MapPanel({
   }, [highlightedLokaalId, ready]);
 
   return (
-    <div className="relative h-full w-full bg-muted">
+    <div className="relative h-full w-full bg-ink">
       <div ref={containerRef} className="absolute inset-0" />
-      <div className="pointer-events-none absolute left-3 top-3 z-10 flex flex-col gap-2">
+      {/* BGT toggle — bottom-center floating */}
+      <div className="pointer-events-none absolute bottom-[280px] left-1/2 z-[5] -translate-x-1/2">
         <Button
           type="button"
           size="sm"
-          variant={bgtVisible ? "default" : "outline"}
+          variant="glass"
           onClick={() => setBgtVisible((v) => !v)}
-          className="pointer-events-auto gap-1.5 shadow-sm"
+          className={`pointer-events-auto gap-1.5 ${bgtVisible ? "border-blood/60 text-blood" : ""}`}
         >
           <Layers className="h-3.5 w-3.5" />
-          BGT-overlay
+          BGT-overlay {bgtVisible ? "aan" : "uit"}
         </Button>
       </div>
       {(isLoading || !data) && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-paper/40">
-          <div className="rounded-md border border-border bg-card px-4 py-2 font-sans text-sm text-muted-foreground shadow-sm">
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-ink/60 backdrop-blur-sm">
+          <div className="glass-strong rounded-md px-5 py-3 font-mono text-xs uppercase tracking-wider text-bone shadow-2xl">
             {isLoading ? "Kaart laden…" : "Nog geen tracé. Upload er een via het linker paneel."}
           </div>
         </div>
