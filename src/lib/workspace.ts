@@ -13,6 +13,7 @@ import {
   generateSegmentScanV1,
   exportBrondocumentV1Docx,
 } from "@/lib/server/scan.functions";
+import { generateTrekPartDescriptions } from "@/lib/server/trek_part.functions";
 
 export type PhaseState =
   | "VO_fase_1"
