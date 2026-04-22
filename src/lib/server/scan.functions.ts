@@ -10,7 +10,10 @@ import {
 
 export const config = { maxDuration: 300 };
 
-const scanSchema = z.object({ trace_id: z.string().uuid() });
+const scanSchema = z.object({
+  trace_id: z.string().uuid(),
+  max_segments: z.number().int().positive().max(1000).optional(),
+});
 
 export const generateSegmentScanV1 = createServerFn({ method: "POST" })
   .middleware([withSupabaseAuth, requireSupabaseAuth])
@@ -20,6 +23,7 @@ export const generateSegmentScanV1 = createServerFn({ method: "POST" })
       supabase: context.supabase,
       traceId: data.trace_id,
       userId: context.userId,
+      maxSegments: data.max_segments,
     });
   });
 
