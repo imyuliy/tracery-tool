@@ -197,11 +197,34 @@ export const importEisenpakketXlsx = createServerFn({ method: "POST" })
       });
     }
 
-    if (eisen.length === 0) {
+    // Dedup binnen XLSX op (objecttype, eis_code) — eerste voorkomen wint
+    const seen = new Set<string>();
+    const dedupedEisen: EisRow[] = [];
+    let duplicatesInFile = 0;
+    for (const e of eisen) {
+      const key = `${e.objecttype}||${e.eis_code}`;
+      if (seen.has(key)) {
+        duplicatesInFile++;
+        errors.push(`Duplicaat (objecttype="${e.objecttype}", eis_code="${e.eis_code}") — overgeslagen`);
+        continue;
+      }
+      seen.add(key);
+      dedupedEisen.push(e);
+    }
+    log("dedup-done", {
+      input: eisen.length,
+      after_dedup: dedupedEisen.length,
+      duplicates_skipped: duplicatesInFile,
+    });
+
+    if (dedupedEisen.length === 0) {
       throw new Error(
-        `Geen valide rijen. Errors: ${errors.slice(0, 5).join("; ")}`,
+        `Geen valide rijen na dedup. Errors: ${errors.slice(0, 5).join("; ")}`,
       );
     }
+
+    // Vervang eisen met dedup'd versie voor de rest van de pipeline
+    const finalEisen = dedupedEisen;
 
     // Draft version row
     const fileName = data.storage_path.split("/").pop() ?? data.storage_path;
