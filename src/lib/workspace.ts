@@ -292,3 +292,59 @@ export function usePromotePhase(projectId: string) {
     onError: (err: Error) => toast.error(err.message),
   });
 }
+
+// ─── Query: segment_descriptions per trace ─────────────────────────────
+export function useSegmentDescriptions(traceId: string | null) {
+  return useQuery({
+    queryKey: ["segment-descriptions", traceId],
+    enabled: !!traceId,
+    queryFn: async () => {
+      if (!traceId) return [];
+      const { data, error } = await supabase
+        .from("segment_descriptions")
+        .select("*, segments!inner(id, sequence, km_start, km_end, length_m, bgt_feature_type, bgt_lokaal_id, beheerder)")
+        .eq("trace_id", traceId)
+        .order("generated_at", { ascending: false });
+      if (error) throw error;
+      // Dedupe per segment_id — keep most recent.
+      const seen = new Set<string>();
+      const out: typeof data = [];
+      for (const row of data ?? []) {
+        if (seen.has(row.segment_id)) continue;
+        seen.add(row.segment_id);
+        out.push(row);
+      }
+      return out;
+    },
+  });
+}
+
+// ─── Mutation: per-segment scan v1 ─────────────────────────────────────
+export function useGenerateSegmentScan() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (traceId: string) => {
+      return await generateSegmentScanV1({ data: { trace_id: traceId } });
+    },
+    onSuccess: (_r, traceId) => {
+      qc.invalidateQueries({ queryKey: ["segment-descriptions", traceId] });
+      toast.success("Segment-scan voltooid");
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
+// ─── Mutation: Brondocument v1 DOCX-export ─────────────────────────────
+export function useExportBrondocumentV1() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (traceId: string) => {
+      return await exportBrondocumentV1Docx({ data: { trace_id: traceId } });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["project-artifacts"] });
+      toast.success("Brondocument v1 klaar");
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
