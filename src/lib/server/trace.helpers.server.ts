@@ -175,65 +175,88 @@ interface PdokFeature {
   attributes: Record<string, unknown>;
 }
 
+// OGC API Features call. Endpoint format:
+//   GET /collections/{collectionId}/items?bbox=xmin,ymin,xmax,ymax
+//        &bbox-crs=http://www.opengis.net/def/crs/EPSG/0/28992
+//        &crs=http://www.opengis.net/def/crs/EPSG/0/28992
+//        &f=json&limit=N
+// Pagineert via "next" rel-link.
+const OGC_CRS_28992 = "http://www.opengis.net/def/crs/EPSG/0/28992";
+const PDOK_PAGE_LIMIT = 1000; // OGC server-side max is meestal 1000
+const PDOK_MAX_PAGES = 10;
+
 async function fetchPdokFeatures(
-  typename: string,
+  collectionId: string,
   xmin: number,
   ymin: number,
   xmax: number,
   ymax: number,
 ): Promise<PdokFeature[]> {
-  const params = new URLSearchParams({
-    service: "WFS",
-    version: "2.0.0",
-    request: "GetFeature",
-    typename,
-    srsName: "EPSG:28992",
-    outputFormat: "application/json",
-    bbox: `${xmin},${ymin},${xmax},${ymax},EPSG:28992`,
-    count: "5000",
+  const initialParams = new URLSearchParams({
+    bbox: `${xmin},${ymin},${xmax},${ymax}`,
+    "bbox-crs": OGC_CRS_28992,
+    crs: OGC_CRS_28992,
+    f: "json",
+    limit: String(PDOK_PAGE_LIMIT),
   });
-  const url = `${PDOK_BGT_WFS}?${params.toString()}`;
-  const res = await fetch(url);
-  if (!res.ok) {
-    console.warn(`PDOK ${typename} faalde: HTTP ${res.status}`);
-    return [];
+  let nextUrl: string | null =
+    `${PDOK_BGT_OGC}/collections/${collectionId}/items?${initialParams.toString()}`;
+  const out: PdokFeature[] = [];
+  let pages = 0;
+  while (nextUrl && pages < PDOK_MAX_PAGES) {
+    pages++;
+    const res = await fetch(nextUrl);
+    if (!res.ok) {
+      console.warn(
+        `PDOK ${collectionId} faalde: HTTP ${res.status} (page ${pages})`,
+      );
+      return out;
+    }
+    const json = (await res.json()) as {
+      features?: Array<{
+        id?: string;
+        properties: Record<string, unknown>;
+        geometry: { type: string; coordinates: unknown };
+      }>;
+      links?: Array<{ rel: string; href: string }>;
+    };
+    const features = json.features ?? [];
+    for (const f of features) {
+      const props = f.properties ?? {};
+      const lokaalIdRaw =
+        (props.lokaal_id as string) ??
+        (props.lokaalID as string) ??
+        (props.lokaalid as string) ??
+        f.id ??
+        crypto.randomUUID();
+      const polygons = extractPolygons(f.geometry);
+      for (let idx = 0; idx < polygons.length; idx++) {
+        out.push({
+          lokaal_id:
+            polygons.length > 1 ? `${lokaalIdRaw}_p${idx}` : lokaalIdRaw,
+          feature_type: collectionId,
+          bgt_type:
+            (props.functie as string) ??
+            (props.bgt_type as string) ??
+            (props.bgtType as string) ??
+            (props["function"] as string) ??
+            null,
+          bgt_subtype:
+            (props.fysiek_voorkomen as string) ??
+            (props.bgt_functie as string) ??
+            (props.bgtFunctie as string) ??
+            (props.plus_type as string) ??
+            (props["plus-type"] as string) ??
+            null,
+          geometry_wkt: polygons[idx],
+          attributes: { ...props, _source_feature_type: collectionId },
+        });
+      }
+    }
+    const next = (json.links ?? []).find((l) => l.rel === "next");
+    nextUrl = next?.href ?? null;
   }
-  const json = (await res.json()) as {
-    features?: Array<{
-      id?: string;
-      properties: Record<string, unknown>;
-      geometry: { type: string; coordinates: unknown };
-    }>;
-  };
-  const features = json.features ?? [];
-  const featureTypeName = typename.replace("bgt:", "");
-
-  return features.flatMap((f) => {
-    const props = f.properties ?? {};
-    const lokaalIdRaw =
-      (props.lokaalID as string) ??
-      (props.lokaalid as string) ??
-      f.id ??
-      crypto.randomUUID();
-    const polygons = extractPolygons(f.geometry);
-    return polygons.map((poly, idx) => ({
-      lokaal_id: polygons.length > 1 ? `${lokaalIdRaw}_p${idx}` : lokaalIdRaw,
-      feature_type: featureTypeName,
-      bgt_type:
-        (props.bgt_type as string) ??
-        (props.bgtType as string) ??
-        (props["function"] as string) ??
-        null,
-      bgt_subtype:
-        (props.bgt_functie as string) ??
-        (props.bgtFunctie as string) ??
-        (props.plus_type as string) ??
-        (props["plus-type"] as string) ??
-        null,
-      geometry_wkt: poly,
-      attributes: { ...props, _source_feature_type: featureTypeName },
-    }));
-  });
+  return out;
 }
 
 function extractPolygons(geom: { type: string; coordinates: unknown }): string[] {
