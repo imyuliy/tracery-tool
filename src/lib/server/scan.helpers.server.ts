@@ -757,7 +757,7 @@ export async function runExportBrondocumentV1Docx(opts: {
               text:
                 d.ai_aandacht_reden ??
                 d.aandacht_reden ??
-                (d.aandacht_flags ?? []).join(", "),
+                (Array.isArray(d.aandacht_flags) ? (d.aandacht_flags as string[]).join(", ") : ""),
             }),
           ],
         }),
