@@ -236,7 +236,7 @@ export const importEisenpakketXlsx = createServerFn({ method: "POST" })
         status: "draft",
         source_file: fileName,
         source_file_hash: data.source_file_hash ?? null,
-        row_count: eisen.length,
+        row_count: finalEisen.length,
         imported_by: userId,
       })
       .select("id")
@@ -249,15 +249,15 @@ export const importEisenpakketXlsx = createServerFn({ method: "POST" })
       );
     }
     const version_id = versionRow.id;
-    log("version-row-ok", { version_id, parse_errors: errors.length, valid_rows: eisen.length });
+    log("version-row-ok", { version_id, parse_errors: errors.length, valid_rows: finalEisen.length });
 
     try {
       // Embeddings batched
-      const embeddings: number[][] = new Array(eisen.length);
-      const totalBatches = Math.ceil(eisen.length / EMBEDDING_BATCH);
-      for (let start = 0; start < eisen.length; start += EMBEDDING_BATCH) {
+      const embeddings: number[][] = new Array(finalEisen.length);
+      const totalBatches = Math.ceil(finalEisen.length / EMBEDDING_BATCH);
+      for (let start = 0; start < finalEisen.length; start += EMBEDDING_BATCH) {
         const batchNum = Math.floor(start / EMBEDDING_BATCH) + 1;
-        const batch = eisen.slice(start, start + EMBEDDING_BATCH);
+        const batch = finalEisen.slice(start, start + EMBEDDING_BATCH);
         const inputs = batch.map((e) => `${e.eistitel}\n\n${e.eistekst}`);
         const tBatch = Date.now();
         const batchEmbeds = await ai.embed({
@@ -276,11 +276,11 @@ export const importEisenpakketXlsx = createServerFn({ method: "POST" })
 
       // Insert
       let inserted = 0;
-      const totalInsertBatches = Math.ceil(eisen.length / INSERT_BATCH);
-      for (let start = 0; start < eisen.length; start += INSERT_BATCH) {
+      const totalInsertBatches = Math.ceil(finalEisen.length / INSERT_BATCH);
+      for (let start = 0; start < finalEisen.length; start += INSERT_BATCH) {
         const batchNum = Math.floor(start / INSERT_BATCH) + 1;
         const tBatch = Date.now();
-        const batch = eisen.slice(start, start + INSERT_BATCH).map((e, idx) => ({
+        const batch = finalEisen.slice(start, start + INSERT_BATCH).map((e, idx) => ({
           eisenpakket_version_id: version_id,
           objecttype: e.objecttype,
           eis_code: e.eis_code,
@@ -327,6 +327,7 @@ export const importEisenpakketXlsx = createServerFn({ method: "POST" })
           source_file: data.storage_path,
           row_count: inserted,
           parse_errors: errors.length,
+          duplicates_in_file: duplicatesInFile,
           embedding_model: ai.embeddingModel,
         },
       });
@@ -334,9 +335,9 @@ export const importEisenpakketXlsx = createServerFn({ method: "POST" })
       log("DONE", { total_ms: Date.now() - t0, inserted });
       return {
         version_id,
-        row_count: eisen.length,
+        row_count: finalEisen.length,
         inserted,
-        skipped_duplicates: 0,
+        skipped_duplicates: duplicatesInFile,
         embedding_model: ai.embeddingModel,
         parse_errors: errors.length,
         first_errors: errors.slice(0, 10),
