@@ -63,8 +63,18 @@ export const importEisenpakketXlsx = createServerFn({ method: "POST" })
   .middleware([withSupabaseAuth, requireSupabaseAuth])
   .inputValidator((input: unknown) => importSchema.parse(input))
   .handler(async ({ data, context }) => {
+    const t0 = Date.now();
+    const log = (phase: string, extra?: Record<string, unknown>) => {
+      console.log(
+        `[import ${data.version_label}] +${Date.now() - t0}ms ${phase}`,
+        extra ? JSON.stringify(extra) : "",
+      );
+    };
+    log("START", { eisenpakket_id: data.eisenpakket_id, storage_path: data.storage_path });
+
     const { supabase, userId } = context;
     const ai = getAIProvider();
+    log("ai-provider-ok", { embed: ai.embeddingModel });
 
     // RLS-check: kan deze user dit pakket lezen?
     const { data: pakket, error: pakketErr } = await supabase
@@ -73,8 +83,10 @@ export const importEisenpakketXlsx = createServerFn({ method: "POST" })
       .eq("id", data.eisenpakket_id)
       .single();
     if (pakketErr || !pakket) {
+      log("FAIL pakket-lookup", { error: pakketErr?.message });
       throw new Error("Eisenpakket niet gevonden of geen toegang.");
     }
+    log("pakket-ok");
 
     // Idempotency
     if (data.source_file_hash) {
@@ -85,6 +97,7 @@ export const importEisenpakketXlsx = createServerFn({ method: "POST" })
         .eq("source_file_hash", data.source_file_hash)
         .maybeSingle();
       if (existing) {
+        log("DUPLICATE — skipping", { existing_id: existing.id });
         return {
           version_id: existing.id,
           row_count: existing.row_count ?? 0,
@@ -95,19 +108,26 @@ export const importEisenpakketXlsx = createServerFn({ method: "POST" })
         };
       }
     }
+    log("idempotency-check-ok");
 
     // Download xlsx via admin (storage RLS bypass)
     const { data: fileBlob, error: dlErr } = await supabaseAdmin.storage
       .from("requirements")
       .download(data.storage_path);
     if (dlErr || !fileBlob) {
+      log("FAIL download", { error: dlErr?.message });
       throw new Error(
         `Kan bestand ${data.storage_path} niet downloaden: ${dlErr?.message ?? "onbekend"}`,
       );
     }
+    log("downloaded", { size_bytes: fileBlob.size });
 
     const arrayBuffer = await fileBlob.arrayBuffer();
+    log("arraybuffer-ok", { bytes: arrayBuffer.byteLength });
+
     const workbook = XLSX.read(arrayBuffer, { type: "array" });
+    log("xlsx-read-ok", { sheets: workbook.SheetNames });
+
     const sheetName = workbook.SheetNames[0];
     const sheet = sheetName ? workbook.Sheets[sheetName] : null;
     if (!sheet) throw new Error("Geen werkbladen in Excel");
@@ -116,6 +136,7 @@ export const importEisenpakketXlsx = createServerFn({ method: "POST" })
       defval: null,
       blankrows: false,
     });
+    log("sheet-to-json-ok", { rows: raw.length });
     if (raw.length === 0) throw new Error("Excel is leeg");
 
     const headers = Object.keys(raw[0]);
@@ -184,30 +205,43 @@ export const importEisenpakketXlsx = createServerFn({ method: "POST" })
       .single();
 
     if (versionErr || !versionRow) {
+      log("FAIL version-insert", { error: versionErr?.message });
       throw new Error(
         `Kan version-rij niet aanmaken: ${versionErr?.message ?? "onbekend"}`,
       );
     }
     const version_id = versionRow.id;
+    log("version-row-ok", { version_id, parse_errors: errors.length, valid_rows: eisen.length });
 
     try {
       // Embeddings batched
       const embeddings: number[][] = new Array(eisen.length);
+      const totalBatches = Math.ceil(eisen.length / EMBEDDING_BATCH);
       for (let start = 0; start < eisen.length; start += EMBEDDING_BATCH) {
+        const batchNum = Math.floor(start / EMBEDDING_BATCH) + 1;
         const batch = eisen.slice(start, start + EMBEDDING_BATCH);
         const inputs = batch.map((e) => `${e.eistitel}\n\n${e.eistekst}`);
+        const tBatch = Date.now();
         const batchEmbeds = await ai.embed({
           input: inputs,
           dimensionality: EMBEDDING_DIM,
+        });
+        log(`embed-batch ${batchNum}/${totalBatches}`, {
+          rows: batch.length,
+          ms: Date.now() - tBatch,
         });
         for (let j = 0; j < batch.length; j++) {
           embeddings[start + j] = batchEmbeds[j];
         }
       }
+      log("embeddings-done");
 
       // Insert
       let inserted = 0;
+      const totalInsertBatches = Math.ceil(eisen.length / INSERT_BATCH);
       for (let start = 0; start < eisen.length; start += INSERT_BATCH) {
+        const batchNum = Math.floor(start / INSERT_BATCH) + 1;
+        const tBatch = Date.now();
         const batch = eisen.slice(start, start + INSERT_BATCH).map((e, idx) => ({
           eisenpakket_version_id: version_id,
           objecttype: e.objecttype,
@@ -226,14 +260,23 @@ export const importEisenpakketXlsx = createServerFn({ method: "POST" })
         const { error: insertErr } = await supabaseAdmin
           .from("eisen")
           .insert(batch);
-        if (insertErr) throw new Error(`Insert batch ${start}: ${insertErr.message}`);
+        if (insertErr) {
+          log(`FAIL insert-batch ${batchNum}`, { error: insertErr.message });
+          throw new Error(`Insert batch ${start}: ${insertErr.message}`);
+        }
         inserted += batch.length;
+        log(`insert-batch ${batchNum}/${totalInsertBatches}`, {
+          rows: batch.length,
+          ms: Date.now() - tBatch,
+        });
       }
+      log("inserts-done", { total: inserted });
 
       await supabaseAdmin
         .from("eisenpakket_versions")
         .update({ status: "active" })
         .eq("id", version_id);
+      log("version-activated");
 
       await supabaseAdmin.from("audit_log").insert({
         action: "eisenpakket_import",
@@ -250,6 +293,7 @@ export const importEisenpakketXlsx = createServerFn({ method: "POST" })
         },
       });
 
+      log("DONE", { total_ms: Date.now() - t0, inserted });
       return {
         version_id,
         row_count: eisen.length,
@@ -260,6 +304,8 @@ export const importEisenpakketXlsx = createServerFn({ method: "POST" })
         first_errors: errors.slice(0, 10),
       };
     } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      log("CAUGHT — rolling back", { error: msg });
       // Rollback draft version on failure
       await supabaseAdmin.from("eisen").delete().eq("eisenpakket_version_id", version_id);
       await supabaseAdmin.from("eisenpakket_versions").delete().eq("id", version_id);
