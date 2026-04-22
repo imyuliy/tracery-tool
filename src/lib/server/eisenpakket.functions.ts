@@ -12,7 +12,7 @@ import {
 } from "./ai-provider.server";
 
 const EMBEDDING_DIM = 1536;
-const EMBEDDING_BATCH = 96;
+const EMBEDDING_BATCH = 200;
 const INSERT_BATCH = 500;
 const TOP_K_EISEN = 15;
 const MAX_TOKENS = 4000;
