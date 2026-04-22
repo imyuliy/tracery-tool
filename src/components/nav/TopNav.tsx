@@ -31,7 +31,7 @@ export function TopNav() {
           to="/dashboard"
           className="inline-flex items-center gap-2.5 font-display text-xl font-semibold tracking-tight text-ink transition-colors hover:text-blood"
         >
-          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-blood font-display text-sm font-bold text-ink shadow-[0_0_16px_-2px_oklch(0.60_0.22_24/0.6)]">
+          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-blood font-display text-sm font-bold text-paper shadow-[0_0_16px_-2px_oklch(0.60_0.22_24/0.6)]">
             T
           </span>
           De Tracémolen

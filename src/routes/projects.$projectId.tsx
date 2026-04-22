@@ -39,7 +39,7 @@ export const Route = createFileRoute("/projects/$projectId")({
             {error.message}
           </p>
           <button
-            className="mt-4 inline-flex items-center rounded-md bg-blood px-4 py-2 font-sans text-sm text-ink transition-colors hover:bg-ember"
+            className="mt-4 inline-flex items-center rounded-md bg-blood px-4 py-2 font-sans text-sm text-paper transition-colors hover:bg-ember"
             onClick={() => router.invalidate()}
           >
             Opnieuw proberen

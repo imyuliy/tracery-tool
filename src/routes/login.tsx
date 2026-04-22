@@ -83,7 +83,7 @@ function LoginPage() {
             to="/"
             className="inline-flex items-center gap-2 font-display text-3xl font-semibold tracking-tight text-ink transition-colors hover:text-blood"
           >
-            <span className="flex h-9 w-9 items-center justify-center rounded-md bg-blood font-display text-base font-bold text-ink shadow-[0_0_20px_-2px_oklch(0.60_0.22_24/0.7)]">
+            <span className="flex h-9 w-9 items-center justify-center rounded-md bg-blood font-display text-base font-bold text-paper shadow-[0_0_20px_-2px_oklch(0.60_0.22_24/0.7)]">
               T
             </span>
             De Tracémolen

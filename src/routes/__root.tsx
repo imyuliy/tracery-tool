@@ -19,7 +19,7 @@ function NotFoundComponent() {
         <div className="mt-6">
           <Link
             to="/"
-            className="inline-flex items-center justify-center rounded-md bg-blood px-4 py-2 font-sans text-sm font-medium text-ink transition-all hover:bg-ember hover:shadow-[0_0_24px_-4px_oklch(0.60_0.22_24/0.6)]"
+            className="inline-flex items-center justify-center rounded-md bg-blood px-4 py-2 font-sans text-sm font-medium text-paper transition-all hover:bg-ember hover:shadow-[0_0_24px_-4px_oklch(0.60_0.22_24/0.6)]"
           >
             Naar home
           </Link>
