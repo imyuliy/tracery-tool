@@ -55,3 +55,29 @@ export const exportTraceDescriptionDocx = createServerFn({ method: "POST" })
       userId: context.userId,
     });
   });
+
+const mapDataSchema = z.object({ trace_id: z.string().uuid() });
+
+export interface TraceMapData {
+  trace_geojson: GeoJSON.Feature | null;
+  segments_geojson: GeoJSON.FeatureCollection;
+  stations_geojson: GeoJSON.FeatureCollection;
+  bbox_4326: GeoJSON.Polygon | null;
+}
+
+export const getTraceMapData = createServerFn({ method: "POST" })
+  .middleware([withSupabaseAuth, requireSupabaseAuth])
+  .inputValidator((input: unknown) => mapDataSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { data: row, error } = await context.supabase.rpc(
+      "get_trace_map_data",
+      { p_trace_id: data.trace_id },
+    );
+    if (error) throw new Error(`get_trace_map_data: ${error.message}`);
+    return (row ?? {
+      trace_geojson: null,
+      segments_geojson: { type: "FeatureCollection", features: [] },
+      stations_geojson: { type: "FeatureCollection", features: [] },
+      bbox_4326: null,
+    }) as unknown as TraceMapData;
+  });
