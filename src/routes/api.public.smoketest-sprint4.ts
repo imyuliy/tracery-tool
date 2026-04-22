@@ -246,20 +246,8 @@ export const Route = createFileRoute("/api/public/smoketest-sprint4")({
 async function seedTrace(
   projectId: string,
 ): Promise<{ ok: true; trace_id: string } | { ok: false; error: string }> {
-  // Insert via raw SQL want PostGIS-functies zijn nodig voor geometry-kolom.
-  // Length_m is een generated column, dus niet in de INSERT.
-  const { data, error } = await supabaseAdmin
-    .rpc(
-      "trace_bbox_28992" as never,
-      // dummy call to verify admin client works; we use raw SQL via PostgREST
-      { p_trace_id: "00000000-0000-0000-0000-000000000000", p_buffer_m: 0 },
-    )
-    .then(() => ({ data: null, error: null }))
-    .catch(() => ({ data: null, error: null }));
-  void data;
-  void error;
-
-  // Direct insert via PostgREST — geometry verstuurd als WKT cast.
+  // Direct insert via PostgREST — geometry verstuurd als EWKT (PostGIS parst dat).
+  // length_m is een generated column, dus niet meegeven.
   const insertRes = await supabaseAdmin
     .from("traces")
     .insert({
