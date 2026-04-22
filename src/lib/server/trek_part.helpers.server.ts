@@ -309,7 +309,7 @@ async function generateOneTrekPart(args: {
     van_toepassing_eisen: [...eisenSet],
     aandacht_flag: aandachtFlag,
     aandacht_reden: [...aandachtSet],
-    model: ai.generationModel,
+    model: TREK_MODEL,
     prompt_tokens: promptTokens,
     completion_tokens: completionTokens,
     generated_by: args.userId,
