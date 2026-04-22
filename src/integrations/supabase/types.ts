@@ -946,7 +946,7 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           description: string | null
-          eisenpakket_version_id: string | null
+          eisenpakket_version_id: string
           id: string
           name: string
           org_id: string
@@ -967,7 +967,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           description?: string | null
-          eisenpakket_version_id?: string | null
+          eisenpakket_version_id: string
           id?: string
           name: string
           org_id: string
@@ -988,7 +988,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           description?: string | null
-          eisenpakket_version_id?: string | null
+          eisenpakket_version_id?: string
           id?: string
           name?: string
           org_id?: string
