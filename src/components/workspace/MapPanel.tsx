@@ -161,6 +161,19 @@ export function MapPanel({
       });
     }
 
+    if (!m.getLayer("trace-outline")) {
+      m.addLayer({
+        id: "trace-outline",
+        type: "line",
+        source: "trace",
+        layout: { "line-cap": "round", "line-join": "round" },
+        paint: {
+          "line-color": TRACE_OUTLINE_COLOR,
+          "line-width": 8,
+          "line-opacity": 0.95,
+        },
+      });
+    }
     if (!m.getLayer("trace-line")) {
       m.addLayer({
         id: "trace-line",
@@ -168,9 +181,9 @@ export function MapPanel({
         source: "trace",
         layout: { "line-cap": "round", "line-join": "round" },
         paint: {
-          "line-color": "#FF4A1C",
+          "line-color": TRACE_COLOR,
           "line-width": 4,
-          "line-opacity": 0.95,
+          "line-opacity": 1,
         },
       });
     }
@@ -231,6 +244,44 @@ export function MapPanel({
           BGT-overlay {bgtVisible ? "aan" : "uit"}
         </Button>
       </div>
+      {/* BGT legend — bottom-left, glass */}
+      {data && data.segments_geojson?.features?.length ? (
+        <div className="pointer-events-none absolute bottom-[280px] left-4 z-[5]">
+          <div className="glass pointer-events-auto rounded-md px-3 py-2 shadow-xl shadow-ink/10">
+            <p className="mb-1.5 font-mono text-[9px] font-semibold uppercase tracking-wider text-ink/60">
+              BGT
+            </p>
+            <ul className="space-y-1">
+              {Object.entries(BGT_LABELS)
+                .filter(([k]) => k !== "scheiding_vlak")
+                .map(([key, label]) => (
+                  <li
+                    key={key}
+                    className="flex items-center gap-2 font-sans text-[11px] text-ink"
+                  >
+                    <span
+                      aria-hidden
+                      className="inline-block h-2.5 w-2.5 rounded-sm border border-ink/20"
+                      style={{ backgroundColor: BGT_COLORS[key] }}
+                    />
+                    {label}
+                  </li>
+                ))}
+              <li className="mt-1.5 flex items-center gap-2 border-t border-border pt-1.5 font-sans text-[11px] text-ink">
+                <span
+                  aria-hidden
+                  className="inline-block h-1 w-3 rounded-full"
+                  style={{
+                    backgroundColor: TRACE_COLOR,
+                    boxShadow: `0 0 0 1px ${TRACE_OUTLINE_COLOR}`,
+                  }}
+                />
+                Tracé
+              </li>
+            </ul>
+          </div>
+        </div>
+      ) : null}
       {(isLoading || !data) && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-paper/60 backdrop-blur-sm">
           <div className="glass-strong rounded-md px-5 py-3 font-mono text-xs uppercase tracking-wider text-ink shadow-xl">
