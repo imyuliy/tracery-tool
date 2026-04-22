@@ -296,6 +296,12 @@ export function MapPanel({
   return (
     <div className="relative h-full w-full bg-bone">
       <div ref={containerRef} className="absolute inset-0" />
+      {/* DEBUG — verwijder later. Zit rechts onder de header zodat je 'm zeker ziet. */}
+      <div className="pointer-events-none absolute right-[336px] top-[76px] z-[6] rounded-md bg-black/85 px-3 py-2 font-mono text-[10px] leading-relaxed text-white shadow-lg">
+        <div>map: {debug.status}</div>
+        <div>tiles: {debug.tilesLoaded} ok / {debug.tileErrors} err</div>
+        <div>size: {debug.size}</div>
+      </div>
       {/* BGT toggle — bottom-center floating */}
       <div className="pointer-events-none absolute bottom-[280px] left-1/2 z-[5] -translate-x-1/2">
         <Button
