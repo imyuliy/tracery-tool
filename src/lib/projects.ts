@@ -57,6 +57,12 @@ export const newProjectSchema = z.object({
     .string()
     .optional()
     .refine((v) => !v || /^\d+$/.test(v), "Hele weken (>0)"),
+  eisenpakket_version_id: z
+    .string()
+    .uuid("Kies een eisenpakket-versie"),
+  scope_objecttypes: z
+    .array(z.string())
+    .min(1, "Kies minstens één objecttype voor de scope"),
 });
 
 export type NewProjectInput = z.infer<typeof newProjectSchema>;
@@ -67,7 +73,6 @@ export function useCreateProject() {
 
   return useMutation({
     mutationFn: async (input: NewProjectInput) => {
-      // Org_id ophalen uit user_profiles van ingelogde user.
       const { data: userData, error: userErr } = await supabase.auth.getUser();
       if (userErr || !userData.user) throw new Error("Niet ingelogd");
 
@@ -100,10 +105,22 @@ export function useCreateProject() {
           org_id: profile.org_id,
           status: "draft",
           created_by: userData.user.id,
+          eisenpakket_version_id: input.eisenpakket_version_id,
         })
         .select("id")
         .single();
       if (error) throw error;
+
+      // Insert scope rows
+      const scopeRows = input.scope_objecttypes.map((objecttype) => ({
+        project_id: data.id,
+        objecttype,
+      }));
+      const { error: scopeErr } = await supabase
+        .from("project_eisen_scope")
+        .insert(scopeRows);
+      if (scopeErr) throw scopeErr;
+
       return data.id as string;
     },
     onSuccess: (id) => {

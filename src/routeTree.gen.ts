@@ -14,6 +14,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProjectsProjectIdRouteImport } from './routes/projects.$projectId'
+import { Route as AdminEisenpakkettenRouteImport } from './routes/admin.eisenpakketten'
 
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
@@ -40,12 +41,18 @@ const ProjectsProjectIdRoute = ProjectsProjectIdRouteImport.update({
   path: '/projects/$projectId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminEisenpakkettenRoute = AdminEisenpakkettenRouteImport.update({
+  id: '/admin/eisenpakketten',
+  path: '/admin/eisenpakketten',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/settings': typeof SettingsRoute
+  '/admin/eisenpakketten': typeof AdminEisenpakkettenRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
 }
 export interface FileRoutesByTo {
@@ -53,6 +60,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/settings': typeof SettingsRoute
+  '/admin/eisenpakketten': typeof AdminEisenpakkettenRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
 }
 export interface FileRoutesById {
@@ -61,6 +69,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/settings': typeof SettingsRoute
+  '/admin/eisenpakketten': typeof AdminEisenpakkettenRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
 }
 export interface FileRouteTypes {
@@ -70,15 +79,23 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/settings'
+    | '/admin/eisenpakketten'
     | '/projects/$projectId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/login' | '/settings' | '/projects/$projectId'
+  to:
+    | '/'
+    | '/dashboard'
+    | '/login'
+    | '/settings'
+    | '/admin/eisenpakketten'
+    | '/projects/$projectId'
   id:
     | '__root__'
     | '/'
     | '/dashboard'
     | '/login'
     | '/settings'
+    | '/admin/eisenpakketten'
     | '/projects/$projectId'
   fileRoutesById: FileRoutesById
 }
@@ -87,6 +104,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
   SettingsRoute: typeof SettingsRoute
+  AdminEisenpakkettenRoute: typeof AdminEisenpakkettenRoute
   ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
 }
 
@@ -127,6 +145,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjectsProjectIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/eisenpakketten': {
+      id: '/admin/eisenpakketten'
+      path: '/admin/eisenpakketten'
+      fullPath: '/admin/eisenpakketten'
+      preLoaderRoute: typeof AdminEisenpakkettenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -135,17 +160,9 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
   SettingsRoute: SettingsRoute,
+  AdminEisenpakkettenRoute: AdminEisenpakkettenRoute,
   ProjectsProjectIdRoute: ProjectsProjectIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

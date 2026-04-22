@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { LogOut, Settings, ChevronDown } from "lucide-react";
+import { LogOut, Settings, ChevronDown, BookOpen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { displayName, useSupabaseAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -49,6 +49,13 @@ export function TopNav() {
               {user?.email ?? "Niet ingelogd"}
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onSelect={() => navigate({ to: "/admin/eisenpakketten" })}
+              className="cursor-pointer"
+            >
+              <BookOpen className="mr-2 h-4 w-4" />
+              Eisenpakketten
+            </DropdownMenuItem>
             <DropdownMenuItem
               onSelect={() => navigate({ to: "/settings" })}
               className="cursor-pointer"
