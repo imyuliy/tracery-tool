@@ -1,0 +1,244 @@
+// De Tracémolen — Sprint 4 Workspace data hooks & types.
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  getTraceMapData,
+  segmentTraceByBgt,
+  generateTraceDescription,
+  exportTraceDescriptionDocx,
+  type TraceMapData,
+} from "@/lib/server/trace.functions";
+
+export type PhaseState =
+  | "VO_fase_1"
+  | "VO_fase_2"
+  | "DO"
+  | "UO"
+  | "Realisatie";
+
+export const PHASE_ORDER: PhaseState[] = [
+  "VO_fase_1",
+  "VO_fase_2",
+  "DO",
+  "UO",
+  "Realisatie",
+];
+
+export const PHASE_LABELS: Record<PhaseState, string> = {
+  VO_fase_1: "VO fase 1",
+  VO_fase_2: "VO fase 2",
+  DO: "DO",
+  UO: "UO",
+  Realisatie: "Realisatie",
+};
+
+// BGT feature_type kleurpalet — paper-vriendelijk, signalen onderscheidbaar.
+export const BGT_COLORS: Record<string, string> = {
+  wegdeel: "#7BA7BD",
+  pand: "#C77B5C",
+  waterdeel: "#3E7A9C",
+  begroeidterreindeel: "#7FA46B",
+  onbegroeidterreindeel: "#B5A37A",
+  ondersteunendwegdeel: "#9DBBC9",
+  scheiding: "#8B7B6E",
+  overigbouwwerk: "#A38478",
+  spoor: "#5D5547",
+  default: "#6B7E78",
+};
+
+export const BGT_FEATURE_TYPES = Object.keys(BGT_COLORS).filter(
+  (k) => k !== "default",
+);
+
+export function colorFor(featureType: string | null | undefined): string {
+  if (!featureType) return BGT_COLORS.default;
+  return BGT_COLORS[featureType] ?? BGT_COLORS.default;
+}
+
+// ─── Query: BGT map-data ────────────────────────────────────────────────
+export function useTraceMapData(traceId: string | null) {
+  return useQuery({
+    queryKey: ["trace-map", traceId],
+    enabled: !!traceId,
+    staleTime: 60_000,
+    queryFn: async (): Promise<TraceMapData> => {
+      if (!traceId) throw new Error("no trace");
+      return await getTraceMapData({ data: { trace_id: traceId } });
+    },
+  });
+}
+
+// ─── Query: laatste tracé van project ──────────────────────────────────
+export function useLatestTrace(projectId: string) {
+  return useQuery({
+    queryKey: ["latest-trace", projectId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("traces")
+        .select("*")
+        .eq("project_id", projectId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+// ─── Query: laatste trace_description-sectie ───────────────────────────
+export function useTraceDescription(traceId: string | null) {
+  return useQuery({
+    queryKey: ["trace-description", traceId],
+    enabled: !!traceId,
+    queryFn: async () => {
+      if (!traceId) return null;
+      const { data, error } = await supabase
+        .from("report_sections")
+        .select("*")
+        .eq("trace_id", traceId)
+        .eq("report_type", "trace_description")
+        .order("generated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+// ─── Query: project_artifacts (DOCX exports) ───────────────────────────
+export function useProjectArtifacts(projectId: string) {
+  return useQuery({
+    queryKey: ["project-artifacts", projectId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("project_artifacts")
+        .select("*")
+        .eq("project_id", projectId)
+        .order("generated_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+// ─── Query: design_parameters (active) ─────────────────────────────────
+export function useActiveParameters(projectId: string) {
+  return useQuery({
+    queryKey: ["active-parameters", projectId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("design_parameters")
+        .select("*")
+        .eq("project_id", projectId)
+        .eq("is_active", true)
+        .order("version", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+// ─── Query: product_catalog ────────────────────────────────────────────
+export function useProductCatalog() {
+  return useQuery({
+    queryKey: ["product-catalog"],
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("product_catalog")
+        .select("*")
+        .order("sort_order", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+// ─── Query: scope (objecttypes + completeness) ─────────────────────────
+export function useProjectScope(projectId: string) {
+  return useQuery({
+    queryKey: ["project-scope", projectId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("project_eisen_scope")
+        .select("*")
+        .eq("project_id", projectId);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+// ─── Mutation: BGT-segmentatie ─────────────────────────────────────────
+export function useSegmentTrace() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (traceId: string) => {
+      return await segmentTraceByBgt({ data: { trace_id: traceId } });
+    },
+    onSuccess: (_r, traceId) => {
+      qc.invalidateQueries({ queryKey: ["trace-map", traceId] });
+      qc.invalidateQueries({ queryKey: ["latest-trace"] });
+      toast.success("BGT-segmentatie voltooid");
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
+// ─── Mutation: tracé-omschrijving genereren ────────────────────────────
+export function useGenerateTraceDescription() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (traceId: string) => {
+      return await generateTraceDescription({ data: { trace_id: traceId } });
+    },
+    onSuccess: (_r, traceId) => {
+      qc.invalidateQueries({ queryKey: ["trace-description", traceId] });
+      toast.success("Tracé-omschrijving gegenereerd");
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
+// ─── Mutation: DOCX-export ─────────────────────────────────────────────
+export function useExportDocx() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: { traceId: string; sectionId?: string }) => {
+      return await exportTraceDescriptionDocx({
+        data: { trace_id: vars.traceId, section_id: vars.sectionId },
+      });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["project-artifacts"] });
+      toast.success("DOCX-export klaar");
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
+// ─── Phase-state mutation ──────────────────────────────────────────────
+export function usePromotePhase(projectId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (phase: PhaseState) => {
+      const { error } = await supabase
+        .from("projects")
+        .update({ phase_state: phase })
+        .eq("id", projectId);
+      if (error) throw error;
+      return phase;
+    },
+    onSuccess: (phase) => {
+      qc.invalidateQueries({ queryKey: ["projects", projectId] });
+      qc.invalidateQueries({ queryKey: ["projects"] });
+      toast.success(`Fase gepromoot naar ${PHASE_LABELS[phase]}`);
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
