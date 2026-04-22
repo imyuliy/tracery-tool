@@ -105,6 +105,50 @@ export type Database = {
         }
         Relationships: []
       }
+      bgt_features_staging: {
+        Row: {
+          attributes: Json | null
+          bgt_subtype: string | null
+          bgt_type: string | null
+          feature_type: string
+          fetched_at: string | null
+          geometry: unknown
+          id: string
+          lokaal_id: string
+          trace_id: string
+        }
+        Insert: {
+          attributes?: Json | null
+          bgt_subtype?: string | null
+          bgt_type?: string | null
+          feature_type: string
+          fetched_at?: string | null
+          geometry: unknown
+          id?: string
+          lokaal_id: string
+          trace_id: string
+        }
+        Update: {
+          attributes?: Json | null
+          bgt_subtype?: string | null
+          bgt_type?: string | null
+          feature_type?: string
+          fetched_at?: string | null
+          geometry?: unknown
+          id?: string
+          lokaal_id?: string
+          trace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bgt_features_staging_trace_id_fkey"
+            columns: ["trace_id"]
+            isOneToOne: false
+            referencedRelation: "traces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cadastral_parcels: {
         Row: {
           brk_identifier: string
@@ -697,6 +741,153 @@ export type Database = {
           },
         ]
       }
+      product_catalog: {
+        Row: {
+          available_from_phase: string
+          code: string
+          description: string | null
+          is_active: boolean | null
+          name: string
+          sort_order: number
+          sprint: string | null
+        }
+        Insert: {
+          available_from_phase: string
+          code: string
+          description?: string | null
+          is_active?: boolean | null
+          name: string
+          sort_order: number
+          sprint?: string | null
+        }
+        Update: {
+          available_from_phase?: string
+          code?: string
+          description?: string | null
+          is_active?: boolean | null
+          name?: string
+          sort_order?: number
+          sprint?: string | null
+        }
+        Relationships: []
+      }
+      project_artifacts: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          file_size_bytes: number | null
+          generated_at: string | null
+          generated_by: string | null
+          id: string
+          mime_type: string | null
+          model: string | null
+          parameters_version: number | null
+          phase_state_at_gen: string
+          product_code: string
+          project_id: string
+          report_section_id: string | null
+          status: string | null
+          storage_path: string | null
+          superseded_by: string | null
+          trace_id: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          file_size_bytes?: number | null
+          generated_at?: string | null
+          generated_by?: string | null
+          id?: string
+          mime_type?: string | null
+          model?: string | null
+          parameters_version?: number | null
+          phase_state_at_gen: string
+          product_code: string
+          project_id: string
+          report_section_id?: string | null
+          status?: string | null
+          storage_path?: string | null
+          superseded_by?: string | null
+          trace_id?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          file_size_bytes?: number | null
+          generated_at?: string | null
+          generated_by?: string | null
+          id?: string
+          mime_type?: string | null
+          model?: string | null
+          parameters_version?: number | null
+          phase_state_at_gen?: string
+          product_code?: string
+          project_id?: string
+          report_section_id?: string | null
+          status?: string | null
+          storage_path?: string | null
+          superseded_by?: string | null
+          trace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_artifacts_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_artifacts_generated_by_fkey"
+            columns: ["generated_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_artifacts_product_code_fkey"
+            columns: ["product_code"]
+            isOneToOne: false
+            referencedRelation: "product_catalog"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "project_artifacts_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_artifacts_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "v_project_summary"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_artifacts_report_section_id_fkey"
+            columns: ["report_section_id"]
+            isOneToOne: false
+            referencedRelation: "report_sections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_artifacts_superseded_by_fkey"
+            columns: ["superseded_by"]
+            isOneToOne: false
+            referencedRelation: "project_artifacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_artifacts_trace_id_fkey"
+            columns: ["trace_id"]
+            isOneToOne: false
+            referencedRelation: "traces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_eisen_scope: {
         Row: {
           created_at: string | null
@@ -753,6 +944,7 @@ export type Database = {
           name: string
           org_id: string
           perceel: string | null
+          phase_state: string
           planning_plafond_weken: number | null
           scope_description: string | null
           settings: Json | null
@@ -773,6 +965,7 @@ export type Database = {
           name: string
           org_id: string
           perceel?: string | null
+          phase_state?: string
           planning_plafond_weken?: number | null
           scope_description?: string | null
           settings?: Json | null
@@ -793,6 +986,7 @@ export type Database = {
           name?: string
           org_id?: string
           perceel?: string | null
+          phase_state?: string
           planning_plafond_weken?: number | null
           scope_description?: string | null
           settings?: Json | null
@@ -1033,6 +1227,9 @@ export type Database = {
           aanbevolen_techniek: string | null
           beheerder: string | null
           beheerder_type: string | null
+          bgt_attributes: Json | null
+          bgt_feature_type: string | null
+          bgt_fetched_at: string | null
           bgt_fysiek_voorkomen: string | null
           bgt_lokaal_id: string | null
           bgt_niveau: number | null
@@ -1053,6 +1250,9 @@ export type Database = {
           aanbevolen_techniek?: string | null
           beheerder?: string | null
           beheerder_type?: string | null
+          bgt_attributes?: Json | null
+          bgt_feature_type?: string | null
+          bgt_fetched_at?: string | null
           bgt_fysiek_voorkomen?: string | null
           bgt_lokaal_id?: string | null
           bgt_niveau?: number | null
@@ -1073,6 +1273,9 @@ export type Database = {
           aanbevolen_techniek?: string | null
           beheerder?: string | null
           beheerder_type?: string | null
+          bgt_attributes?: Json | null
+          bgt_feature_type?: string | null
+          bgt_fetched_at?: string | null
           bgt_fysiek_voorkomen?: string | null
           bgt_lokaal_id?: string | null
           bgt_niveau?: number | null
@@ -1729,6 +1932,26 @@ export type Database = {
           },
         ]
       }
+      v_trace_bgt_summary: {
+        Row: {
+          bgt_feature_type: string | null
+          bgt_subtype: string | null
+          bgt_type: string | null
+          pct_of_trace: number | null
+          segment_count: number | null
+          total_length_m: number | null
+          trace_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "segments_trace_id_fkey"
+            columns: ["trace_id"]
+            isOneToOne: false
+            referencedRelation: "traces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       _postgis_deprecate: {
@@ -1858,6 +2081,10 @@ export type Database = {
             }
             Returns: string
           }
+      bgt_staging_insert_batch: {
+        Args: { p_features: Json; p_trace_id: string }
+        Returns: number
+      }
       current_org_id: { Args: never; Returns: string }
       disablelongtransactions: { Args: never; Returns: string }
       dropgeometrycolumn:
@@ -2045,6 +2272,7 @@ export type Database = {
       }
       postgis_version: { Args: never; Returns: string }
       postgis_wagyu_version: { Args: never; Returns: string }
+      segment_trace_by_bgt: { Args: { p_trace_id: string }; Returns: number }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       st_3dclosestpoint: {
@@ -2627,6 +2855,15 @@ export type Database = {
       st_wrapx: {
         Args: { geom: unknown; move: number; wrap: number }
         Returns: unknown
+      }
+      trace_bbox_28992: {
+        Args: { p_buffer_m?: number; p_trace_id: string }
+        Returns: {
+          xmax: number
+          xmin: number
+          ymax: number
+          ymin: number
+        }[]
       }
       unlockrows: { Args: { "": string }; Returns: number }
       updategeometrysrid: {
