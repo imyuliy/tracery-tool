@@ -9,17 +9,17 @@ interface RouterContext {
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-paper px-4">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="font-display text-7xl font-semibold text-ink">404</h1>
-        <h2 className="mt-4 font-display text-xl text-ink">Pagina niet gevonden</h2>
-        <p className="mt-2 font-sans text-sm text-muted-foreground">
+        <h1 className="font-display text-7xl font-semibold text-blood">404</h1>
+        <h2 className="mt-4 font-display text-xl text-bone">Pagina niet gevonden</h2>
+        <p className="mt-2 font-sans text-sm text-bone/60">
           De pagina die je zoekt bestaat niet of is verplaatst.
         </p>
         <div className="mt-6">
           <Link
             to="/"
-            className="inline-flex items-center justify-center rounded-md bg-ink px-4 py-2 font-sans text-sm font-medium text-paper transition-colors hover:bg-ink/90"
+            className="inline-flex items-center justify-center rounded-md bg-blood px-4 py-2 font-sans text-sm font-medium text-bone transition-all hover:bg-ember hover:shadow-[0_0_24px_-4px_oklch(0.60_0.22_24/0.6)]"
           >
             Naar home
           </Link>

@@ -33,7 +33,6 @@ function LoginPage() {
   const [info, setInfo] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Al ingelogd? → meteen door.
   useEffect(() => {
     if (session) navigate({ to: "/dashboard", replace: true });
   }, [session, navigate]);
@@ -73,25 +72,32 @@ function LoginPage() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-paper px-6">
-      <div className="w-full max-w-md">
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-6">
+      {/* Ambient blood-glow accents */}
+      <div className="pointer-events-none absolute -left-32 top-1/4 h-96 w-96 rounded-full bg-blood/20 blur-[120px]" />
+      <div className="pointer-events-none absolute -right-32 bottom-1/4 h-96 w-96 rounded-full bg-ember/10 blur-[120px]" />
+
+      <div className="relative w-full max-w-md">
         <div className="mb-10 text-center">
           <Link
             to="/"
-            className="font-display text-3xl font-semibold tracking-tight text-ink"
+            className="inline-flex items-center gap-2 font-display text-3xl font-semibold tracking-tight text-bone transition-colors hover:text-blood"
           >
+            <span className="flex h-9 w-9 items-center justify-center rounded-md bg-blood font-display text-base font-bold text-bone shadow-[0_0_20px_-2px_oklch(0.60_0.22_24/0.7)]">
+              T
+            </span>
             De Tracémolen
           </Link>
-          <p className="mt-2 font-sans text-sm text-muted-foreground">
+          <p className="mt-3 font-mono text-[10px] uppercase tracking-widest text-bone/50">
             Engineering copilot · Vayu Solutions
           </p>
         </div>
 
-        <div className="rounded-lg border border-border bg-card p-8 shadow-sm">
-          <h1 className="font-display text-2xl text-ink">
+        <div className="glass-strong rounded-xl p-8">
+          <h1 className="font-display text-2xl text-bone">
             {mode === "signin" ? "Inloggen" : "Account aanmaken"}
           </h1>
-          <p className="mt-1 font-sans text-sm text-muted-foreground">
+          <p className="mt-1 font-sans text-sm text-bone/60">
             {mode === "signin"
               ? "Voer je e-mail en wachtwoord in."
               : "Maak een nieuw engineer-account aan."}
@@ -99,7 +105,7 @@ function LoginPage() {
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email" className="font-sans">
+              <Label htmlFor="email" className="font-sans text-bone/80">
                 E-mail
               </Label>
               <Input
@@ -110,11 +116,12 @@ function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="naam@vayusolutions.nl"
+                className="bg-ink/50 text-bone placeholder:text-bone/30"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="font-sans">
+              <Label htmlFor="password" className="font-sans text-bone/80">
                 Wachtwoord
               </Label>
               <Input
@@ -127,25 +134,22 @@ function LoginPage() {
                 minLength={8}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                className="bg-ink/50 text-bone placeholder:text-bone/30"
               />
             </div>
 
             {error && (
-              <p className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 font-sans text-sm text-destructive">
+              <p className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 font-sans text-sm text-destructive">
                 {error}
               </p>
             )}
             {info && (
-              <p className="rounded-md border border-border bg-muted px-3 py-2 font-sans text-sm text-ink">
+              <p className="rounded-md border border-blood/30 bg-blood/10 px-3 py-2 font-sans text-sm text-bone">
                 {info}
               </p>
             )}
 
-            <Button
-              type="submit"
-              disabled={submitting}
-              className="w-full bg-ink text-paper hover:bg-ink/90"
-            >
+            <Button type="submit" disabled={submitting} className="w-full">
               {submitting
                 ? "Bezig…"
                 : mode === "signin"
@@ -163,7 +167,7 @@ function LoginPage() {
                   setError(null);
                   setInfo(null);
                 }}
-                className="text-cyan underline-offset-4 hover:underline"
+                className="text-blood underline-offset-4 transition-colors hover:text-ember hover:underline"
               >
                 Nog geen account? Aanmaken
               </button>
@@ -175,7 +179,7 @@ function LoginPage() {
                   setError(null);
                   setInfo(null);
                 }}
-                className="text-cyan underline-offset-4 hover:underline"
+                className="text-blood underline-offset-4 transition-colors hover:text-ember hover:underline"
               >
                 Al een account? Inloggen
               </button>
@@ -183,8 +187,8 @@ function LoginPage() {
           </div>
         </div>
 
-        <p className="mt-6 text-center font-sans text-xs text-muted-foreground">
-          MVP-1 · alleen e-mail + wachtwoord. Geen social login.
+        <p className="mt-6 text-center font-mono text-[10px] uppercase tracking-widest text-bone/40">
+          MVP-1 · alleen e-mail + wachtwoord
         </p>
       </div>
     </main>
