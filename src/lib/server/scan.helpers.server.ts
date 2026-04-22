@@ -26,7 +26,17 @@ type SupabaseLike = SupabaseClient<Database>;
 
 const BATCH_SIZE = 25;
 const MAX_PARALLEL = 5;
-const MAX_SEGMENTS = 1000;
+const MAX_SEGMENTS_DEFAULT = 1000;
+// Env-cap (Stap 0 validatie): SCAN_MAX_SEGMENTS=1 om end-to-end flow te testen.
+function resolveMaxSegments(override?: number): number {
+  if (typeof override === "number" && override > 0) return override;
+  const env = process.env.SCAN_MAX_SEGMENTS;
+  if (env) {
+    const n = Number.parseInt(env, 10);
+    if (Number.isFinite(n) && n > 0) return n;
+  }
+  return MAX_SEGMENTS_DEFAULT;
+}
 const TOP_K_RULES = 8;
 const TOP_K_VECTOR = 6;
 const MIN_VECTOR_SCORE = 0.55;
@@ -82,6 +92,7 @@ export async function runGenerateSegmentScanV1(opts: {
   supabase: SupabaseLike;
   traceId: string;
   userId: string | null;
+  maxSegments?: number;
 }): Promise<ScanRunResult> {
   const t0 = Date.now();
   const log = (msg: string, extra?: Record<string, unknown>) =>
@@ -93,6 +104,8 @@ export async function runGenerateSegmentScanV1(opts: {
   const ai = getAIProvider();
   const generationRunId = crypto.randomUUID();
   const warnings: string[] = [];
+  const maxSegments = resolveMaxSegments(opts.maxSegments);
+  log(`max_segments=${maxSegments}`);
 
   // Trace + project ophalen
   const { data: trace, error: traceErr } = await opts.supabase
@@ -118,11 +131,11 @@ export async function runGenerateSegmentScanV1(opts: {
   if (!segments || segments.length === 0) {
     throw new Error("Geen segmenten gevonden. Draai eerst BGT-segmentatie.");
   }
-  if (segments.length > MAX_SEGMENTS) {
+  if (segments.length > maxSegments) {
     warnings.push(
-      `Tracé heeft ${segments.length} segmenten — gecapt op ${MAX_SEGMENTS}.`,
+      `Tracé heeft ${segments.length} segmenten — gecapt op ${maxSegments}.`,
     );
-    segments.splice(MAX_SEGMENTS);
+    segments.splice(maxSegments);
   }
   log(`segments=${segments.length}`);
 
