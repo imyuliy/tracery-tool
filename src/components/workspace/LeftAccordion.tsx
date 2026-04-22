@@ -249,9 +249,12 @@ function TraceSection({
     disabled: uploading,
   });
 
+  const [showReplace, setShowReplace] = useState(false);
+  const showDropzone = !trace?.source_file || showReplace;
+
   return (
     <div className="space-y-3">
-      {trace?.source_file ? (
+      {trace?.source_file && !showReplace && (
         <div className="rounded-md border border-border bg-paper px-3 py-2 transition-colors hover:border-blood/40">
           <div className="flex items-center gap-2 font-sans text-xs text-ink">
             <FileText className="h-3.5 w-3.5 text-blood" />
@@ -262,8 +265,16 @@ function TraceSection({
               {Math.round(trace.length_m)} m
             </p>
           )}
+          <button
+            type="button"
+            className="mt-2 font-mono text-[10px] uppercase tracking-wider text-blood hover:text-ember"
+            onClick={() => setShowReplace(true)}
+          >
+            Vervang tracé →
+          </button>
         </div>
-      ) : (
+      )}
+      {showDropzone && (
         <div
           {...getRootProps()}
           className={`cursor-pointer rounded-md border-2 border-dashed p-4 text-center transition-all ${
