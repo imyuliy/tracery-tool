@@ -323,12 +323,17 @@ export function useSegmentDescriptions(traceId: string | null) {
 export function useGenerateSegmentScan() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (traceId: string) => {
-      return await generateSegmentScanV1({ data: { trace_id: traceId } });
+    mutationFn: async (vars: { traceId: string; maxSegments?: number }) => {
+      return await generateSegmentScanV1({
+        data: { trace_id: vars.traceId, max_segments: vars.maxSegments },
+      });
     },
-    onSuccess: (_r, traceId) => {
-      qc.invalidateQueries({ queryKey: ["segment-descriptions", traceId] });
-      toast.success("Segment-scan voltooid");
+    onSuccess: (res, vars) => {
+      qc.invalidateQueries({ queryKey: ["segment-descriptions", vars.traceId] });
+      const note = vars.maxSegments
+        ? ` (test: ${res.segments_processed} segment)`
+        : "";
+      toast.success(`Segment-scan voltooid${note}`);
     },
     onError: (err: Error) => toast.error(err.message),
   });
