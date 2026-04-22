@@ -7,6 +7,7 @@ import {
   segmentTraceByBgt,
   generateTraceDescription,
   exportTraceDescriptionDocx,
+  setTraceGeometryFromWkt,
   type TraceMapData,
 } from "@/lib/server/trace.functions";
 
