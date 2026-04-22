@@ -2,12 +2,13 @@
 //
 // GET /api/public/smoketest-sprint4-trigger?trace_id=<uuid>
 //
-// Deze route leest SMOKETEST_SECRET server-side uit env en post intern naar
-// /api/public/smoketest-sprint4. Geen externe header nodig.
+// Roept de smoke-test handler DIRECT aan (geen interne fetch — dat loopt
+// in een Cloudflare Worker subrequest-loop). Verifieert SMOKETEST_SECRET
+// server-side via env, geen client header nodig.
 //
-// TODO(Sprint 5): VERWIJDER deze route compleet zodra smoke-test gedraaid is.
-// Dit is een Sprint 4-only convenience-trigger en heeft geen plek in productie.
+// TODO(Sprint 5): VERWIJDER deze route compleet.
 import { createFileRoute } from "@tanstack/react-router";
+import { runSmoketestSprint4 } from "@/lib/server/smoketest-sprint4.server";
 
 export const Route = createFileRoute("/api/public/smoketest-sprint4-trigger")({
   server: {
@@ -25,37 +26,21 @@ export const Route = createFileRoute("/api/public/smoketest-sprint4-trigger")({
         const projectId = url.searchParams.get("project_id");
         const seed = url.searchParams.get("seed") === "true";
 
-        let body: Record<string, unknown>;
+        let payload: { trace_id?: string; seed?: boolean; project_id?: string };
         if (traceId) {
-          body = { trace_id: traceId };
+          payload = { trace_id: traceId };
         } else if (seed && projectId) {
-          body = { seed: true, project_id: projectId };
+          payload = { seed: true, project_id: projectId };
         } else {
           return Response.json(
-            {
-              error:
-                "Geef ?trace_id=<uuid> OF ?seed=true&project_id=<uuid>",
-            },
+            { error: "Geef ?trace_id=<uuid> OF ?seed=true&project_id=<uuid>" },
             { status: 400 },
           );
         }
 
-        const target = `${url.origin}/api/public/smoketest-sprint4`;
-        const res = await fetch(target, {
-          method: "POST",
-          headers: {
-            "content-type": "application/json",
-            "x-smoketest-secret": secret,
-          },
-          body: JSON.stringify(body),
-        });
-        const text = await res.text();
-        return new Response(text, {
-          status: res.status,
-          headers: {
-            "content-type":
-              res.headers.get("content-type") ?? "application/json",
-          },
+        const result = await runSmoketestSprint4(payload);
+        return Response.json(result, {
+          status: result.success ? 200 : 500,
         });
       },
     },
