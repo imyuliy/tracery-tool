@@ -247,13 +247,23 @@ function TraceSection({
           throw upErr;
         }
 
-        toast.success("Tracé geüpload");
-        onUploaded();
-
-        // 4. Als KML: zet geometrie + draai pipeline.
+        // 4. Als KML: zet eerst de geometrie. Pas daarna markeren we deze
+        // trace als "latest" in de UI. Zo voorkomen we dat een mislukte ingest
+        // als lege actieve trace blijft hangen en de map grijs maakt.
         if (parsedWkt) {
-          await onIngestKml(traceRow.id, parsedWkt);
+          try {
+            await onIngestKml(traceRow.id, parsedWkt);
+            onUploaded();
+          } catch (ingestErr) {
+            await Promise.allSettled([
+              supabase.storage.from("traces").remove([path]),
+              supabase.from("traces").delete().eq("id", traceRow.id),
+            ]);
+            throw ingestErr;
+          }
         } else {
+          toast.success("Tracé geüpload");
+          onUploaded();
           toast.message("Alleen KML-parsing is momenteel actief.");
         }
       } catch (err) {

@@ -13,8 +13,11 @@ import {
 
 type MapData = NonNullable<ReturnType<typeof useTraceMapData>["data"]>;
 
-const PDOK_BRT =
-  "https://service.pdok.nl/brt/achtergrondkaart/wmts/v2_0/standaard/EPSG:3857/{z}/{y}/{x}.png";
+const BASEMAP_TILES = [
+  "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
+  "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+  "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png",
+];
 const PDOK_BGT =
   "https://service.pdok.nl/lv/bgt/wmts/v1_0/achtergrondvisualisatie/EPSG:3857/{z}/{y}/{x}.png";
 
@@ -64,9 +67,9 @@ export function MapPanel({
         sources: {
           brt: {
             type: "raster",
-            tiles: [PDOK_BRT],
+            tiles: BASEMAP_TILES,
             tileSize: 256,
-            attribution: "© Kadaster (PDOK BRT)",
+            attribution: "© OpenStreetMap contributors",
           },
           bgt: {
             type: "raster",
