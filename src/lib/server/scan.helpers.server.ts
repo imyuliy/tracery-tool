@@ -107,19 +107,30 @@ export async function runGenerateSegmentScanV1(opts: {
   const maxSegments = resolveMaxSegments(opts.maxSegments);
   log(`max_segments=${maxSegments}`);
 
-  // Trace + project ophalen
+  // Trace + project ophalen — losse queries voor heldere foutdiagnose.
+  log("fetch trace…");
   const { data: trace, error: traceErr } = await opts.supabase
     .from("traces")
-    .select(
-      `id, project_id,
-       project:projects (id, name, client, perceel, phase_state, eisenpakket_version_id)`,
-    )
+    .select("id, project_id")
     .eq("id", opts.traceId)
     .single();
-  if (traceErr || !trace) throw new Error(`Trace ${opts.traceId} niet gevonden`);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const project: any = trace.project;
-  if (!project) throw new Error("Trace heeft geen project");
+  if (traceErr) {
+    log(`trace error: ${traceErr.message}`);
+    throw new Error(`Trace ${opts.traceId} niet gevonden: ${traceErr.message}`);
+  }
+  if (!trace) throw new Error(`Trace ${opts.traceId} niet gevonden`);
+  log(`trace ok project_id=${trace.project_id}`);
+
+  const { data: project, error: projErr } = await opts.supabase
+    .from("projects")
+    .select("id, name, client, perceel, phase_state, eisenpakket_version_id")
+    .eq("id", trace.project_id)
+    .single();
+  if (projErr || !project) {
+    log(`project error: ${projErr?.message ?? "no row"}`);
+    throw new Error(`Project niet gevonden: ${projErr?.message ?? "geen rij"}`);
+  }
+  log(`project ok name=${project.name}`);
 
   // Segmenten met context-view — expliciete kolommen (GEEN geometry; die maakt
   // de PostgREST-respons enorm en hangt de Worker bij 100+ segmenten).
