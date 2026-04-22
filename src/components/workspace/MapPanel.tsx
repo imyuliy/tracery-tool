@@ -88,18 +88,26 @@ export function MapPanel({
           },
         ],
       },
-      center: [5.1214, 52.0907], // NL fallback (Utrecht)
-      zoom: 7,
+      bounds: [
+        [3.2, 50.7],
+        [7.3, 53.6],
+      ], // heel Nederland in beeld op startup
       attributionControl: { compact: true },
     });
 
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
     map.on("load", () => {
       setReady(true);
-      // Force resize — vangt container-size=0 bij init af.
-      // Zonder dit blijft het canvas 0×0 ondanks dat tiles binnenkomen
-      // (parent flex/grid-layout heeft op mount-moment nog geen afmetingen).
-      requestAnimationFrame(() => map.resize());
+      requestAnimationFrame(() => {
+        map.resize();
+        map.fitBounds(
+          [
+            [3.2, 50.7],
+            [7.3, 53.6],
+          ],
+          { padding: 20, duration: 0 },
+        );
+      });
       setTimeout(() => map.resize(), 200);
     });
     mapRef.current = map;
@@ -299,8 +307,8 @@ export function MapPanel({
         </div>
       ) : null}
       {(isLoading || !data) && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-paper/60 backdrop-blur-sm">
-          <div className="glass-strong rounded-md px-5 py-3 font-mono text-xs uppercase tracking-wider text-ink shadow-xl">
+        <div className="pointer-events-none absolute bottom-[280px] left-1/2 z-[5] -translate-x-1/2">
+          <div className="glass-strong pointer-events-auto rounded-md px-5 py-3 font-mono text-xs uppercase tracking-wider text-ink shadow-xl">
             {isLoading ? "Kaart laden…" : "Nog geen tracé. Upload er een via het linker paneel."}
           </div>
         </div>
