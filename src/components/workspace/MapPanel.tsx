@@ -55,9 +55,10 @@ export function MapPanel({
 
   // Init map once.
   useEffect(() => {
-    if (!containerRef.current || mapRef.current) return;
+    const node = containerRef.current;
+    if (!node || mapRef.current) return;
     const map = new maplibregl.Map({
-      container: containerRef.current,
+      container: node,
       style: {
         version: 8,
         sources: {
@@ -90,10 +91,23 @@ export function MapPanel({
     });
 
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
-    map.on("load", () => setReady(true));
+    map.on("load", () => {
+      setReady(true);
+      // Force resize — vangt container-size=0 bij init af.
+      // Zonder dit blijft het canvas 0×0 ondanks dat tiles binnenkomen
+      // (parent flex/grid-layout heeft op mount-moment nog geen afmetingen).
+      requestAnimationFrame(() => map.resize());
+      setTimeout(() => map.resize(), 200);
+    });
     mapRef.current = map;
 
+    // ResizeObserver — vangt latere layout-changes af (BottomDrawer open/dicht,
+    // window-resize, panel-resize). Zonder dit blijft de map de oude size houden.
+    const ro = new ResizeObserver(() => map.resize());
+    ro.observe(node);
+
     return () => {
+      ro.disconnect();
       map.remove();
       mapRef.current = null;
     };
