@@ -159,14 +159,18 @@ function TraceSection({
   projectId,
   trace,
   onUploaded,
+  onIngestKml,
   onSegment,
   segmenting,
+  ingesting,
 }: {
   projectId: string;
   trace: { id: string; source_file: string | null; length_m: number | null } | null | undefined;
   onUploaded: () => void;
+  onIngestKml: (traceId: string, wkt4326: string) => Promise<void>;
   onSegment: () => void;
   segmenting: boolean;
+  ingesting: boolean;
 }) {
   const [uploading, setUploading] = useState(false);
 
@@ -181,6 +185,17 @@ function TraceSection({
       setUploading(true);
       try {
         const ext = file.name.split(".").pop()?.toLowerCase() ?? "bin";
+
+        // 1. Parse KML client-side voor we de DB-row aanmaken — als parsing
+        //    faalt willen we geen verweesde trace zonder geometrie.
+        let parsedWkt: string | null = null;
+        if (ext === "kml") {
+          const text = await file.text();
+          const parsed = parseKmlToMultiLineStringWkt(text);
+          parsedWkt = parsed.wkt;
+        }
+
+        // 2. Insert trace-row.
         const { data: traceRow, error } = await supabase
           .from("traces")
           .insert({
@@ -194,6 +209,8 @@ function TraceSection({
           .select("id")
           .single();
         if (error) throw error;
+
+        // 3. Upload originele file (raw, voor audit).
         const path = `${projectId}/${traceRow.id}.${ext}`;
         const { error: upErr } = await supabase.storage
           .from("traces")
@@ -205,15 +222,23 @@ function TraceSection({
           await supabase.from("traces").delete().eq("id", traceRow.id);
           throw upErr;
         }
+
         toast.success("Tracé geüpload");
         onUploaded();
+
+        // 4. Als KML: zet geometrie + draai pipeline.
+        if (parsedWkt) {
+          await onIngestKml(traceRow.id, parsedWkt);
+        } else {
+          toast.message("Alleen KML-parsing is momenteel actief.");
+        }
       } catch (err) {
         toast.error((err as Error).message);
       } finally {
         setUploading(false);
       }
     },
-    [projectId, onUploaded],
+    [projectId, onUploaded, onIngestKml],
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
