@@ -121,10 +121,13 @@ export async function runGenerateSegmentScanV1(opts: {
   const project: any = trace.project;
   if (!project) throw new Error("Trace heeft geen project");
 
-  // Segmenten met context-view
+  // Segmenten met context-view — expliciete kolommen (GEEN geometry; die maakt
+  // de PostgREST-respons enorm en hangt de Worker bij 100+ segmenten).
   const { data: segments, error: segErr } = await opts.supabase
     .from("v_segment_with_context")
-    .select("*")
+    .select(
+      "id, trace_id, sequence, km_start, km_end, length_m, bgt_type, bgt_subtype, bgt_fysiek_voorkomen, bgt_lokaal_id, beheerder, beheerder_type, aanbevolen_techniek, nearby_features, pand_count, waterdeel_count, wegkruising_count, aandacht_flags_auto, aandacht_reden_auto, prev_segment_id, next_segment_id",
+    )
     .eq("trace_id", opts.traceId)
     .order("sequence");
   if (segErr) throw new Error(`Segments: ${segErr.message}`);
@@ -369,7 +372,9 @@ function buildSegmentContext(seg: any): SegmentContext {
 
   const length = Math.round(Number(seg.length_m ?? 0));
   const km = `${Number(seg.km_start ?? 0).toFixed(0)}-${Number(seg.km_end ?? 0).toFixed(0)}m`;
-  const bgt = `${seg.bgt_feature_type ?? "?"}${seg.bgt_subtype ? ` (${seg.bgt_subtype})` : ""}`;
+  // View levert bgt_type; rest van pipeline gebruikt bgt_feature_type — alias.
+  const bgtFeatureType = seg.bgt_feature_type ?? seg.bgt_type ?? null;
+  const bgt = `${bgtFeatureType ?? "?"}${seg.bgt_subtype ? ` (${seg.bgt_subtype})` : ""}`;
   const beheerder = seg.beheerder ? `, beheerder ${seg.beheerder}` : "";
   const fysiek = seg.bgt_fysiek_voorkomen
     ? `, oppervlak ${seg.bgt_fysiek_voorkomen}`
@@ -404,7 +409,9 @@ interface MatchInput {
 
 function matchEisen(input: MatchInput): EisenMatch[] {
   const { segment, candidates, queryVec } = input;
-  const bgtType = String(segment.bgt_feature_type ?? "").toLowerCase();
+  const bgtType = String(
+    segment.bgt_feature_type ?? segment.bgt_type ?? "",
+  ).toLowerCase();
   const bgtSubtype = String(segment.bgt_subtype ?? "").toLowerCase();
   const beheerderType = String(segment.beheerder_type ?? "").toLowerCase();
   const flags: string[] = Array.isArray(segment.aandacht_flags_auto)
