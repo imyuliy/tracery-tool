@@ -27,8 +27,6 @@ export const Route = createFileRoute("/projects/$projectId")({
       },
     ],
   }),
-  loader: ({ params, context }) =>
-    context.queryClient.ensureQueryData(projectQueryOptions(params.projectId)),
   errorComponent: ({ error }) => {
     const router = useRouter();
     return (
@@ -75,7 +73,12 @@ function ProjectWorkspaceRoute() {
 
 function Workspace() {
   const { projectId } = Route.useParams();
-  const { data: project } = useQuery(projectQueryOptions(projectId));
+  const {
+    data: project,
+    error: projectError,
+    isError: hasProjectError,
+    isPending: isProjectLoading,
+  } = useQuery(projectQueryOptions(projectId));
   const { data: trace } = useLatestTrace(projectId);
   const traceId = trace?.id ?? null;
   const { data: mapData, isLoading: mapLoading } = useTraceMapData(traceId);
@@ -91,6 +94,22 @@ function Workspace() {
   const handlePillClick = useCallback((lokaalId: string) => {
     setHighlightedLokaalId((prev) => (prev === lokaalId ? null : lokaalId));
   }, []);
+
+  if (isProjectLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-bone px-4">
+        <div className="font-mono text-xs uppercase tracking-widest text-ink/50">Project laden…</div>
+      </div>
+    );
+  }
+
+  if (hasProjectError) {
+    if (projectError.message === "Project niet gevonden") {
+      throw notFound();
+    }
+
+    throw projectError;
+  }
 
   if (!project) throw notFound();
 
