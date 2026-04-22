@@ -1,4 +1,4 @@
-import { Loader2, Sparkles, Lock, FileText, Download, FlaskConical } from "lucide-react";
+import { Loader2, Sparkles, Lock, FileText, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -70,21 +70,6 @@ export function RightProducts({
                           <Sparkles className="h-3.5 w-3.5" />
                         )}
                         <span className="truncate text-xs">{p.name}</span>
-                      </Button>
-                      {/* Stap 0 — diagnose: scan slechts 1 segment om end-to-end flow te valideren */}
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        disabled={!traceId || generateScan.isPending}
-                        onClick={() =>
-                          traceId &&
-                          generateScan.mutate({ traceId, maxSegments: 1 })
-                        }
-                        className="h-7 w-full justify-start gap-1.5 pl-2 text-[11px] text-ink/60 hover:text-ink"
-                      >
-                        <FlaskConical className="h-3 w-3" />
-                        Test-scan (1 segment)
                       </Button>
                       {hasScan && (
                         <div className="flex flex-col gap-1 pl-2">
