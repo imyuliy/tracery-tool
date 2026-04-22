@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SmoketestRouteImport } from './routes/smoketest'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as MaptestRouteImport } from './routes/maptest'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
@@ -27,6 +28,11 @@ const SmoketestRoute = SmoketestRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MaptestRoute = MaptestRouteImport.update({
+  id: '/maptest',
+  path: '/maptest',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
+  '/maptest': typeof MaptestRoute
   '/settings': typeof SettingsRoute
   '/smoketest': typeof SmoketestRoute
   '/admin/eisenpakketten': typeof AdminEisenpakkettenRoute
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
+  '/maptest': typeof MaptestRoute
   '/settings': typeof SettingsRoute
   '/smoketest': typeof SmoketestRoute
   '/admin/eisenpakketten': typeof AdminEisenpakkettenRoute
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
+  '/maptest': typeof MaptestRoute
   '/settings': typeof SettingsRoute
   '/smoketest': typeof SmoketestRoute
   '/admin/eisenpakketten': typeof AdminEisenpakkettenRoute
@@ -107,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/login'
+    | '/maptest'
     | '/settings'
     | '/smoketest'
     | '/admin/eisenpakketten'
@@ -118,6 +128,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/login'
+    | '/maptest'
     | '/settings'
     | '/smoketest'
     | '/admin/eisenpakketten'
@@ -129,6 +140,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/login'
+    | '/maptest'
     | '/settings'
     | '/smoketest'
     | '/admin/eisenpakketten'
@@ -141,6 +153,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
+  MaptestRoute: typeof MaptestRoute
   SettingsRoute: typeof SettingsRoute
   SmoketestRoute: typeof SmoketestRoute
   AdminEisenpakkettenRoute: typeof AdminEisenpakkettenRoute
@@ -163,6 +176,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/maptest': {
+      id: '/maptest'
+      path: '/maptest'
+      fullPath: '/maptest'
+      preLoaderRoute: typeof MaptestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -221,6 +241,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
+  MaptestRoute: MaptestRoute,
   SettingsRoute: SettingsRoute,
   SmoketestRoute: SmoketestRoute,
   AdminEisenpakkettenRoute: AdminEisenpakkettenRoute,
@@ -231,3 +252,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
