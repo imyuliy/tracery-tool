@@ -28,16 +28,19 @@ import type { Database } from "@/integrations/supabase/types";
 
 type SupabaseLike = SupabaseClient<Database>;
 
-const PDOK_BGT_WFS = "https://service.pdok.nl/lv/bgt/wfs/v1_0";
+// PDOK migreerde 2025-2026 de BGT WFS v1_0 naar OGC API Features.
+// De oude /lv/bgt/wfs/v1_0 endpoint geeft 404. We gebruiken nu de
+// nieuwe /lv/bgt/ogc/v1 endpoint met collection-IDs (lowercase, geen "bgt:" prefix).
+const PDOK_BGT_OGC = "https://api.pdok.nl/lv/bgt/ogc/v1";
 const BGT_FEATURETYPES = [
-  "bgt:Wegdeel",
-  "bgt:Waterdeel",
-  "bgt:OndersteunendWegdeel",
-  "bgt:OnbegroeidTerreindeel",
-  "bgt:Begroeidterreindeel",
-  "bgt:Pand",
-  "bgt:OverigBouwwerk",
-  "bgt:Scheiding",
+  "wegdeel",
+  "waterdeel",
+  "ondersteunendwegdeel",
+  "onbegroeidterreindeel",
+  "begroeidterreindeel",
+  "pand",
+  "overigbouwwerk",
+  "scheiding_vlak",
 ] as const;
 const BBOX_BUFFER_M = 10;
 const STAGING_BATCH = 250;
