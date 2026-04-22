@@ -45,6 +45,8 @@ export function LeftAccordion({ project }: { project: Project }) {
   const { data: params } = useActiveParameters(project.id);
   const { data: scope } = useProjectScope(project.id);
   const segment = useSegmentTrace();
+  const setGeom = useSetTraceGeometryFromWkt();
+  const generateDesc = useGenerateTraceDescription();
 
   const sections: Section[] = [
     { id: "project", title: "Projectinfo", complete: !!project.client },
@@ -58,6 +60,22 @@ export function LeftAccordion({ project }: { project: Project }) {
     },
   ];
   const completed = sections.filter((s) => s.complete).length;
+
+  const runFullPipeline = useCallback(
+    async (traceId: string) => {
+      try {
+        await segment.mutateAsync(traceId);
+      } catch {
+        return; // toast al getoond
+      }
+      try {
+        await generateDesc.mutateAsync(traceId);
+      } catch {
+        // toast al getoond — segmentatie was wel succes
+      }
+    },
+    [segment, generateDesc],
+  );
 
   return (
     <aside className="glass flex h-full w-full flex-col overflow-hidden rounded-xl shadow-xl shadow-ink/10">
@@ -103,10 +121,16 @@ export function LeftAccordion({ project }: { project: Project }) {
                     onUploaded={() => {
                       qc.invalidateQueries({ queryKey: ["latest-trace", project.id] });
                     }}
+                    onIngestKml={async (traceId, wkt4326) => {
+                      await setGeom.mutateAsync({ traceId, wkt4326 });
+                      toast.success("Tracé ingelezen — pipeline draait");
+                      void runFullPipeline(traceId);
+                    }}
                     onSegment={() =>
                       trace && segment.mutate(trace.id)
                     }
                     segmenting={segment.isPending}
+                    ingesting={setGeom.isPending || generateDesc.isPending}
                   />
                 )}
                 {s.id === "scope" && <ScopeSection scope={scope ?? []} />}
