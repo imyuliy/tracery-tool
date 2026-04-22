@@ -112,17 +112,36 @@ export const importEisenpakketXlsx = createServerFn({ method: "POST" })
     }
     log("idempotency-check-ok");
 
-    // Ruim mislukte drafts voor dit pakket op (rollback van vorige poging)
-    const { data: stuckDrafts } = await supabaseAdmin
+    // Ruim mislukte drafts voor dit pakket op (rollback van vorige poging).
+    // Ook drafts met dezelfde version_label opruimen, anders faalt unique constraint.
+    const { data: stuckDrafts, error: stuckErr } = await supabaseAdmin
       .from("eisenpakket_versions")
-      .select("id")
+      .select("id, version_label, status")
       .eq("eisenpakket_id", data.eisenpakket_id)
-      .eq("status", "draft");
-    if (stuckDrafts && stuckDrafts.length > 0) {
-      const draftIds = stuckDrafts.map((d) => d.id);
-      await supabaseAdmin.from("eisen").delete().in("eisenpakket_version_id", draftIds);
-      await supabaseAdmin.from("eisenpakket_versions").delete().in("id", draftIds);
-      log("cleaned-stuck-drafts", { count: draftIds.length });
+      .or(`status.eq.draft,version_label.eq.${data.version_label}`);
+    if (stuckErr) {
+      log("FAIL stuck-drafts-lookup", { error: stuckErr.message });
+    }
+    const toDelete = (stuckDrafts ?? []).filter(
+      (d) => d.status === "draft" || d.version_label === data.version_label,
+    );
+    if (toDelete.length > 0) {
+      const draftIds = toDelete.map((d) => d.id);
+      const { error: delEisenErr } = await supabaseAdmin
+        .from("eisen")
+        .delete()
+        .in("eisenpakket_version_id", draftIds);
+      if (delEisenErr) log("FAIL delete-eisen", { error: delEisenErr.message });
+      const { error: delVerErr } = await supabaseAdmin
+        .from("eisenpakket_versions")
+        .delete()
+        .in("id", draftIds);
+      if (delVerErr) log("FAIL delete-versions", { error: delVerErr.message });
+      log("cleaned-stuck-drafts", {
+        count: draftIds.length,
+        ids: draftIds,
+        had_errors: !!(delEisenErr || delVerErr),
+      });
     }
 
     // Download xlsx via admin (storage RLS bypass)
