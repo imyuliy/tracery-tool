@@ -9,11 +9,11 @@ export type Project = Database["public"]["Tables"]["projects"]["Row"];
 export type ProjectStatus = NonNullable<Project["status"]>;
 
 export const PROJECT_STATUS_LABELS: Record<string, { label: string; tone: string }> = {
-  draft: { label: "Concept", tone: "bg-muted text-ink/80 border-border" },
-  analyzing: { label: "Analyseren", tone: "bg-cyan/15 text-cyan border-cyan/30" },
-  review: { label: "Review", tone: "bg-signal/15 text-signal border-signal/30" },
-  ready: { label: "Klaar", tone: "bg-emerald-100 text-emerald-900 border-emerald-300" },
-  archived: { label: "Gearchiveerd", tone: "bg-muted text-muted-foreground border-border" },
+  draft: { label: "Concept", tone: "bg-bone/10 text-bone/80 border-border" },
+  analyzing: { label: "Analyseren", tone: "bg-blood/15 text-blood border-blood/40" },
+  review: { label: "Review", tone: "bg-ember/15 text-ember border-ember/40" },
+  ready: { label: "Klaar", tone: "bg-emerald-500/15 text-emerald-300 border-emerald-500/40" },
+  archived: { label: "Gearchiveerd", tone: "bg-bone/5 text-bone/40 border-border" },
 };
 
 export const projectsQueryOptions = () =>

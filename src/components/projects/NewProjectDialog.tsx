@@ -92,12 +92,12 @@ export function NewProjectDialog({
         onOpenChange(v);
       }}
     >
-      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto bg-card">
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto border-border bg-overlay-strong text-bone">
         <DialogHeader>
-          <DialogTitle className="font-display text-2xl text-ink">
+          <DialogTitle className="font-display text-2xl text-bone">
             Nieuw project
           </DialogTitle>
-          <DialogDescription className="font-sans">
+          <DialogDescription className="font-sans text-bone/60">
             Geef de basisgegevens op en koppel het project aan een
             eisenpakket-versie. Stations, parameters en tracé voeg je daarna toe.
           </DialogDescription>
@@ -160,18 +160,18 @@ export function NewProjectDialog({
             </Field>
           </div>
 
-          <div className="rounded-md border border-border bg-paper p-3">
+          <div className="rounded-md border border-border bg-ink/40 p-3">
             <Field
               label="Eisenpakket-versie"
               error={errors.eisenpakket_version_id?.message}
               required
             >
               {versions.length === 0 ? (
-                <p className="font-sans text-xs text-muted-foreground">
+                <p className="font-sans text-xs text-bone/60">
                   Nog geen actieve versies.{" "}
                   <Link
                     to="/admin/eisenpakketten"
-                    className="text-cyan hover:underline"
+                    className="text-blood transition-colors hover:text-ember hover:underline"
                   >
                     Importeer er eerst één
                   </Link>
@@ -219,13 +219,13 @@ export function NewProjectDialog({
             {versionId && objecttypes.length > 0 && (
               <div className="mt-3">
                 <div className="mb-2 flex items-center justify-between">
-                  <Label className="font-sans text-sm text-ink">
+                  <Label className="font-sans text-sm text-bone">
                     Scope: objecttypen *
                   </Label>
                   <button
                     type="button"
                     onClick={toggleAll}
-                    className="font-sans text-xs text-cyan hover:underline"
+                    className="font-mono text-[10px] uppercase tracking-wider text-blood transition-colors hover:text-ember hover:underline"
                   >
                     {allSelected ? "Niets selecteren" : "Alles selecteren"}
                   </button>
@@ -234,13 +234,13 @@ export function NewProjectDialog({
                   control={control}
                   name="scope_objecttypes"
                   render={({ field }) => (
-                    <div className="grid max-h-48 grid-cols-2 gap-1.5 overflow-y-auto rounded-md border border-border bg-card p-2">
+                    <div className="grid max-h-48 grid-cols-2 gap-1.5 overflow-y-auto rounded-md border border-border bg-carbon/60 p-2">
                       {objecttypes.map((o) => {
                         const checked = field.value?.includes(o.objecttype);
                         return (
                           <label
                             key={o.objecttype}
-                            className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 font-sans text-xs hover:bg-muted"
+                            className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 font-sans text-xs text-bone/80 transition-colors hover:bg-blood/10 hover:text-bone"
                           >
                             <Checkbox
                               checked={checked}
@@ -253,10 +253,10 @@ export function NewProjectDialog({
                                 field.onChange(next);
                               }}
                             />
-                            <span className="truncate text-ink">
+                            <span className="truncate">
                               {o.objecttype}
                             </span>
-                            <span className="ml-auto text-muted-foreground">
+                            <span className="ml-auto text-bone/40">
                               {o.count}
                             </span>
                           </label>
@@ -283,11 +283,7 @@ export function NewProjectDialog({
             >
               Annuleren
             </Button>
-            <Button
-              type="submit"
-              className="bg-signal text-paper hover:bg-signal/90"
-              disabled={isSubmitting}
-            >
+            <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Aanmaken…" : "Project aanmaken"}
             </Button>
           </DialogFooter>
@@ -310,9 +306,9 @@ function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <Label className="font-sans text-sm text-ink">
+      <Label className="font-sans text-sm text-bone/80">
         {label}
-        {required && <span className="text-signal"> *</span>}
+        {required && <span className="text-blood"> *</span>}
       </Label>
       {children}
       {error && <p className="font-sans text-xs text-destructive">{error}</p>}

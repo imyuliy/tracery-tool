@@ -41,23 +41,25 @@ function DashboardContent() {
   const { data: projects, isLoading, error } = useQuery(projectsQueryOptions());
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen bg-background">
       <TopNav />
 
       <main className="mx-auto max-w-6xl px-6 py-12">
         <div className="mb-8 flex items-end justify-between gap-4">
           <div>
-            <h1 className="font-display text-4xl font-semibold tracking-tight text-ink">
+            <p className="font-mono text-[10px] uppercase tracking-widest text-bone/50">
+              Workspace
+            </p>
+            <h1 className="mt-1 font-display text-4xl font-semibold tracking-tight text-bone">
               Welkom, {displayName(user)}
             </h1>
-            <p className="mt-2 font-sans text-base text-muted-foreground">
+            <p className="mt-2 font-sans text-base text-bone/60">
               Begin een nieuw tracé-ontwerp of open een bestaand project.
             </p>
           </div>
           <Button
             type="button"
             size="lg"
-            className="bg-signal text-paper hover:bg-signal/90"
             onClick={() => setDialogOpen(true)}
           >
             <Plus className="mr-2 h-5 w-5" />
@@ -68,7 +70,7 @@ function DashboardContent() {
         {isLoading ? (
           <ProjectGridSkeleton />
         ) : error ? (
-          <Card className="border-destructive/30 bg-destructive/5 p-6">
+          <Card className="border-destructive/40 bg-destructive/10 p-6">
             <p className="font-sans text-sm text-destructive">
               Kon projecten niet laden: {(error as Error).message}
             </p>
@@ -88,18 +90,18 @@ function DashboardContent() {
                   params={{ projectId: p.id }}
                   className="group"
                 >
-                  <Card className="h-full border-border bg-card p-6 shadow-sm transition-all hover:border-ink/40 hover:shadow-md">
+                  <Card className="h-full border-border bg-carbon/60 p-6 backdrop-blur-sm transition-all hover:border-blood/60 hover:bg-carbon/80 hover:shadow-[0_0_32px_-8px_oklch(0.60_0.22_24/0.4)]">
                     <div className="flex items-start justify-between gap-3">
-                      <h2 className="font-display text-xl font-semibold leading-tight text-ink group-hover:text-signal">
+                      <h2 className="font-display text-xl font-semibold leading-tight text-bone transition-colors group-hover:text-blood">
                         {p.name}
                       </h2>
                       <span
-                        className={`shrink-0 rounded-full border px-2.5 py-0.5 font-sans text-xs ${status.tone}`}
+                        className={`shrink-0 rounded-full border px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-wider ${status.tone}`}
                       >
                         {status.label}
                       </span>
                     </div>
-                    <div className="mt-3 flex items-center gap-1.5 font-sans text-sm text-muted-foreground">
+                    <div className="mt-3 flex items-center gap-1.5 font-sans text-sm text-bone/60">
                       <Building2 className="h-3.5 w-3.5" />
                       <span>
                         {p.client ?? "—"}
@@ -107,15 +109,15 @@ function DashboardContent() {
                       </span>
                     </div>
                     {p.bto_reference && (
-                      <p className="mt-1 font-sans text-xs text-muted-foreground">
+                      <p className="mt-1 font-mono text-[10px] uppercase tracking-wider text-bone/40">
                         {p.bto_reference}
                       </p>
                     )}
-                    <div className="mt-4 flex items-center justify-between">
-                      <span className="rounded-full border border-cyan/30 bg-cyan/10 px-2 py-0.5 font-sans text-[11px] text-cyan">
+                    <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
+                      <span className="rounded-full border border-blood/40 bg-blood/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-blood">
                         {p.phase_state ?? "VO_fase_1"}
                       </span>
-                      <p className="font-sans text-xs text-muted-foreground">
+                      <p className="font-sans text-xs text-bone/40">
                         {formatRelativeDate(p.created_at)}
                       </p>
                     </div>
@@ -134,23 +136,18 @@ function DashboardContent() {
 
 function EmptyState({ onCreate }: { onCreate: () => void }) {
   return (
-    <Card className="border-border bg-card p-12 shadow-sm">
+    <Card className="border-dashed border-border bg-carbon/40 p-12 backdrop-blur-sm">
       <div className="flex flex-col items-center text-center">
-        <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-          <FolderOpen className="h-8 w-8 text-cyan" />
+        <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-blood/10 ring-1 ring-blood/30">
+          <FolderOpen className="h-8 w-8 text-blood" />
         </div>
-        <h2 className="font-display text-2xl text-ink">Nog geen projecten</h2>
-        <p className="mt-2 max-w-md font-sans text-sm text-muted-foreground">
+        <h2 className="font-display text-2xl text-bone">Nog geen projecten</h2>
+        <p className="mt-2 max-w-md font-sans text-sm text-bone/60">
           Je hebt nog geen tracé-projecten. Start een nieuw project om een
           kabeltracé te uploaden, ontwerpparameters in te vullen en de analyse
           te starten.
         </p>
-        <Button
-          type="button"
-          size="lg"
-          className="mt-8 bg-signal text-paper hover:bg-signal/90"
-          onClick={onCreate}
-        >
+        <Button type="button" size="lg" className="mt-8" onClick={onCreate}>
           <Plus className="mr-2 h-5 w-5" />
           Nieuw project
         </Button>
@@ -163,7 +160,7 @@ function ProjectGridSkeleton() {
   return (
     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {Array.from({ length: 3 }).map((_, i) => (
-        <Card key={i} className="h-40 animate-pulse border-border bg-card p-6" />
+        <Card key={i} className="h-40 animate-pulse border-border bg-carbon/40 p-6" />
       ))}
     </div>
   );
