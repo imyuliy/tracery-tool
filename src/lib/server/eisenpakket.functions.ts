@@ -88,13 +88,15 @@ export const importEisenpakketXlsx = createServerFn({ method: "POST" })
     }
     log("pakket-ok");
 
-    // Idempotency
+    // Idempotency — alleen ACTIVE versies tellen als duplicaat.
+    // Drafts = mislukte imports, die ruimen we hieronder op.
     if (data.source_file_hash) {
       const { data: existing } = await supabaseAdmin
         .from("eisenpakket_versions")
         .select("id, row_count")
         .eq("eisenpakket_id", data.eisenpakket_id)
         .eq("source_file_hash", data.source_file_hash)
+        .eq("status", "active")
         .maybeSingle();
       if (existing) {
         log("DUPLICATE — skipping", { existing_id: existing.id });
