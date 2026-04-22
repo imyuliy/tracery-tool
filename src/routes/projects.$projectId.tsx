@@ -18,6 +18,7 @@ import { OverviewTab } from "@/components/projects/OverviewTab";
 import { StationsTab } from "@/components/projects/StationsTab";
 import { TraceTab } from "@/components/projects/TraceTab";
 import { ParametersTab } from "@/components/projects/ParametersTab";
+import { ReportsTab } from "@/components/projects/ReportsTab";
 import { useProjectTraces } from "@/lib/project-detail";
 
 export const Route = createFileRoute("/projects/$projectId")({
@@ -161,10 +162,7 @@ function ProjectContent() {
             />
           </TabsContent>
           <TabsContent value="reports">
-            <Placeholder
-              title="Rapporten"
-              text="AI-gegenereerde rapport-secties (eisen-RAG + bestek) komen in Sprint 3."
-            />
+            <ReportsTab projectId={projectId} />
           </TabsContent>
           <TabsContent value="exports">
             <Placeholder
