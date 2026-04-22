@@ -102,13 +102,11 @@ function renderMarkdownWithPills(
   return blocks.map((block, i) => {
     const heading = /^(#{1,4})\s+(.+)$/.exec(block.trim());
     if (heading) {
-      const level = heading[1].length;
       const text = heading[2];
-      const Tag = (`h${Math.min(level + 1, 5)}`) as keyof JSX.IntrinsicElements;
       return (
-        <Tag key={i} className="mb-2 mt-3 font-display text-base font-semibold text-ink">
+        <h3 key={i} className="mb-2 mt-3 font-display text-base font-semibold text-ink">
           {renderInline(text, opts)}
-        </Tag>
+        </h3>
       );
     }
     return (
