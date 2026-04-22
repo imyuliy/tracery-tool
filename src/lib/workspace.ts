@@ -7,7 +7,6 @@ import {
   segmentTraceByBgt,
   generateTraceDescription,
   exportTraceDescriptionDocx,
-  setTraceGeometryFromWkt,
   type TraceMapData,
 } from "@/lib/server/trace.functions";
 
@@ -248,9 +247,18 @@ export function useSetTraceGeometryFromWkt() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (vars: { traceId: string; wkt4326: string }) => {
-      return await setTraceGeometryFromWkt({
-        data: { trace_id: vars.traceId, wkt_4326: vars.wkt4326 },
+      const { data, error } = await supabase.rpc("set_trace_geometry_from_wkt_4326", {
+        p_trace_id: vars.traceId,
+        p_wkt: vars.wkt4326,
       });
+      if (error) throw error;
+      const row = Array.isArray(data) ? data[0] : data;
+      return {
+        trace_id: vars.traceId,
+        length_m: Number((row as { length_m?: number } | null)?.length_m ?? 0),
+        geom_type: (row as { geom_type?: string } | null)?.geom_type ?? null,
+        num_geoms: Number((row as { num_geoms?: number } | null)?.num_geoms ?? 1),
+      };
     },
     onSuccess: (_r, vars) => {
       qc.invalidateQueries({ queryKey: ["trace-map", vars.traceId] });
