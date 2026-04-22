@@ -12,12 +12,15 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import {
   useActiveParameters,
+  useGenerateSegmentScan,
   useGenerateTraceDescription,
+  useGenerateTrekParts,
   useLatestTrace,
   useProjectScope,
   useSegmentDescriptions,
   useSegmentTrace,
   useSetTraceGeometryFromWkt,
+  useTrekParts,
 } from "@/lib/workspace";
 import { parseKmlToMultiLineStringWkt } from "@/lib/kml-parser";
 import { Button } from "@/components/ui/button";
@@ -46,9 +49,12 @@ export function LeftAccordion({ project }: { project: Project }) {
   const { data: params } = useActiveParameters(project.id);
   const { data: scope } = useProjectScope(project.id);
   const { data: segDescriptions = [] } = useSegmentDescriptions(trace?.id ?? null);
+  const { data: trekParts = [] } = useTrekParts(trace?.id ?? null);
   const segment = useSegmentTrace();
   const setGeom = useSetTraceGeometryFromWkt();
   const generateDesc = useGenerateTraceDescription();
+  const generateScan = useGenerateSegmentScan();
+  const generateTrekParts = useGenerateTrekParts();
 
   const sections: Section[] = [
     { id: "project", title: "Projectinfo", complete: !!project.client },
@@ -63,11 +69,12 @@ export function LeftAccordion({ project }: { project: Project }) {
     {
       id: "scan",
       title: "Scan & analyse",
-      complete: segDescriptions.length > 0,
+      complete: segDescriptions.length > 0 && trekParts.length > 0,
     },
   ];
   const completed = sections.filter((s) => s.complete).length;
 
+  // Sprint 4.6 — pipeline: BGT-segmentatie → scan → trek-part aggregatie.
   const runFullPipeline = useCallback(
     async (traceId: string) => {
       try {
@@ -76,12 +83,17 @@ export function LeftAccordion({ project }: { project: Project }) {
         return; // toast al getoond
       }
       try {
-        await generateDesc.mutateAsync(traceId);
+        await generateScan.mutateAsync({ traceId });
       } catch {
-        // toast al getoond — segmentatie was wel succes
+        return; // scan faalde — trek-parts heeft geen zin zonder scan
+      }
+      try {
+        await generateTrekParts.mutateAsync(traceId);
+      } catch {
+        // toast al getoond — scan was succes, trek-parts kunnen handmatig
       }
     },
-    [segment, generateDesc],
+    [segment, generateScan, generateTrekParts],
   );
 
   return (
@@ -137,14 +149,22 @@ export function LeftAccordion({ project }: { project: Project }) {
                       trace && segment.mutate(trace.id)
                     }
                     segmenting={segment.isPending}
-                    ingesting={setGeom.isPending || generateDesc.isPending}
+                    ingesting={
+                      setGeom.isPending ||
+                      generateDesc.isPending ||
+                      generateScan.isPending ||
+                      generateTrekParts.isPending
+                    }
                   />
                 )}
                 {s.id === "scope" && <ScopeSection scope={scope ?? []} />}
                 {s.id === "params" && <ParamsSection params={params} />}
                 {s.id === "stations" && <StationsSection trace={trace} />}
                 {s.id === "scan" && (
-                  <ScanSection count={segDescriptions.length} />
+                  <ScanSection
+                    segCount={segDescriptions.length}
+                    trekCount={trekParts.length}
+                  />
                 )}
               </AccordionContent>
             </AccordionItem>
@@ -155,8 +175,14 @@ export function LeftAccordion({ project }: { project: Project }) {
   );
 }
 
-function ScanSection({ count }: { count: number }) {
-  if (count === 0) {
+function ScanSection({
+  segCount,
+  trekCount,
+}: {
+  segCount: number;
+  trekCount: number;
+}) {
+  if (segCount === 0) {
     return (
       <p className="font-sans text-xs text-ink/50">
         Nog geen segment-scan. Start via &ldquo;Brondocument v1&rdquo; rechts.
@@ -165,8 +191,12 @@ function ScanSection({ count }: { count: number }) {
   }
   return (
     <dl className="space-y-1.5 font-sans text-xs">
-      <Row label="Segmenten gescand" value={String(count)} />
-      <Row label="Status" value="✓ klaar voor export" />
+      <Row label="Segmenten gescand" value={String(segCount)} />
+      <Row label="Treks geaggregeerd" value={trekCount > 0 ? String(trekCount) : "—"} />
+      <Row
+        label="Status"
+        value={trekCount > 0 ? "✓ klaar voor export" : "Trek-overzicht volgt"}
+      />
     </dl>
   );
 }

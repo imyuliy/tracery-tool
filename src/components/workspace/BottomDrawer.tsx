@@ -8,6 +8,7 @@ import {
   AlertTriangle,
   FileText,
   Layers,
+  Route as RouteIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,9 +16,11 @@ import {
   useExportDocx,
   useSegmentDescriptions,
   useTraceDescription,
+  useTrekParts,
 } from "@/lib/workspace";
+import { TrekBlock } from "./TrekBlock";
 
-type Tab = "trace" | "segments";
+type Tab = "trace" | "treks" | "segments";
 
 interface SegmentDescriptionRow {
   id: string;
@@ -62,12 +65,14 @@ export function BottomDrawer({
   onPillClick: (lokaalId: string) => void;
 }) {
   const [open, setOpen] = useState(true);
-  const [tab, setTab] = useState<Tab>("trace");
+  const [tab, setTab] = useState<Tab>("treks");
   const { data: section } = useTraceDescription(traceId);
   const { data: segDescriptions = [] } = useSegmentDescriptions(traceId);
+  const { data: trekParts = [] } = useTrekParts(traceId);
   const exportDocx = useExportDocx();
 
   const segmentCount = segDescriptions.length;
+  const trekCount = trekParts.length;
 
   return (
     <div
@@ -89,6 +94,16 @@ export function BottomDrawer({
             )}
           </button>
           <div className="flex items-center gap-1">
+            <TabButton
+              active={tab === "treks"}
+              onClick={() => {
+                setTab("treks");
+                setOpen(true);
+              }}
+              icon={<RouteIcon className="h-3 w-3" />}
+              label="Treks"
+              badge={trekCount > 0 ? trekCount : undefined}
+            />
             <TabButton
               active={tab === "trace"}
               onClick={() => {
