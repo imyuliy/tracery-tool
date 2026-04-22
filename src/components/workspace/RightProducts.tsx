@@ -8,11 +8,13 @@ import {
 } from "@/components/ui/tooltip";
 import {
   useExportBrondocumentV1,
+  useExportTrekDocx,
   useGenerateSegmentScan,
   useGenerateTraceDescription,
   useGenerateTrekParts,
   useProductCatalog,
   useSegmentDescriptions,
+  useTrekParts,
 } from "@/lib/workspace";
 
 const ENABLED_CODES = new Set(["trace_description", "brondocument_v1"]);
@@ -27,8 +29,11 @@ export function RightProducts({
   const generateScan = useGenerateSegmentScan();
   const generateTrekParts = useGenerateTrekParts();
   const exportBrondoc = useExportBrondocumentV1();
+  const exportTrekDoc = useExportTrekDocx();
   const { data: segDescriptions = [] } = useSegmentDescriptions(traceId);
+  const { data: trekParts = [] } = useTrekParts(traceId);
   const hasScan = segDescriptions.length > 0;
+  const hasTreks = trekParts.length > 0;
 
   // Sprint 4.6: na succesvolle scan automatisch trek-parts aggregeren.
   const runScanWithTrekParts = async () => {
@@ -93,7 +98,8 @@ export function RightProducts({
                       {hasScan && (
                         <div className="flex flex-col gap-1 pl-2">
                           <p className="font-mono text-[9px] uppercase tracking-wider text-ink/50">
-                            {segDescriptions.length} segmenten gescand
+                            {segDescriptions.length} segmenten
+                            {hasTreks ? ` · ${trekParts.length} treks` : ""}
                           </p>
                           <Button
                             type="button"
@@ -110,8 +116,27 @@ export function RightProducts({
                             ) : (
                               <Download className="h-3 w-3" />
                             )}
-                            Download .docx
+                            Per-segment .docx
                           </Button>
+                          {hasTreks && (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              disabled={!traceId || exportTrekDoc.isPending}
+                              onClick={() =>
+                                traceId && exportTrekDoc.mutate(traceId)
+                              }
+                              className="h-7 justify-start gap-1.5 text-[11px]"
+                            >
+                              {exportTrekDoc.isPending ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <Download className="h-3 w-3" />
+                              )}
+                              Per-trek .docx
+                            </Button>
+                          )}
                         </div>
                       )}
                     </li>
