@@ -155,11 +155,13 @@ export async function runGenerateSegmentScanV1(opts: {
   log(`segments=${segments.length}`);
 
   // Candidate-eisen voor dit project (via RPC)
+  log("fetch candidate eisen…");
   const { data: candidateRows, error: eisenErr } = await opts.supabase.rpc(
     "eisen_for_project",
     { p_project_id: project.id },
   );
   if (eisenErr) {
+    log(`eisen error: ${eisenErr.message}`);
     throw new Error(`eisen_for_project: ${eisenErr.message}`);
   }
   const candidates = (candidateRows ?? []) as Array<{
