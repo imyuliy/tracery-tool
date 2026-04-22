@@ -12,10 +12,13 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import {
   useActiveParameters,
+  useGenerateTraceDescription,
   useLatestTrace,
   useProjectScope,
   useSegmentTrace,
+  useSetTraceGeometryFromWkt,
 } from "@/lib/workspace";
+import { parseKmlToMultiLineStringWkt } from "@/lib/kml-parser";
 import { Button } from "@/components/ui/button";
 import type { Project } from "@/lib/projects";
 
