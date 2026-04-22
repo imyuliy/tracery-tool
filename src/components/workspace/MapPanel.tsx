@@ -3,7 +3,13 @@ import maplibregl, { type Map as MlMap, type LngLatBoundsLike } from "maplibre-g
 import "maplibre-gl/dist/maplibre-gl.css";
 import { Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { BGT_COLORS, type useTraceMapData } from "@/lib/workspace";
+import {
+  BGT_COLORS,
+  BGT_LABELS,
+  TRACE_COLOR,
+  TRACE_OUTLINE_COLOR,
+  type useTraceMapData,
+} from "@/lib/workspace";
 
 type MapData = NonNullable<ReturnType<typeof useTraceMapData>["data"]>;
 
