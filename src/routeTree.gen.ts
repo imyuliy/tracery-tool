@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SmoketestRouteImport } from './routes/smoketest'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -18,6 +19,11 @@ import { Route as AdminEisenpakkettenRouteImport } from './routes/admin.eisenpak
 import { Route as ApiPublicSmoketestSprint4TriggerRouteImport } from './routes/api.public.smoketest-sprint4-trigger'
 import { Route as ApiPublicSmoketestSprint4RouteImport } from './routes/api.public.smoketest-sprint4'
 
+const SmoketestRoute = SmoketestRouteImport.update({
+  id: '/smoketest',
+  path: '/smoketest',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -66,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/settings': typeof SettingsRoute
+  '/smoketest': typeof SmoketestRoute
   '/admin/eisenpakketten': typeof AdminEisenpakkettenRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/api/public/smoketest-sprint4': typeof ApiPublicSmoketestSprint4Route
@@ -76,6 +83,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/settings': typeof SettingsRoute
+  '/smoketest': typeof SmoketestRoute
   '/admin/eisenpakketten': typeof AdminEisenpakkettenRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/api/public/smoketest-sprint4': typeof ApiPublicSmoketestSprint4Route
@@ -87,6 +95,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/settings': typeof SettingsRoute
+  '/smoketest': typeof SmoketestRoute
   '/admin/eisenpakketten': typeof AdminEisenpakkettenRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/api/public/smoketest-sprint4': typeof ApiPublicSmoketestSprint4Route
@@ -99,6 +108,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/settings'
+    | '/smoketest'
     | '/admin/eisenpakketten'
     | '/projects/$projectId'
     | '/api/public/smoketest-sprint4'
@@ -109,6 +119,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/settings'
+    | '/smoketest'
     | '/admin/eisenpakketten'
     | '/projects/$projectId'
     | '/api/public/smoketest-sprint4'
@@ -119,6 +130,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/settings'
+    | '/smoketest'
     | '/admin/eisenpakketten'
     | '/projects/$projectId'
     | '/api/public/smoketest-sprint4'
@@ -130,6 +142,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
   SettingsRoute: typeof SettingsRoute
+  SmoketestRoute: typeof SmoketestRoute
   AdminEisenpakkettenRoute: typeof AdminEisenpakkettenRoute
   ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
   ApiPublicSmoketestSprint4Route: typeof ApiPublicSmoketestSprint4Route
@@ -138,6 +151,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/smoketest': {
+      id: '/smoketest'
+      path: '/smoketest'
+      fullPath: '/smoketest'
+      preLoaderRoute: typeof SmoketestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -202,6 +222,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
   SettingsRoute: SettingsRoute,
+  SmoketestRoute: SmoketestRoute,
   AdminEisenpakkettenRoute: AdminEisenpakkettenRoute,
   ProjectsProjectIdRoute: ProjectsProjectIdRoute,
   ApiPublicSmoketestSprint4Route: ApiPublicSmoketestSprint4Route,
