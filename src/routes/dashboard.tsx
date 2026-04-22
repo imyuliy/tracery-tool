@@ -41,23 +41,25 @@ function DashboardContent() {
   const { data: projects, isLoading, error } = useQuery(projectsQueryOptions());
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen bg-background">
       <TopNav />
 
       <main className="mx-auto max-w-6xl px-6 py-12">
         <div className="mb-8 flex items-end justify-between gap-4">
           <div>
-            <h1 className="font-display text-4xl font-semibold tracking-tight text-ink">
+            <p className="font-mono text-[10px] uppercase tracking-widest text-bone/50">
+              Workspace
+            </p>
+            <h1 className="mt-1 font-display text-4xl font-semibold tracking-tight text-bone">
               Welkom, {displayName(user)}
             </h1>
-            <p className="mt-2 font-sans text-base text-muted-foreground">
+            <p className="mt-2 font-sans text-base text-bone/60">
               Begin een nieuw tracé-ontwerp of open een bestaand project.
             </p>
           </div>
           <Button
             type="button"
             size="lg"
-            className="bg-signal text-paper hover:bg-signal/90"
             onClick={() => setDialogOpen(true)}
           >
             <Plus className="mr-2 h-5 w-5" />
