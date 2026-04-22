@@ -112,6 +112,19 @@ export const importEisenpakketXlsx = createServerFn({ method: "POST" })
     }
     log("idempotency-check-ok");
 
+    // Ruim mislukte drafts voor dit pakket op (rollback van vorige poging)
+    const { data: stuckDrafts } = await supabaseAdmin
+      .from("eisenpakket_versions")
+      .select("id")
+      .eq("eisenpakket_id", data.eisenpakket_id)
+      .eq("status", "draft");
+    if (stuckDrafts && stuckDrafts.length > 0) {
+      const draftIds = stuckDrafts.map((d) => d.id);
+      await supabaseAdmin.from("eisen").delete().in("eisenpakket_version_id", draftIds);
+      await supabaseAdmin.from("eisenpakket_versions").delete().in("id", draftIds);
+      log("cleaned-stuck-drafts", { count: draftIds.length });
+    }
+
     // Download xlsx via admin (storage RLS bypass)
     const { data: fileBlob, error: dlErr } = await supabaseAdmin.storage
       .from("requirements")
