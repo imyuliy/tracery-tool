@@ -81,23 +81,23 @@ function LoginPage() {
         <div className="mb-10 text-center">
           <Link
             to="/"
-            className="inline-flex items-center gap-2 font-display text-3xl font-semibold tracking-tight text-bone transition-colors hover:text-blood"
+            className="inline-flex items-center gap-2 font-display text-3xl font-semibold tracking-tight text-ink transition-colors hover:text-blood"
           >
-            <span className="flex h-9 w-9 items-center justify-center rounded-md bg-blood font-display text-base font-bold text-bone shadow-[0_0_20px_-2px_oklch(0.60_0.22_24/0.7)]">
+            <span className="flex h-9 w-9 items-center justify-center rounded-md bg-blood font-display text-base font-bold text-paper shadow-[0_0_20px_-2px_oklch(0.60_0.22_24/0.7)]">
               T
             </span>
             De Tracémolen
           </Link>
-          <p className="mt-3 font-mono text-[10px] uppercase tracking-widest text-bone/50">
+          <p className="mt-3 font-mono text-[10px] uppercase tracking-widest text-ink/50">
             Engineering copilot · Vayu Solutions
           </p>
         </div>
 
         <div className="glass-strong rounded-xl p-8">
-          <h1 className="font-display text-2xl text-bone">
+          <h1 className="font-display text-2xl text-ink">
             {mode === "signin" ? "Inloggen" : "Account aanmaken"}
           </h1>
-          <p className="mt-1 font-sans text-sm text-bone/60">
+          <p className="mt-1 font-sans text-sm text-ink/60">
             {mode === "signin"
               ? "Voer je e-mail en wachtwoord in."
               : "Maak een nieuw engineer-account aan."}
@@ -105,7 +105,7 @@ function LoginPage() {
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email" className="font-sans text-bone/80">
+              <Label htmlFor="email" className="font-sans text-ink/80">
                 E-mail
               </Label>
               <Input
@@ -116,12 +116,12 @@ function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="naam@vayusolutions.nl"
-                className="bg-ink/50 text-bone placeholder:text-bone/30"
+                className="bg-paper/70 text-ink placeholder:text-ink/30"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="font-sans text-bone/80">
+              <Label htmlFor="password" className="font-sans text-ink/80">
                 Wachtwoord
               </Label>
               <Input
@@ -134,7 +134,7 @@ function LoginPage() {
                 minLength={8}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="bg-ink/50 text-bone placeholder:text-bone/30"
+                className="bg-paper/70 text-ink placeholder:text-ink/30"
               />
             </div>
 
@@ -144,7 +144,7 @@ function LoginPage() {
               </p>
             )}
             {info && (
-              <p className="rounded-md border border-blood/30 bg-blood/10 px-3 py-2 font-sans text-sm text-bone">
+              <p className="rounded-md border border-blood/30 bg-blood/10 px-3 py-2 font-sans text-sm text-ink">
                 {info}
               </p>
             )}
@@ -187,7 +187,7 @@ function LoginPage() {
           </div>
         </div>
 
-        <p className="mt-6 text-center font-mono text-[10px] uppercase tracking-widest text-bone/40">
+        <p className="mt-6 text-center font-mono text-[10px] uppercase tracking-widest text-ink/40">
           MVP-1 · alleen e-mail + wachtwoord
         </p>
       </div>

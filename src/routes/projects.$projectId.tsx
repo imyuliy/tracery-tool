@@ -32,14 +32,14 @@ export const Route = createFileRoute("/projects/$projectId")({
   errorComponent: ({ error }) => {
     const router = useRouter();
     return (
-      <div className="flex min-h-screen items-center justify-center bg-ink px-4">
-        <Card className="max-w-md border-blood/40 bg-overlay-strong p-6 text-bone">
+      <div className="flex min-h-screen items-center justify-center bg-bone px-4">
+        <Card className="max-w-md border-blood/40 bg-popover p-6 text-ink">
           <h2 className="font-display text-xl">Project kon niet worden geladen</h2>
           <p className="mt-2 font-sans text-sm text-muted-foreground">
             {error.message}
           </p>
           <button
-            className="mt-4 inline-flex items-center rounded-md bg-blood px-4 py-2 font-sans text-sm text-bone transition-colors hover:bg-ember"
+            className="mt-4 inline-flex items-center rounded-md bg-blood px-4 py-2 font-sans text-sm text-paper transition-colors hover:bg-ember"
             onClick={() => router.invalidate()}
           >
             Opnieuw proberen
@@ -49,8 +49,8 @@ export const Route = createFileRoute("/projects/$projectId")({
     );
   },
   notFoundComponent: () => (
-    <div className="flex min-h-screen items-center justify-center bg-ink px-4">
-      <Card className="max-w-md border-border bg-overlay-strong p-6 text-center text-bone">
+    <div className="flex min-h-screen items-center justify-center bg-bone px-4">
+      <Card className="max-w-md border-border bg-popover p-6 text-center text-ink">
         <h2 className="font-display text-2xl">Project niet gevonden</h2>
         <Link
           to="/dashboard"
@@ -95,7 +95,7 @@ function Workspace() {
   if (!project) throw notFound();
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-ink text-bone">
+    <div className="relative h-screen w-screen overflow-hidden bg-bone text-ink">
       {/* Fullscreen map as canvas */}
       <div className="absolute inset-0">
         <MapPanel

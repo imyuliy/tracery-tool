@@ -15,19 +15,15 @@
 
 /*
  * De Tracémolen — Hanab-style design tokens.
- * Black & red, modern, glassmorphism over fullscreen geo.
+ * LIGHT mode: ink-on-paper, blood as signal.
  *
  * Brand:
- *   ink     #0A0A0A  → near-black canvas
- *   carbon  #141414  → panel base
- *   bone    #F5F2EC  → paper / on-dark text
+ *   ink     #0A0A0A  → near-black text
+ *   carbon  #1A1A1A  → strong text variant
+ *   bone    #F8F6F1  → warm paper
+ *   paper   #FFFFFF  → pure surfaces
  *   blood   #E63946  → primary signal
  *   ember   #FF1F3D  → accent / hover glow
- *
- * Fonts:
- *   display: Space Grotesk (geometric, modern)
- *   body:    Inter
- *   mono:    JetBrains Mono (pills, codes)
  */
 
 @theme inline {
@@ -79,45 +75,45 @@
   --radius: 0.625rem;
 
   /* Brand */
-  --ink: oklch(0.14 0 0);              /* #0A0A0A */
-  --carbon: oklch(0.20 0 0);           /* #141414 */
-  --bone: oklch(0.96 0.005 80);        /* #F5F2EC */
-  --paper: var(--bone);
-  --blood: oklch(0.60 0.22 24);        /* #E63946 */
-  --ember: oklch(0.64 0.25 22);        /* #FF1F3D */
+  --ink: oklch(0.18 0 0);              /* deep near-black for text */
+  --carbon: oklch(0.32 0 0);           /* secondary text */
+  --bone: oklch(0.97 0.005 80);        /* warm paper */
+  --paper: oklch(1 0 0);               /* pure white */
+  --blood: oklch(0.58 0.22 24);        /* primary red */
+  --ember: oklch(0.62 0.25 22);        /* hover red */
   --signal: var(--blood);
-  --cyan: oklch(0.70 0.02 0);          /* neutral fallback for legacy text-cyan */
+  --cyan: oklch(0.45 0.05 240);        /* legacy fallback */
 
-  /* Glass overlays — used over MapLibre fullscreen */
-  --overlay: oklch(0.14 0 0 / 0.78);
-  --overlay-strong: oklch(0.10 0 0 / 0.92);
+  /* Glass overlays — used over MapLibre fullscreen (light basemap) */
+  --overlay: oklch(1 0 0 / 0.82);
+  --overlay-strong: oklch(1 0 0 / 0.95);
 
-  /* Semantic — DARK by default (paper-on-ink) */
-  --background: var(--ink);
-  --foreground: var(--bone);
+  /* Semantic — LIGHT mode (ink-on-paper) */
+  --background: var(--bone);
+  --foreground: var(--ink);
 
-  --card: var(--overlay);
-  --card-foreground: var(--bone);
-  --popover: oklch(0.16 0 0 / 0.96);
-  --popover-foreground: var(--bone);
+  --card: var(--paper);
+  --card-foreground: var(--ink);
+  --popover: oklch(1 0 0 / 0.98);
+  --popover-foreground: var(--ink);
 
   --primary: var(--blood);
-  --primary-foreground: var(--bone);
+  --primary-foreground: var(--paper);
 
-  --secondary: oklch(0.24 0 0);
-  --secondary-foreground: var(--bone);
+  --secondary: oklch(0.94 0.005 80);
+  --secondary-foreground: var(--ink);
 
-  --muted: oklch(0.22 0 0);
-  --muted-foreground: oklch(0.68 0.005 80);
+  --muted: oklch(0.95 0.005 80);
+  --muted-foreground: oklch(0.45 0.005 80);
 
   --accent: var(--blood);
-  --accent-foreground: var(--bone);
+  --accent-foreground: var(--paper);
 
   --destructive: oklch(0.55 0.24 26);
-  --destructive-foreground: var(--bone);
+  --destructive-foreground: var(--paper);
 
-  --border: oklch(1 0 0 / 0.10);
-  --input: oklch(1 0 0 / 0.08);
+  --border: oklch(0.18 0 0 / 0.10);
+  --input: oklch(0.18 0 0 / 0.08);
   --ring: var(--blood);
 }
 
@@ -158,7 +154,7 @@
 }
 
 @layer utilities {
-  /* Glass panel — frosted overlay over fullscreen map */
+  /* Glass panel — frosted white over light basemap */
   .glass {
     background-color: var(--overlay);
     backdrop-filter: blur(14px) saturate(140%);
@@ -173,7 +169,7 @@
   }
   /* Subtle red glow used on hover */
   .glow-blood {
-    box-shadow: 0 0 0 1px oklch(0.60 0.22 24 / 0.4),
-                0 8px 32px -8px oklch(0.60 0.22 24 / 0.5);
+    box-shadow: 0 0 0 1px oklch(0.58 0.22 24 / 0.4),
+                0 8px 32px -8px oklch(0.58 0.22 24 / 0.5);
   }
 }

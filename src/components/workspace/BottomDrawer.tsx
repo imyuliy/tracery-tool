@@ -26,7 +26,7 @@ export function BottomDrawer({
 
   return (
     <div
-      className={`glass overflow-hidden rounded-xl shadow-2xl shadow-black/40 transition-all duration-300 ease-out ${
+      className={`glass overflow-hidden rounded-xl shadow-xl shadow-ink/10 transition-all duration-300 ease-out ${
         open ? "h-[260px]" : "h-10"
       }`}
     >
@@ -34,7 +34,7 @@ export function BottomDrawer({
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="group flex items-center gap-2 rounded-md px-2 py-1 font-sans text-xs font-medium text-bone transition-colors hover:bg-blood/10"
+          className="group flex items-center gap-2 rounded-md px-2 py-1 font-sans text-xs font-medium text-ink transition-colors hover:bg-blood/8 hover:text-blood"
         >
           {open ? (
             <ChevronDown className="h-3.5 w-3.5 text-blood transition-transform" />
@@ -45,7 +45,7 @@ export function BottomDrawer({
             Tracé-omschrijving
           </span>
           {section?.generated_at && (
-            <span className="ml-2 font-mono text-[10px] uppercase tracking-wider text-bone/50">
+            <span className="ml-2 font-mono text-[10px] uppercase tracking-wider text-ink/50">
               {new Date(section.generated_at).toLocaleString("nl-NL")}
             </span>
           )}
@@ -73,16 +73,16 @@ export function BottomDrawer({
       {open && (
         <div className="h-[calc(100%-2.5rem)] overflow-y-auto px-6 py-4">
           {!traceId ? (
-            <p className="font-sans text-sm text-bone/50">
+            <p className="font-sans text-sm text-ink/50">
               Geen tracé.
             </p>
           ) : !section ? (
-            <p className="font-sans text-sm text-bone/50">
+            <p className="font-sans text-sm text-ink/50">
               Nog geen tracé-omschrijving. Klik rechts op &ldquo;Tracé-omschrijving&rdquo;
               om er een te genereren.
             </p>
           ) : (
-            <article className="prose prose-sm max-w-none font-sans text-sm leading-relaxed text-bone">
+            <article className="prose prose-sm max-w-none font-sans text-sm leading-relaxed text-ink">
               {rendered}
             </article>
           )}
@@ -92,7 +92,6 @@ export function BottomDrawer({
   );
 }
 
-// Lichte markdown-renderer: paragrafen + headings + onze [BGT-xxx]/[SEG-N] pills.
 function renderMarkdownWithPills(
   md: string,
   opts: {
@@ -106,13 +105,13 @@ function renderMarkdownWithPills(
     if (heading) {
       const text = heading[2];
       return (
-        <h3 key={i} className="mb-2 mt-3 font-display text-base font-semibold uppercase tracking-wider text-bone">
+        <h3 key={i} className="mb-2 mt-3 font-display text-base font-semibold uppercase tracking-wider text-ink">
           {renderInline(text, opts)}
         </h3>
       );
     }
     return (
-      <p key={i} className="mb-3 text-bone/90">
+      <p key={i} className="mb-3 text-ink/85">
         {renderInline(block, opts)}
       </p>
     );
@@ -145,10 +144,10 @@ function renderInline(
         onClick={() => lokaalId && opts.onPillClick(lokaalId)}
         className={`mx-0.5 inline-flex items-center rounded-full border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider transition-all ${
           isActive
-            ? "border-blood bg-blood text-bone shadow-[0_0_12px_-2px_oklch(0.60_0.22_24/0.7)]"
+            ? "border-blood bg-blood text-paper shadow-[0_0_12px_-2px_oklch(0.58_0.22_24/0.6)]"
             : isBgt
-              ? "border-blood/40 bg-blood/10 text-blood hover:border-blood hover:bg-blood/20"
-              : "border-border bg-ink/40 text-bone/70 hover:border-bone/40 hover:text-bone"
+              ? "border-blood/40 bg-blood/8 text-blood hover:border-blood hover:bg-blood/15"
+              : "border-border bg-paper text-ink/70 hover:border-ink/40 hover:text-ink"
         }`}
       >
         {tag}

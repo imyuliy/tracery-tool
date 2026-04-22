@@ -9,21 +9,21 @@ export function WorkspaceHeader({ project }: { project: Project }) {
       <div className="flex items-center gap-4">
         <Link
           to="/dashboard"
-          className="group inline-flex items-center gap-1.5 rounded-md px-2 py-1 font-sans text-xs text-bone/60 transition-colors hover:bg-blood/10 hover:text-bone"
+          className="group inline-flex items-center gap-1.5 rounded-md px-2 py-1 font-sans text-xs text-ink/60 transition-colors hover:bg-blood/8 hover:text-blood"
         >
           <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
           Dashboard
         </Link>
         <div className="h-6 w-px bg-border" />
         <div className="flex items-center gap-3">
-          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-blood font-display text-sm font-bold text-bone shadow-[0_0_16px_-2px_oklch(0.60_0.22_24/0.6)]">
+          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-blood font-display text-sm font-bold text-paper shadow-[0_0_16px_-4px_oklch(0.58_0.22_24/0.6)]">
             T
           </div>
           <div className="flex flex-col">
-            <h1 className="font-display text-base font-semibold leading-tight tracking-tight text-bone">
+            <h1 className="font-display text-base font-semibold leading-tight tracking-tight text-ink">
               {project.name}
             </h1>
-            <p className="font-mono text-[10px] uppercase leading-tight tracking-widest text-bone/50">
+            <p className="font-mono text-[10px] uppercase leading-tight tracking-widest text-ink/50">
               {project.client ?? "—"}
               {project.perceel ? ` · ${project.perceel}` : ""}
             </p>

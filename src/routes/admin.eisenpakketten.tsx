@@ -37,9 +37,9 @@ export const Route = createFileRoute("/admin/eisenpakketten")({
     const router = useRouter();
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
-        <Card className="max-w-md border-destructive/40 bg-carbon/80 p-6 backdrop-blur-md">
-          <h2 className="font-display text-xl text-bone">Fout bij laden</h2>
-          <p className="mt-2 font-sans text-sm text-bone/60">
+        <Card className="max-w-md border-destructive/40 bg-paper p-6 backdrop-blur-md">
+          <h2 className="font-display text-xl text-ink">Fout bij laden</h2>
+          <p className="mt-2 font-sans text-sm text-ink/60">
             {error.message}
           </p>
           <Button className="mt-4" onClick={() => router.invalidate()}>
@@ -66,7 +66,7 @@ function AdminEisenpakkettenPage() {
       <main className="mx-auto max-w-6xl px-6 py-10">
         <Link
           to="/dashboard"
-          className="group mb-6 inline-flex items-center gap-1.5 font-sans text-sm text-bone/60 transition-colors hover:text-blood"
+          className="group mb-6 inline-flex items-center gap-1.5 font-sans text-sm text-ink/60 transition-colors hover:text-blood"
         >
           <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
           Dashboard
@@ -74,13 +74,13 @@ function AdminEisenpakkettenPage() {
 
         <div className="mb-8 flex items-end justify-between gap-3">
           <div>
-            <p className="font-mono text-[10px] uppercase tracking-widest text-bone/50">
+            <p className="font-mono text-[10px] uppercase tracking-widest text-ink/50">
               Library
             </p>
-            <h1 className="mt-1 font-display text-3xl font-semibold tracking-tight text-bone">
+            <h1 className="mt-1 font-display text-3xl font-semibold tracking-tight text-ink">
               Eisenpakketten
             </h1>
-            <p className="mt-1 font-sans text-sm text-bone/60">
+            <p className="mt-1 font-sans text-sm text-ink/60">
               Backbone van elk project — upload een .xlsx om een nieuwe versie aan te maken.
             </p>
           </div>
@@ -91,12 +91,12 @@ function AdminEisenpakkettenPage() {
         </div>
 
         {pakketten.length === 0 ? (
-          <Card className="border-dashed border-border bg-carbon/40 p-10 text-center backdrop-blur-sm">
-            <FileSpreadsheet className="mx-auto h-10 w-10 text-bone/40" />
-            <h3 className="mt-3 font-display text-xl text-bone">
+          <Card className="border-dashed border-border bg-paper p-10 text-center backdrop-blur-sm">
+            <FileSpreadsheet className="mx-auto h-10 w-10 text-ink/40" />
+            <h3 className="mt-3 font-display text-xl text-ink">
               Nog geen eisenpakketten
             </h3>
-            <p className="mx-auto mt-1 max-w-md font-sans text-sm text-bone/60">
+            <p className="mx-auto mt-1 max-w-md font-sans text-sm text-ink/60">
               Maak een pakket aan (bv. "Liander / NuRijnland") en upload de
               eisen-Excel als eerste versie.
             </p>
@@ -130,17 +130,17 @@ function PakketCard({
   );
 
   return (
-    <Card className="border-border bg-carbon/60 p-5 backdrop-blur-sm transition-colors hover:border-blood/40">
+    <Card className="border-border bg-paper p-5 backdrop-blur-sm transition-colors hover:border-blood/40">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="font-display text-lg text-bone">{pakket.name}</h3>
-            <span className="rounded-full border border-border bg-bone/5 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-bone/60">
+            <h3 className="font-display text-lg text-ink">{pakket.name}</h3>
+            <span className="rounded-full border border-border bg-ink/5 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-ink/60">
               {pakket.client}
             </span>
           </div>
           {pakket.description && (
-            <p className="mt-1 font-sans text-sm text-bone/60">
+            <p className="mt-1 font-sans text-sm text-ink/60">
               {pakket.description}
             </p>
           )}
@@ -157,27 +157,27 @@ function PakketCard({
 
       <div className="mt-4 space-y-2">
         {sorted.length === 0 ? (
-          <p className="font-sans text-sm text-bone/50">
+          <p className="font-sans text-sm text-ink/50">
             Nog geen versies — upload een .xlsx.
           </p>
         ) : (
           sorted.map((v) => (
             <div
               key={v.id}
-              className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border bg-ink/40 px-3 py-2"
+              className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border bg-paper/70 px-3 py-2"
             >
               <div className="flex items-center gap-2">
                 {v.status === "active" && (
                   <CheckCircle2 className="h-4 w-4 text-emerald-400" />
                 )}
-                <span className="font-sans text-sm font-medium text-bone">
+                <span className="font-sans text-sm font-medium text-ink">
                   {v.version_label}
                 </span>
-                <span className="font-mono text-[10px] uppercase tracking-wider text-bone/50">
+                <span className="font-mono text-[10px] uppercase tracking-wider text-ink/50">
                   {v.row_count ?? 0} eisen · {v.status}
                 </span>
               </div>
-              <span className="font-sans text-xs text-bone/40">
+              <span className="font-sans text-xs text-ink/40">
                 {v.imported_at
                   ? new Date(v.imported_at).toLocaleDateString("nl-NL")
                   : "—"}
@@ -218,22 +218,22 @@ function CreatePakketDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="border-border bg-overlay-strong text-bone">
+      <DialogContent className="border-border bg-popover text-ink">
         <DialogHeader>
           <DialogTitle className="font-display text-2xl">
             Nieuw eisenpakket
           </DialogTitle>
-          <DialogDescription className="text-bone/60">
+          <DialogDescription className="text-ink/60">
             Geef het pakket een naam (bv. "NuRijnland") en de opdrachtgever.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
           <div className="space-y-1.5">
-            <Label className="text-bone/80">Opdrachtgever *</Label>
+            <Label className="text-ink/80">Opdrachtgever *</Label>
             <Input value={client} onChange={(e) => setClient(e.target.value)} />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-bone/80">Naam *</Label>
+            <Label className="text-ink/80">Naam *</Label>
             <Input
               placeholder="bv. NuRijnland"
               value={name}
@@ -241,7 +241,7 @@ function CreatePakketDialog({
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-bone/80">Beschrijving</Label>
+            <Label className="text-ink/80">Beschrijving</Label>
             <Input
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -287,12 +287,12 @@ function UploadVersionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="border-border bg-overlay-strong text-bone">
+      <DialogContent className="border-border bg-popover text-ink">
         <DialogHeader>
           <DialogTitle className="font-display text-2xl">
             Versie uploaden
           </DialogTitle>
-          <DialogDescription className="text-bone/60">
+          <DialogDescription className="text-ink/60">
             Upload de .xlsx. Verplichte kolommen: Objecttype, Klantnummer,
             Eistitel, Eistekst, Brondocument, Fase. Embeddings (1536 dim) worden
             automatisch gegenereerd.
@@ -300,7 +300,7 @@ function UploadVersionDialog({
         </DialogHeader>
         <div className="space-y-3">
           <div className="space-y-1.5">
-            <Label className="text-bone/80">Versie-label *</Label>
+            <Label className="text-ink/80">Versie-label *</Label>
             <Input
               placeholder="bv. v2025.1 of NuRijnland-2025-04"
               value={versionLabel}
@@ -308,20 +308,20 @@ function UploadVersionDialog({
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-bone/80">Excel-bestand *</Label>
+            <Label className="text-ink/80">Excel-bestand *</Label>
             <Input
               type="file"
               accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             />
             {file && (
-              <p className="font-mono text-[10px] uppercase tracking-wider text-bone/50">
+              <p className="font-mono text-[10px] uppercase tracking-wider text-ink/50">
                 {file.name} · {(file.size / 1024).toFixed(0)} KB
               </p>
             )}
           </div>
           {importMut.isPending && (
-            <p className="font-sans text-xs text-bone/60">
+            <p className="font-sans text-xs text-ink/60">
               Bezig met uploaden, parsen en embeddings genereren — dit kan 1-3
               minuten duren bij ~2000 eisen…
             </p>

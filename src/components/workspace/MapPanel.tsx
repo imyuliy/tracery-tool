@@ -210,7 +210,7 @@ export function MapPanel({
   }, [highlightedLokaalId, ready]);
 
   return (
-    <div className="relative h-full w-full bg-ink">
+    <div className="relative h-full w-full bg-bone">
       <div ref={containerRef} className="absolute inset-0" />
       {/* BGT toggle — bottom-center floating */}
       <div className="pointer-events-none absolute bottom-[280px] left-1/2 z-[5] -translate-x-1/2">
@@ -226,8 +226,8 @@ export function MapPanel({
         </Button>
       </div>
       {(isLoading || !data) && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-ink/60 backdrop-blur-sm">
-          <div className="glass-strong rounded-md px-5 py-3 font-mono text-xs uppercase tracking-wider text-bone shadow-2xl">
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-paper/60 backdrop-blur-sm">
+          <div className="glass-strong rounded-md px-5 py-3 font-mono text-xs uppercase tracking-wider text-ink shadow-xl">
             {isLoading ? "Kaart laden…" : "Nog geen tracé. Upload er een via het linker paneel."}
           </div>
         </div>

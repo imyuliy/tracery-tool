@@ -57,10 +57,10 @@ export function LeftAccordion({ project }: { project: Project }) {
   const completed = sections.filter((s) => s.complete).length;
 
   return (
-    <aside className="glass flex h-full w-full flex-col overflow-hidden rounded-xl shadow-2xl shadow-black/40">
+    <aside className="glass flex h-full w-full flex-col overflow-hidden rounded-xl shadow-xl shadow-ink/10">
       <div className="border-b border-border px-4 py-3">
         <div className="flex items-baseline justify-between">
-          <h2 className="font-display text-sm font-semibold uppercase tracking-wider text-bone">
+          <h2 className="font-display text-sm font-semibold uppercase tracking-wider text-ink">
             Project setup
           </h2>
           <span className="font-mono text-[10px] tracking-wider text-blood">
@@ -82,15 +82,15 @@ export function LeftAccordion({ project }: { project: Project }) {
         <Accordion type="multiple" defaultValue={["trace"]} className="w-full">
           {sections.map((s, i) => (
             <AccordionItem key={s.id} value={s.id} className="border-border">
-              <AccordionTrigger className="rounded-md px-2 transition-colors hover:bg-blood/10 hover:no-underline">
-                <span className="flex items-center gap-2.5 text-left font-sans text-sm text-bone">
-                  <span className="font-mono text-[10px] text-bone/40">
+              <AccordionTrigger className="rounded-md px-2 transition-colors hover:bg-blood/8 hover:no-underline">
+                <span className="flex items-center gap-2.5 text-left font-sans text-sm text-ink">
+                  <span className="font-mono text-[10px] text-ink/40">
                     0{i + 1}
                   </span>
                   {s.complete ? (
                     <Check className="h-3.5 w-3.5 text-blood" />
                   ) : (
-                    <Circle className="h-3.5 w-3.5 text-bone/30" />
+                    <Circle className="h-3.5 w-3.5 text-ink/30" />
                   )}
                   {s.title}
                 </span>
@@ -204,13 +204,13 @@ function TraceSection({
   return (
     <div className="space-y-3">
       {trace?.source_file ? (
-        <div className="rounded-md border border-border bg-ink/40 px-3 py-2 transition-colors hover:border-blood/40">
-          <div className="flex items-center gap-2 font-sans text-xs text-bone">
+        <div className="rounded-md border border-border bg-paper px-3 py-2 transition-colors hover:border-blood/40">
+          <div className="flex items-center gap-2 font-sans text-xs text-ink">
             <FileText className="h-3.5 w-3.5 text-blood" />
             <span className="truncate">{trace.source_file}</span>
           </div>
           {trace.length_m && (
-            <p className="mt-1 font-mono text-[10px] uppercase tracking-wider text-bone/50">
+            <p className="mt-1 font-mono text-[10px] uppercase tracking-wider text-ink/50">
               {Math.round(trace.length_m)} m
             </p>
           )}
@@ -220,22 +220,22 @@ function TraceSection({
           {...getRootProps()}
           className={`cursor-pointer rounded-md border-2 border-dashed p-4 text-center transition-all ${
             isDragActive
-              ? "border-blood bg-blood/10"
-              : "border-border bg-ink/30 hover:border-blood/60 hover:bg-blood/5"
+              ? "border-blood bg-blood/8"
+              : "border-border bg-paper/60 hover:border-blood/60 hover:bg-blood/5"
           }`}
         >
           <input {...getInputProps()} />
-          <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-blood/15 ring-1 ring-blood/30">
+          <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-blood/10 ring-1 ring-blood/30">
             {uploading ? (
               <Loader2 className="h-4 w-4 animate-spin text-blood" />
             ) : (
               <Upload className="h-4 w-4 text-blood" />
             )}
           </div>
-          <p className="mt-2 font-sans text-xs text-bone">
+          <p className="mt-2 font-sans text-xs text-ink">
             Sleep tracé hier of klik
           </p>
-          <p className="mt-0.5 font-mono text-[10px] uppercase tracking-wider text-bone/40">
+          <p className="mt-0.5 font-mono text-[10px] uppercase tracking-wider text-ink/40">
             zip · kml · geojson · gpx
           </p>
         </div>
@@ -262,14 +262,14 @@ function TraceSection({
 function ScopeSection({ scope }: { scope: Array<{ objecttype: string; in_scope: boolean }> }) {
   if (scope.length === 0)
     return (
-      <p className="font-sans text-xs text-bone/50">
+      <p className="font-sans text-xs text-ink/50">
         Geen scope-objecttypes ingesteld.
       </p>
     );
   return (
     <ul className="space-y-1 font-sans text-xs">
       {scope.map((s) => (
-        <li key={s.objecttype} className="flex items-center gap-2 text-bone">
+        <li key={s.objecttype} className="flex items-center gap-2 text-ink">
           <Check className="h-3 w-3 text-blood" />
           {s.objecttype}
         </li>
@@ -281,7 +281,7 @@ function ScopeSection({ scope }: { scope: Array<{ objecttype: string; in_scope: 
 function ParamsSection({ params }: { params: { kabeltype: string; spanningsniveau_kv: number; sleufdiepte_m: number } | null | undefined }) {
   if (!params)
     return (
-      <p className="font-sans text-xs text-bone/50">
+      <p className="font-sans text-xs text-ink/50">
         Nog geen actieve parameters.
       </p>
     );
@@ -297,7 +297,7 @@ function ParamsSection({ params }: { params: { kabeltype: string; spanningsnivea
 function StationsSection({ trace }: { trace: { start_station_id: string | null; eind_station_id: string | null } | null | undefined }) {
   if (!trace)
     return (
-      <p className="font-sans text-xs text-bone/50">
+      <p className="font-sans text-xs text-ink/50">
         Nog geen tracé.
       </p>
     );
@@ -312,10 +312,10 @@ function StationsSection({ trace }: { trace: { start_station_id: string | null; 
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-baseline justify-between gap-2">
-      <dt className="font-mono text-[10px] uppercase tracking-wider text-bone/50">
+      <dt className="font-mono text-[10px] uppercase tracking-wider text-ink/50">
         {label}
       </dt>
-      <dd className="text-right font-sans text-bone">{value}</dd>
+      <dd className="text-right font-sans text-ink">{value}</dd>
     </div>
   );
 }

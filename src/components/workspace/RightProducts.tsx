@@ -20,18 +20,18 @@ export function RightProducts({
   const generate = useGenerateTraceDescription();
 
   return (
-    <aside className="glass flex h-full w-full flex-col overflow-hidden rounded-xl shadow-2xl shadow-black/40">
+    <aside className="glass flex h-full w-full flex-col overflow-hidden rounded-xl shadow-xl shadow-ink/10">
       <div className="border-b border-border px-4 py-3">
-        <h2 className="font-display text-sm font-semibold uppercase tracking-wider text-bone">
+        <h2 className="font-display text-sm font-semibold uppercase tracking-wider text-ink">
           Producten
         </h2>
-        <p className="mt-0.5 font-mono text-[10px] uppercase tracking-wider text-bone/50">
+        <p className="mt-0.5 font-mono text-[10px] uppercase tracking-wider text-ink/50">
           Artefacten op basis van actief tracé
         </p>
       </div>
       <div className="flex-1 overflow-y-auto p-3">
         {isLoading ? (
-          <p className="font-sans text-xs text-bone/50">Laden…</p>
+          <p className="font-sans text-xs text-ink/50">Laden…</p>
         ) : (
           <TooltipProvider delayDuration={200}>
             <ul className="space-y-2">
@@ -51,7 +51,7 @@ export function RightProducts({
                     onClick={handleClick}
                     className="w-full justify-start gap-2.5 px-3"
                   >
-                    <span className="font-mono text-[10px] text-bone/50">
+                    <span className={`font-mono text-[10px] ${isActive ? "text-paper/70" : "text-ink/50"}`}>
                       0{idx + 1}
                     </span>
                     {isActive ? (
