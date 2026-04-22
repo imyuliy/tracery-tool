@@ -116,14 +116,12 @@ function Workspace() {
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-bone text-ink">
       {/* Fullscreen map as canvas */}
-      <div className="absolute inset-0">
-        <MapPanel
-          data={mapData}
-          isLoading={mapLoading}
-          highlightedLokaalId={highlightedLokaalId}
-          onSegmentClick={handleSegmentClick}
-        />
-      </div>
+      <MapPanel
+        data={mapData}
+        isLoading={mapLoading}
+        highlightedLokaalId={highlightedLokaalId}
+        onSegmentClick={handleSegmentClick}
+      />
 
       {/* Floating header — full width, glass */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-20">

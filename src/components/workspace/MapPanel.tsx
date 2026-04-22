@@ -66,6 +66,10 @@ export function MapPanel({
   useEffect(() => {
     const node = containerRef.current;
     if (!node || mapRef.current) return;
+    if (node.clientHeight === 0) {
+      node.style.minHeight = `${window.innerHeight}px`;
+      node.style.height = `${window.innerHeight}px`;
+    }
     setDebug((d) => ({
       ...d,
       status: "creating",
@@ -294,8 +298,15 @@ export function MapPanel({
   }, [highlightedLokaalId, ready]);
 
   return (
-    <div className="relative h-full w-full bg-bone">
-      <div ref={containerRef} className="absolute inset-0" />
+    <div
+      className="fixed inset-0 bg-bone"
+      style={{ width: "100vw", height: "100dvh" }}
+    >
+      <div
+        ref={containerRef}
+        className="absolute inset-0"
+        style={{ width: "100%", height: "100%" }}
+      />
       {/* DEBUG — verwijder later. Zit rechts onder de header zodat je 'm zeker ziet. */}
       <div className="pointer-events-none absolute right-[336px] top-[76px] z-[6] rounded-md bg-black/85 px-3 py-2 font-mono text-[10px] leading-relaxed text-white shadow-lg">
         <div>map: {debug.status}</div>
