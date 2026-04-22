@@ -10,19 +10,19 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-blood text-bone shadow-md hover:bg-ember hover:shadow-[0_0_24px_-4px_oklch(0.60_0.22_24/0.6)]",
+          "bg-blood text-paper shadow-sm hover:bg-ember hover:shadow-[0_0_24px_-4px_oklch(0.58_0.22_24/0.5)]",
         destructive:
           "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 hover:shadow-[0_0_24px_-4px_oklch(0.55_0.24_26/0.5)]",
         outline:
-          "border border-border bg-transparent text-bone hover:bg-blood/10 hover:border-blood/60 hover:text-bone",
+          "border border-border bg-paper text-ink hover:bg-blood/5 hover:border-blood/60 hover:text-blood",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/70 hover:text-bone",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/70",
         ghost:
-          "text-bone/80 hover:bg-blood/10 hover:text-bone",
+          "text-ink/80 hover:bg-blood/8 hover:text-blood",
         link:
           "text-blood underline-offset-4 hover:underline hover:text-ember",
         glass:
-          "glass text-bone hover:bg-blood/15 hover:border-blood/50",
+          "glass text-ink hover:bg-blood/8 hover:border-blood/50 hover:text-blood",
       },
       size: {
         default: "h-9 px-4 py-2",
