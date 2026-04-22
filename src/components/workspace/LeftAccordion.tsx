@@ -15,6 +15,7 @@ import {
   useGenerateTraceDescription,
   useLatestTrace,
   useProjectScope,
+  useSegmentDescriptions,
   useSegmentTrace,
   useSetTraceGeometryFromWkt,
 } from "@/lib/workspace";
