@@ -8,11 +8,13 @@ import {
 } from "@/components/ui/tooltip";
 import {
   useExportBrondocumentV1,
+  useExportTrekDocx,
   useGenerateSegmentScan,
   useGenerateTraceDescription,
   useGenerateTrekParts,
   useProductCatalog,
   useSegmentDescriptions,
+  useTrekParts,
 } from "@/lib/workspace";
 
 const ENABLED_CODES = new Set(["trace_description", "brondocument_v1"]);
