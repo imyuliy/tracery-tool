@@ -1808,6 +1808,106 @@ export type Database = {
           },
         ]
       }
+      trek_part_descriptions: {
+        Row: {
+          aandacht_flag: boolean
+          aandacht_reden: string[]
+          bgt_verdeling: Json
+          completion_tokens: number | null
+          content_md: string
+          end_km: number
+          end_point_4326: unknown
+          generated_at: string
+          generated_by: string | null
+          id: string
+          length_m: number
+          model: string | null
+          part_idx: number
+          prompt_tokens: number | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          segment_count: number
+          segment_ids: string[]
+          start_km: number
+          start_point_4326: unknown
+          trace_id: string
+          van_toepassing_eisen: string[]
+          version: number
+        }
+        Insert: {
+          aandacht_flag?: boolean
+          aandacht_reden?: string[]
+          bgt_verdeling?: Json
+          completion_tokens?: number | null
+          content_md: string
+          end_km: number
+          end_point_4326: unknown
+          generated_at?: string
+          generated_by?: string | null
+          id?: string
+          length_m: number
+          model?: string | null
+          part_idx: number
+          prompt_tokens?: number | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          segment_count?: number
+          segment_ids?: string[]
+          start_km: number
+          start_point_4326: unknown
+          trace_id: string
+          van_toepassing_eisen?: string[]
+          version?: number
+        }
+        Update: {
+          aandacht_flag?: boolean
+          aandacht_reden?: string[]
+          bgt_verdeling?: Json
+          completion_tokens?: number | null
+          content_md?: string
+          end_km?: number
+          end_point_4326?: unknown
+          generated_at?: string
+          generated_by?: string | null
+          id?: string
+          length_m?: number
+          model?: string | null
+          part_idx?: number
+          prompt_tokens?: number | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          segment_count?: number
+          segment_ids?: string[]
+          start_km?: number
+          start_point_4326?: unknown
+          trace_id?: string
+          van_toepassing_eisen?: string[]
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trek_part_descriptions_generated_by_fkey"
+            columns: ["generated_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trek_part_descriptions_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trek_part_descriptions_trace_id_fkey"
+            columns: ["trace_id"]
+            isOneToOne: false
+            referencedRelation: "traces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_profiles: {
         Row: {
           avatar_url: string | null
@@ -2412,6 +2512,17 @@ export type Database = {
       postgis_version: { Args: never; Returns: string }
       postgis_wagyu_version: { Args: never; Returns: string }
       segment_trace_by_bgt: { Args: { p_trace_id: string }; Returns: number }
+      segments_with_part_idx: {
+        Args: { p_trace_id: string }
+        Returns: {
+          bgt_feature_type: string
+          bgt_subtype: string
+          length_m: number
+          part_idx: number
+          segment_id: string
+          sequence: number
+        }[]
+      }
       set_trace_geometry_from_wkt_4326: {
         Args: { p_trace_id: string; p_wkt: string }
         Returns: {
@@ -3011,6 +3122,18 @@ export type Database = {
           xmin: number
           ymax: number
           ymin: number
+        }[]
+      }
+      trace_parts_for_trace: {
+        Args: { p_trace_id: string }
+        Returns: {
+          end_km: number
+          end_point_4326: unknown
+          length_m: number
+          part_geom_28992: unknown
+          part_idx: number
+          start_km: number
+          start_point_4326: unknown
         }[]
       }
       unlockrows: { Args: { "": string }; Returns: number }
