@@ -258,6 +258,7 @@ export function MapPanel({
 
   return (
     <div
+      // fixed+100dvh voorkomt grey-screen door parent-timing bij init; zie /maptest pattern
       className="fixed inset-0 bg-bone"
       style={{ width: "100vw", height: "100dvh" }}
     >
@@ -266,12 +267,6 @@ export function MapPanel({
         className="absolute inset-0"
         style={{ width: "100%", height: "100%" }}
       />
-      {/* DEBUG — verwijder later. Zit rechts onder de header zodat je 'm zeker ziet. */}
-      <div className="pointer-events-none absolute right-[336px] top-[76px] z-[6] rounded-md bg-black/85 px-3 py-2 font-mono text-[10px] leading-relaxed text-white shadow-lg">
-        <div>map: {debug.status}</div>
-        <div>tiles: {debug.tilesLoaded} ok / {debug.tileErrors} err</div>
-        <div>size: {debug.size}</div>
-      </div>
       {/* BGT toggle — bottom-center floating */}
       <div className="pointer-events-none absolute bottom-[280px] left-1/2 z-[5] -translate-x-1/2">
         <Button
