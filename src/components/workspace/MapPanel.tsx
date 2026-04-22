@@ -134,7 +134,7 @@ export function MapPanel({
           "line-color": bgtColorMatch(),
           "line-width": [
             "case",
-            ["==", ["get", "bgt_lokaal_id"], ["literal", highlightedLokaalId]],
+            ["==", ["get", "bgt_lokaal_id"], highlightedLokaalId ?? ""],
             8,
             5,
           ],
