@@ -1222,6 +1222,95 @@ export type Database = {
           },
         ]
       }
+      segment_descriptions: {
+        Row: {
+          aandacht_flags: Json
+          aandacht_reden: string | null
+          ai_aandacht: boolean | null
+          ai_aandacht_reden: string | null
+          ai_voorgestelde_techniek: string | null
+          completion_tokens: number | null
+          context_summary: string | null
+          eisen_matches: Json
+          generated_at: string
+          generated_by: string | null
+          generation_run_id: string | null
+          id: string
+          model: string | null
+          narrative_md: string
+          prompt_tokens: number | null
+          segment_id: string
+          trace_id: string
+        }
+        Insert: {
+          aandacht_flags?: Json
+          aandacht_reden?: string | null
+          ai_aandacht?: boolean | null
+          ai_aandacht_reden?: string | null
+          ai_voorgestelde_techniek?: string | null
+          completion_tokens?: number | null
+          context_summary?: string | null
+          eisen_matches?: Json
+          generated_at?: string
+          generated_by?: string | null
+          generation_run_id?: string | null
+          id?: string
+          model?: string | null
+          narrative_md: string
+          prompt_tokens?: number | null
+          segment_id: string
+          trace_id: string
+        }
+        Update: {
+          aandacht_flags?: Json
+          aandacht_reden?: string | null
+          ai_aandacht?: boolean | null
+          ai_aandacht_reden?: string | null
+          ai_voorgestelde_techniek?: string | null
+          completion_tokens?: number | null
+          context_summary?: string | null
+          eisen_matches?: Json
+          generated_at?: string
+          generated_by?: string | null
+          generation_run_id?: string | null
+          id?: string
+          model?: string | null
+          narrative_md?: string
+          prompt_tokens?: number | null
+          segment_id?: string
+          trace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "segment_descriptions_generated_by_fkey"
+            columns: ["generated_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "segment_descriptions_segment_id_fkey"
+            columns: ["segment_id"]
+            isOneToOne: false
+            referencedRelation: "segments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "segment_descriptions_segment_id_fkey"
+            columns: ["segment_id"]
+            isOneToOne: false
+            referencedRelation: "v_segment_detail"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "segment_descriptions_trace_id_fkey"
+            columns: ["trace_id"]
+            isOneToOne: false
+            referencedRelation: "traces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       segments: {
         Row: {
           aanbevolen_techniek: string | null
