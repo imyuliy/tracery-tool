@@ -149,14 +149,22 @@ export function LeftAccordion({ project }: { project: Project }) {
                       trace && segment.mutate(trace.id)
                     }
                     segmenting={segment.isPending}
-                    ingesting={setGeom.isPending || generateDesc.isPending}
+                    ingesting={
+                      setGeom.isPending ||
+                      generateDesc.isPending ||
+                      generateScan.isPending ||
+                      generateTrekParts.isPending
+                    }
                   />
                 )}
                 {s.id === "scope" && <ScopeSection scope={scope ?? []} />}
                 {s.id === "params" && <ParamsSection params={params} />}
                 {s.id === "stations" && <StationsSection trace={trace} />}
                 {s.id === "scan" && (
-                  <ScanSection count={segDescriptions.length} />
+                  <ScanSection
+                    segCount={segDescriptions.length}
+                    trekCount={trekParts.length}
+                  />
                 )}
               </AccordionContent>
             </AccordionItem>
@@ -167,8 +175,14 @@ export function LeftAccordion({ project }: { project: Project }) {
   );
 }
 
-function ScanSection({ count }: { count: number }) {
-  if (count === 0) {
+function ScanSection({
+  segCount,
+  trekCount,
+}: {
+  segCount: number;
+  trekCount: number;
+}) {
+  if (segCount === 0) {
     return (
       <p className="font-sans text-xs text-ink/50">
         Nog geen segment-scan. Start via &ldquo;Brondocument v1&rdquo; rechts.
@@ -177,8 +191,12 @@ function ScanSection({ count }: { count: number }) {
   }
   return (
     <dl className="space-y-1.5 font-sans text-xs">
-      <Row label="Segmenten gescand" value={String(count)} />
-      <Row label="Status" value="✓ klaar voor export" />
+      <Row label="Segmenten gescand" value={String(segCount)} />
+      <Row label="Treks geaggregeerd" value={trekCount > 0 ? String(trekCount) : "—"} />
+      <Row
+        label="Status"
+        value={trekCount > 0 ? "✓ klaar voor export" : "Trek-overzicht volgt"}
+      />
     </dl>
   );
 }
