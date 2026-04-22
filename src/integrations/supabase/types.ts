@@ -2277,7 +2277,9 @@ export type Database = {
       set_trace_geometry_from_wkt_4326: {
         Args: { p_trace_id: string; p_wkt: string }
         Returns: {
+          geom_type: string
           length_m: number
+          num_geoms: number
           trace_id: string
         }[]
       }
