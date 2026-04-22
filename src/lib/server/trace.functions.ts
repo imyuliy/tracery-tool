@@ -104,5 +104,7 @@ export const setTraceGeometryFromWkt = createServerFn({ method: "POST" })
     return {
       trace_id: data.trace_id,
       length_m: Number(row?.length_m ?? 0),
+      geom_type: (row as { geom_type?: string } | undefined)?.geom_type ?? null,
+      num_geoms: Number((row as { num_geoms?: number } | undefined)?.num_geoms ?? 1),
     };
   });
