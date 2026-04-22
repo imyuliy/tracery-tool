@@ -106,21 +106,30 @@ export async function runSegmentTraceByBgt(opts: {
     allFeatures.push(...features);
   }
 
-  // Dedupe op (feature_type, lokaal_id) — PDOK paginering kan dezelfde feature
-  // meerdere keren teruggeven; ON CONFLICT DO UPDATE faalt anders met
-  // "command cannot affect row a second time".
+  // Dedupe ALLEEN op lokaal_id (first wins). De UNIQUE constraint in
+  // bgt_features_staging is (trace_id, lokaal_id) — PDOK levert soms dezelfde
+  // lokaal_id onder meerdere feature_types (bijv. wegdeel + ondersteunendwegdeel),
+  // wat ON CONFLICT DO UPDATE laat crashen met "command cannot affect row a
+  // second time". First wins; we loggen welke feature_types verloren gaan.
   const seen = new Set<string>();
   const dedupedFeatures: PdokFeature[] = [];
+  const droppedByType = new Map<string, number>();
   for (const f of allFeatures) {
-    const key = `${f.feature_type}::${f.lokaal_id}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
+    if (seen.has(f.lokaal_id)) {
+      droppedByType.set(
+        f.feature_type,
+        (droppedByType.get(f.feature_type) ?? 0) + 1,
+      );
+      continue;
+    }
+    seen.add(f.lokaal_id);
     dedupedFeatures.push(f);
   }
   log("dedupe", {
     raw: allFeatures.length,
     deduped: dedupedFeatures.length,
     duplicates: allFeatures.length - dedupedFeatures.length,
+    dropped_by_feature_type: Object.fromEntries(droppedByType),
   });
 
   await supabaseAdmin
