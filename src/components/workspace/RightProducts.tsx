@@ -1,4 +1,5 @@
-import { Loader2, Sparkles, Lock, FileText, Download } from "lucide-react";
+import { Loader2, Sparkles, Lock, Download, Eye } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -6,18 +7,21 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { supabase } from "@/integrations/supabase/client";
 import {
   useExportBrondocumentV1,
   useExportTrekDocx,
   useGenerateSegmentScan,
-  useGenerateTraceDescription,
   useGenerateTrekParts,
   useProductCatalog,
   useSegmentDescriptions,
   useTrekParts,
 } from "@/lib/workspace";
 
-const ENABLED_CODES = new Set(["trace_description", "brondocument_v1"]);
+// Sprint 4.7: brondocument is het enige actieve product. trace_description
+// blijft als dead code in de catalog (is_active=false) en wordt hier niet
+// meer getoond.
+const ENABLED_CODES = new Set(["brondocument"]);
 
 export function RightProducts({
   traceId,
@@ -25,7 +29,6 @@ export function RightProducts({
   traceId: string | null;
 }) {
   const { data: products = [], isLoading } = useProductCatalog();
-  const generateDesc = useGenerateTraceDescription();
   const generateScan = useGenerateSegmentScan();
   const generateTrekParts = useGenerateTrekParts();
   const exportBrondoc = useExportBrondocumentV1();
@@ -35,20 +38,49 @@ export function RightProducts({
   const hasScan = segDescriptions.length > 0;
   const hasTreks = trekParts.length > 0;
 
-  // Sprint 4.6: na succesvolle scan automatisch trek-parts aggregeren.
-  const runScanWithTrekParts = async () => {
-    if (!traceId) return;
-    try {
-      await generateScan.mutateAsync({ traceId });
-    } catch {
+  // Sprint 4.7: één brondocument-knop die zowel scan als treks idempotent
+  // start, op basis van wat er al in de DB staat.
+  const handleBrondocument = async () => {
+    if (!traceId) {
+      toast.error("Geen actieve tracé.");
       return;
     }
     try {
-      await generateTrekParts.mutateAsync(traceId);
-    } catch {
-      // toast al getoond
+      const scanRes = await supabase
+        .from("segment_descriptions")
+        .select("id", { count: "exact", head: true })
+        .eq("trace_id", traceId);
+      const treksRes = await supabase
+        .from("trek_part_descriptions")
+        .select("id", { count: "exact", head: true })
+        .eq("trace_id", traceId)
+        .eq("version", 1);
+      const scanCount = scanRes.count ?? 0;
+      const treksCount = treksRes.count ?? 0;
+
+      if (scanCount === 0) {
+        await generateScan.mutateAsync({ traceId });
+      }
+      if (treksCount === 0) {
+        await generateTrekParts.mutateAsync(traceId);
+      }
+      if (scanCount > 0 && treksCount > 0) {
+        toast.message("Brondocument bestaat al — bekijk in de drawer onderaan.");
+      }
+    } catch (e) {
+      console.error("[RightProducts] brondocument error", e);
+      toast.error(
+        e instanceof Error ? e.message : "Brondocument-flow faalde",
+      );
     }
   };
+
+  const brondocLabel = !hasScan
+    ? "Brondocument genereren"
+    : !hasTreks
+      ? "Treks afmaken"
+      : "Brondocument bekijken";
+  const brondocPending = generateScan.isPending || generateTrekParts.isPending;
 
   return (
     <aside className="glass flex h-full w-full flex-col overflow-hidden rounded-xl shadow-xl shadow-ink/10">
@@ -70,30 +102,28 @@ export function RightProducts({
                 const enabled = ENABLED_CODES.has(p.code);
                 const isActive = enabled && p.is_active !== false;
 
-                if (p.code === "brondocument_v1" && isActive) {
+                if (p.code === "brondocument" && isActive) {
                   return (
                     <li key={p.code} className="space-y-1.5">
                       <Button
                         type="button"
                         variant="default"
                         size="sm"
-                        disabled={
-                          !traceId ||
-                          generateScan.isPending ||
-                          generateTrekParts.isPending
-                        }
-                        onClick={runScanWithTrekParts}
+                        disabled={!traceId || brondocPending}
+                        onClick={handleBrondocument}
                         className="w-full justify-start gap-2.5 px-3"
                       >
                         <span className="font-mono text-[10px] text-paper/70">
                           0{idx + 1}
                         </span>
-                        {generateScan.isPending || generateTrekParts.isPending ? (
+                        {brondocPending ? (
                           <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : hasScan && hasTreks ? (
+                          <Eye className="h-3.5 w-3.5" />
                         ) : (
                           <Sparkles className="h-3.5 w-3.5" />
                         )}
-                        <span className="truncate text-xs">{p.name}</span>
+                        <span className="truncate text-xs">{brondocLabel}</span>
                       </Button>
                       {hasScan && (
                         <div className="flex flex-col gap-1 pl-2">
@@ -143,32 +173,7 @@ export function RightProducts({
                   );
                 }
 
-                if (p.code === "trace_description" && isActive) {
-                  return (
-                    <li key={p.code}>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        disabled={!traceId || generateDesc.isPending}
-                        onClick={() => traceId && generateDesc.mutate(traceId)}
-                        className="w-full justify-start gap-2.5 px-3"
-                      >
-                        <span className="font-mono text-[10px] text-ink/50">
-                          0{idx + 1}
-                        </span>
-                        {generateDesc.isPending ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                          <FileText className="h-3.5 w-3.5" />
-                        )}
-                        <span className="truncate text-xs">{p.name}</span>
-                      </Button>
-                    </li>
-                  );
-                }
-
-                // Locked product (future sprint)
+                // Locked / dead products
                 return (
                   <li key={p.code}>
                     <Tooltip>
