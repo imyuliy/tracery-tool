@@ -1,29 +1,8 @@
-// Pure async helpers voor Sprint 4 — gedeeld tussen createServerFn-handlers
-// (trace.functions.ts) en de smoke-test route (api.public.smoketest-sprint4.ts).
-//
-// Geen `createServerFn` of TanStack request-context hier — alleen Supabase clients
-// + business logic. Hierdoor zijn de helpers aanroepbaar vanuit:
-//   - de production server-fn-handler (met user-scoped supabase + admin)
-//   - een service-role smoke-test endpoint (admin client als beide)
-//   - toekomstige unit/integration tests
-import {
-  Document,
-  Packer,
-  Paragraph,
-  TextRun,
-  HeadingLevel,
-  Table,
-  TableRow,
-  TableCell,
-  WidthType,
-  AlignmentType,
-  PageBreak,
-  BorderStyle,
-  ShadingType,
-} from "docx";
+// Pure async helpers voor Sprint 4 — gedeeld door trace.functions.ts.
+// Sprint 5: trace_description / DOCX-export verwijderd; alleen
+// BGT-segmentatie + helpers blijven.
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { getAIProvider } from "./ai-provider.server";
 import type { Database } from "@/integrations/supabase/types";
 
 type SupabaseLike = SupabaseClient<Database>;
