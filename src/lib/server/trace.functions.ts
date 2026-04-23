@@ -29,6 +29,7 @@ export const segmentTraceByBgt = createServerFn({ method: "POST" })
 
 const generateSchema = z.object({ trace_id: z.string().uuid() });
 
+// TODO: Remove in Sprint 5 — vervangen door brondocument-flow in Sprint 4.7.
 export const generateTraceDescription = createServerFn({ method: "POST" })
   .middleware([withSupabaseAuth, requireSupabaseAuth])
   .inputValidator((input: unknown) => generateSchema.parse(input))
