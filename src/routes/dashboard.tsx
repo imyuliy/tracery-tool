@@ -1,16 +1,28 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, FolderOpen, Building2 } from "lucide-react";
+import { Plus, FolderOpen, Building2, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { TopNav } from "@/components/nav/TopNav";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { displayName, useSupabaseAuth } from "@/lib/auth";
 import {
   PROJECT_STATUS_LABELS,
   formatRelativeDate,
   projectsQueryOptions,
+  useDeleteProject,
+  type Project,
 } from "@/lib/projects";
 import { NewProjectDialog } from "@/components/projects/NewProjectDialog";
 
