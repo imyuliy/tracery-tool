@@ -6,16 +6,6 @@ import { RequireAuth } from "@/components/auth/RequireAuth";
 import { TopNav } from "@/components/nav/TopNav";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { displayName, useSupabaseAuth } from "@/lib/auth";
 import {
   PROJECT_STATUS_LABELS,
@@ -104,7 +94,6 @@ function DashboardContent() {
 }
 
 function ProjectCard({ project: p }: { project: Project }) {
-  const [confirmOpen, setConfirmOpen] = useState(false);
   const deleteMutation = useDeleteProject();
   const status =
     PROJECT_STATUS_LABELS[p.status ?? "draft"] ?? PROJECT_STATUS_LABELS.draft;
@@ -150,52 +139,26 @@ function ProjectCard({ project: p }: { project: Project }) {
         </Card>
       </Link>
 
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setConfirmOpen(true);
-          }}
-          aria-label="Project verwijderen"
-          className="absolute right-3 top-3 z-10 inline-flex h-7 w-7 items-center justify-center rounded-md border border-border bg-paper/80 text-ink/40 opacity-0 backdrop-blur-sm transition-all hover:border-destructive/60 hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </button>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Project verwijderen?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Je staat op het punt om <strong>{p.name}</strong> en alle
-              gekoppelde data te verwijderen: tracés, segmenten, scans,
-              trek-indelingen, eisen-scope, exports en artefacten. Deze actie
-              kan niet ongedaan worden gemaakt.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteMutation.isPending}>
-              Annuleren
-            </AlertDialogCancel>
-            <Button
-              type="button"
-              variant="destructive"
-              disabled={deleteMutation.isPending}
-              onClick={() => {
-                console.log("[delete] click", p.id);
-                deleteMutation.mutate(p.id, {
-                  onSettled: (_data, error) => {
-                    console.log("[delete] settled", { error });
-                    setConfirmOpen(false);
-                  },
-                });
-              }}
-            >
-              {deleteMutation.isPending ? "Verwijderen…" : "Definitief verwijderen"}
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <button
+        type="button"
+        disabled={deleteMutation.isPending}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          const confirmed = window.confirm(
+            `Weet je zeker dat je "${p.name}" definitief wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.`,
+          );
+          if (!confirmed) return;
+
+          console.log("[delete] confirm", p.id);
+          deleteMutation.mutate(p.id);
+        }}
+        aria-label="Project verwijderen"
+        className="absolute right-3 top-3 z-10 inline-flex h-7 w-7 items-center justify-center rounded-md border border-border bg-paper/80 text-ink/40 opacity-0 backdrop-blur-sm transition-all hover:border-destructive/60 hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100 disabled:cursor-not-allowed disabled:opacity-100"
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+      </button>
     </div>
   );
 }
