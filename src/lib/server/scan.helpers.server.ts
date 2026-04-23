@@ -27,6 +27,7 @@ type SupabaseLike = SupabaseClient<Database>;
 const BATCH_SIZE = 25;
 const MAX_PARALLEL = 5;
 const MAX_SEGMENTS_DEFAULT = 1000;
+const MAX_TOKENS_PER_BATCH = 4000; // ruim voor 25-item JSON-array
 // Env-cap (Stap 0 validatie): SCAN_MAX_SEGMENTS=1 om end-to-end flow te testen.
 function resolveMaxSegments(override?: number): number {
   if (typeof override === "number" && override > 0) return override;
