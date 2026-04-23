@@ -6,16 +6,6 @@ import { RequireAuth } from "@/components/auth/RequireAuth";
 import { TopNav } from "@/components/nav/TopNav";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { displayName, useSupabaseAuth } from "@/lib/auth";
 import {
   PROJECT_STATUS_LABELS,
