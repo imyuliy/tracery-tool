@@ -140,6 +140,9 @@ export function LeftAccordion({ project }: { project: Project }) {
                     hasSegments={segDescriptions.length > 0}
                     onUploaded={() => {
                       qc.invalidateQueries({ queryKey: ["latest-trace", project.id] });
+                      qc.invalidateQueries({ queryKey: ["trek-parts"] });
+                      qc.invalidateQueries({ queryKey: ["segment-descriptions"] });
+                      qc.invalidateQueries({ queryKey: ["trace-description"] });
                     }}
                     onIngestKml={async (traceId, wkt4326) => {
                       await setGeom.mutateAsync({ traceId, wkt4326 });
@@ -301,13 +304,14 @@ function TraceSection({
           .single();
         if (error) throw error;
 
-        // 3. Upload originele file (raw, voor audit).
+        // 3. Upload originele file (raw, voor audit). upsert=true zodat
+        // re-upload na "Vervang tracé" niet faalt op bestaande object-key.
         const path = `${projectId}/${traceRow.id}.${ext}`;
         const { error: upErr } = await supabase.storage
           .from("traces")
           .upload(path, file, {
             contentType: file.type || "application/octet-stream",
-            upsert: false,
+            upsert: true,
           });
         if (upErr) {
           await supabase.from("traces").delete().eq("id", traceRow.id);
@@ -320,6 +324,7 @@ function TraceSection({
         if (parsedWkt) {
           try {
             await onIngestKml(traceRow.id, parsedWkt);
+            setShowReplace(false);
             onUploaded();
           } catch (ingestErr) {
             await Promise.allSettled([
@@ -330,6 +335,7 @@ function TraceSection({
           }
         } else {
           toast.success("Tracé geüpload");
+          setShowReplace(false);
           onUploaded();
           toast.message("Alleen KML-parsing is momenteel actief.");
         }
@@ -368,7 +374,8 @@ function TraceSection({
           )}
           <button
             type="button"
-            className="mt-2 font-mono text-[10px] uppercase tracking-wider text-blood hover:text-ember"
+            disabled={uploading || ingesting}
+            className="mt-2 font-mono text-[10px] uppercase tracking-wider text-blood transition-colors hover:text-ember disabled:opacity-40"
             onClick={() => setShowReplace(true)}
           >
             Vervang tracé →
