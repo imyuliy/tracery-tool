@@ -14,11 +14,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   useExportDocx,
+  useGenerateTrekParts,
   useSegmentDescriptions,
   useTraceDescription,
   useTrekParts,
 } from "@/lib/workspace";
 import { TrekBlock } from "./TrekBlock";
+import { GitBranch } from "lucide-react";
 
 type Tab = "trace" | "treks" | "segments";
 
@@ -162,6 +164,7 @@ export function BottomDrawer({
             <TreksTab
               traceId={traceId}
               treks={trekParts}
+              hasSegments={segmentCount > 0}
               selectedTrekIdx={selectedTrekIdx}
               onSelectTrek={onSelectTrek}
             />
@@ -183,24 +186,55 @@ export function BottomDrawer({
 function TreksTab({
   traceId,
   treks,
+  hasSegments,
   selectedTrekIdx,
   onSelectTrek,
 }: {
   traceId: string | null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   treks: any[];
+  hasSegments: boolean;
   selectedTrekIdx: number | null;
   onSelectTrek: (partIdx: number | null) => void;
 }) {
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
+  const generateTrekParts = useGenerateTrekParts();
   if (!traceId) {
     return <p className="px-6 py-4 font-sans text-sm text-ink/50">Geen tracé.</p>;
   }
   if (!treks || treks.length === 0) {
+    if (hasSegments) {
+      return (
+        <div className="flex h-full items-center justify-center px-6 py-4">
+          <div className="max-w-md rounded-lg border border-blood/30 bg-blood/5 px-5 py-4 text-center">
+            <h4 className="font-display text-sm font-semibold text-ink">
+              Nog geen trek-indeling
+            </h4>
+            <p className="mt-1 font-sans text-xs text-ink/70">
+              De brondocument-scan is klaar. Aggregeer de segmenten nu naar
+              trek-blokken (deterministisch, &lt;1 s).
+            </p>
+            <Button
+              type="button"
+              size="sm"
+              className="mt-3 gap-2"
+              disabled={generateTrekParts.isPending}
+              onClick={() => generateTrekParts.mutate(traceId)}
+            >
+              {generateTrekParts.isPending ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <GitBranch className="h-3.5 w-3.5" />
+              )}
+              Indelen starten
+            </Button>
+          </div>
+        </div>
+      );
+    }
     return (
       <p className="px-6 py-4 font-sans text-sm text-ink/50">
-        Nog geen trek-overzicht. Start de scan rechts; trek-aggregatie volgt
-        automatisch.
+        Nog geen trek-overzicht. Start eerst de brondocument-scan rechts.
       </p>
     );
   }
