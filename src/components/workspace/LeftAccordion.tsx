@@ -146,8 +146,10 @@ export function LeftAccordion({ project }: { project: Project }) {
                     }}
                     onIngestKml={async (traceId, wkt4326) => {
                       await setGeom.mutateAsync({ traceId, wkt4326 });
-                      toast.success("Tracé ingelezen — pipeline draait");
-                      void runFullPipeline(traceId);
+                      toast.success("Tracé geüpload");
+                      // Sprint 4.7: geen auto-pipeline meer. User triggert
+                      // BGT-segmentatie/Brondocument expliciet via knoppen.
+                      // runFullPipeline blijft beschikbaar voor toekomstig gebruik.
                     }}
                     onSegment={() =>
                       trace && segment.mutate(trace.id)
