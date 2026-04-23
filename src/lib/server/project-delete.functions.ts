@@ -87,16 +87,28 @@ export const deleteProjectDeep = createServerFn({ method: "POST" })
       }
     }
 
-    const { data: rpcResult, error: rpcErr } = await supabaseAdmin.rpc(
-      "delete_project_with_cleanup",
-      { p_project_id: data.project_id },
-    );
-    if (rpcErr) throw new Error(rpcErr.message);
+    // Audit-log de delete (vóór de DELETE zelf, zodat user_id niet via FK wordt ge-NULLT).
+    await supabaseAdmin.from("audit_log").insert({
+      user_id: context.userId,
+      action: "delete_project",
+      resource_type: "project",
+      resource_id: data.project_id,
+      payload: { project_name: project.name },
+    });
 
-    const result = Array.isArray(rpcResult) ? rpcResult[0] : rpcResult;
-    if (!result?.deleted || result?.rows_affected !== 1) {
-      throw new Error(result?.reason ?? "Project kon niet worden verwijderd");
+    // DELETE met admin-client (bypasst RLS). We hebben org-toegang hierboven al geverifieerd.
+    // We gebruiken NIET de RPC, omdat die intern auth.uid() check doet — die is NULL
+    // onder de service-role key en zou "Niet ingelogd" terugsturen.
+    const { data: deletedRows, error: deleteErr } = await supabaseAdmin
+      .from("projects")
+      .delete()
+      .eq("id", data.project_id)
+      .select("id");
+    if (deleteErr) throw new Error(deleteErr.message);
+    if (!deletedRows || deletedRows.length !== 1) {
+      throw new Error("DELETE raakte 0 rijen — mogelijk trigger/constraint/FK-probleem");
     }
+    const result = { rows_affected: deletedRows.length };
 
     return {
       deleted: true,
