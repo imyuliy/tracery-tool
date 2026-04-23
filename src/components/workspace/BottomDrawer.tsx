@@ -218,10 +218,21 @@ function TreksTab({
               type="button"
               size="sm"
               className="mt-3 gap-2"
-              disabled={generateTrekParts.isPending}
-              onClick={() => {
+              disabled={generateTrekParts.isPending || !traceId}
+              onClick={async () => {
                 console.log("[BottomDrawer] Indelen starten clicked", { traceId });
-                generateTrekParts.mutate(traceId);
+                if (!traceId) {
+                  toast.error("Geen actieve tracé gevonden.");
+                  return;
+                }
+                try {
+                  await generateTrekParts.mutateAsync(traceId);
+                } catch (e) {
+                  console.error("[BottomDrawer] generateTrekParts error", e);
+                  toast.error(
+                    e instanceof Error ? e.message : "Trek-generatie faalde",
+                  );
+                }
               }}
             >
               {generateTrekParts.isPending ? (
