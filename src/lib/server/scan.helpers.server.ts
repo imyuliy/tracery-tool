@@ -401,6 +401,12 @@ async function processBatch(input: BatchInput): Promise<SegmentNarrative[]> {
   return out;
 }
 
+function toStrOrNull(v: unknown): string | null {
+  if (v == null) return null;
+  if (typeof v === "string") return v.trim() || null;
+  return String(v);
+}
+
 // ──────────────────────────────────────────────────────────────────
 // Batch-prompt + parser (Sprint 4.5 spec)
 // ──────────────────────────────────────────────────────────────────
