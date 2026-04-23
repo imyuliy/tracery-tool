@@ -179,10 +179,9 @@ function ProjectCard({ project: p }: { project: Project }) {
             </AlertDialogCancel>
             <AlertDialogAction
               disabled={deleteMutation.isPending}
-              onClick={async (e) => {
-                e.preventDefault();
-                await deleteMutation.mutateAsync(p.id);
+              onClick={() => {
                 setConfirmOpen(false);
+                deleteMutation.mutate(p.id);
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
