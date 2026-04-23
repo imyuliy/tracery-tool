@@ -219,7 +219,10 @@ function TreksTab({
               size="sm"
               className="mt-3 gap-2"
               disabled={generateTrekParts.isPending}
-              onClick={() => generateTrekParts.mutate(traceId)}
+              onClick={() => {
+                console.log("[BottomDrawer] Indelen starten clicked", { traceId });
+                generateTrekParts.mutate(traceId);
+              }}
             >
               {generateTrekParts.isPending ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
