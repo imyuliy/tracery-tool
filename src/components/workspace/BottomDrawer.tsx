@@ -120,14 +120,7 @@ export function BottomDrawer({
       </div>
       {open && (
         <div className="h-[calc(100%-2.5rem)] overflow-hidden">
-          {tab === "trace" ? (
-            <TraceTab
-              traceId={traceId}
-              section={section ?? null}
-              highlightedLokaalId={highlightedLokaalId}
-              onPillClick={onPillClick}
-            />
-          ) : tab === "treks" ? (
+          {tab === "treks" ? (
             <TreksTab
               traceId={traceId}
               treks={trekParts}
