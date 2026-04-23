@@ -75,21 +75,22 @@ export async function runGenerateTrekPartDescriptions(opts: {
   const log = (msg: string) =>
     console.log(`[trek-part ${traceId}] +${Date.now() - t0}ms ${msg}`);
 
-  // 1. Trek-parts ophalen via RPC
+  // 1. Trek-parts ophalen via RPC (admin om RLS-recursie/timeouts te vermijden)
   log("fetch trace_parts_for_trace…");
-  const { data: parts, error: pErr } = await opts.supabase.rpc(
+  const { data: parts, error: pErr } = await supabaseAdmin.rpc(
     "trace_parts_for_trace",
     { p_trace_id: traceId },
   );
   if (pErr) throw new Error(`trace_parts laden: ${pErr.message}`);
   const partRows = (parts ?? []) as unknown as TrekPartRow[];
+  log(`parts=${partRows.length}`);
   if (partRows.length === 0) {
     throw new Error("Geen trek-parts gevonden. Draai eerst BGT-segmentatie.");
   }
-  log(`parts=${partRows.length}`);
 
-  // 2. Segment-to-part mapping
-  const { data: mappings, error: mErr } = await opts.supabase.rpc(
+  // 2. Segment-to-part mapping (admin)
+  log("fetch segments_with_part_idx…");
+  const { data: mappings, error: mErr } = await supabaseAdmin.rpc(
     "segments_with_part_idx",
     { p_trace_id: traceId },
   );
@@ -97,8 +98,9 @@ export async function runGenerateTrekPartDescriptions(opts: {
   const mapRows = (mappings ?? []) as unknown as SegmentMappingRow[];
   log(`segment-mappings=${mapRows.length}`);
 
-  // 3. Bestaande segment_descriptions ophalen
-  const { data: segDescs, error: dErr } = await opts.supabase
+  // 3. Bestaande segment_descriptions ophalen (admin)
+  log("fetch segment_descriptions…");
+  const { data: segDescs, error: dErr } = await supabaseAdmin
     .from("segment_descriptions")
     .select(
       "segment_id, narrative_md, ai_aandacht, ai_aandacht_reden, aandacht_reden, eisen_matches",
