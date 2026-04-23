@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Upload, FileText, Loader2, GitBranch, Check, Circle } from "lucide-react";
 import {
