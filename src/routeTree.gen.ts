@@ -9,7 +9,6 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SmoketestRouteImport } from './routes/smoketest'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as MaptestRouteImport } from './routes/maptest'
 import { Route as LoginRouteImport } from './routes/login'
@@ -17,14 +16,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProjectsProjectIdRouteImport } from './routes/projects.$projectId'
 import { Route as AdminEisenpakkettenRouteImport } from './routes/admin.eisenpakketten'
-import { Route as ApiPublicSmoketestSprint4TriggerRouteImport } from './routes/api.public.smoketest-sprint4-trigger'
-import { Route as ApiPublicSmoketestSprint4RouteImport } from './routes/api.public.smoketest-sprint4'
 
-const SmoketestRoute = SmoketestRouteImport.update({
-  id: '/smoketest',
-  path: '/smoketest',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -60,18 +52,6 @@ const AdminEisenpakkettenRoute = AdminEisenpakkettenRouteImport.update({
   path: '/admin/eisenpakketten',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicSmoketestSprint4TriggerRoute =
-  ApiPublicSmoketestSprint4TriggerRouteImport.update({
-    id: '/api/public/smoketest-sprint4-trigger',
-    path: '/api/public/smoketest-sprint4-trigger',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicSmoketestSprint4Route =
-  ApiPublicSmoketestSprint4RouteImport.update({
-    id: '/api/public/smoketest-sprint4',
-    path: '/api/public/smoketest-sprint4',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -79,11 +59,8 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/maptest': typeof MaptestRoute
   '/settings': typeof SettingsRoute
-  '/smoketest': typeof SmoketestRoute
   '/admin/eisenpakketten': typeof AdminEisenpakkettenRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
-  '/api/public/smoketest-sprint4': typeof ApiPublicSmoketestSprint4Route
-  '/api/public/smoketest-sprint4-trigger': typeof ApiPublicSmoketestSprint4TriggerRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -91,11 +68,8 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/maptest': typeof MaptestRoute
   '/settings': typeof SettingsRoute
-  '/smoketest': typeof SmoketestRoute
   '/admin/eisenpakketten': typeof AdminEisenpakkettenRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
-  '/api/public/smoketest-sprint4': typeof ApiPublicSmoketestSprint4Route
-  '/api/public/smoketest-sprint4-trigger': typeof ApiPublicSmoketestSprint4TriggerRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -104,11 +78,8 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/maptest': typeof MaptestRoute
   '/settings': typeof SettingsRoute
-  '/smoketest': typeof SmoketestRoute
   '/admin/eisenpakketten': typeof AdminEisenpakkettenRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
-  '/api/public/smoketest-sprint4': typeof ApiPublicSmoketestSprint4Route
-  '/api/public/smoketest-sprint4-trigger': typeof ApiPublicSmoketestSprint4TriggerRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -118,11 +89,8 @@ export interface FileRouteTypes {
     | '/login'
     | '/maptest'
     | '/settings'
-    | '/smoketest'
     | '/admin/eisenpakketten'
     | '/projects/$projectId'
-    | '/api/public/smoketest-sprint4'
-    | '/api/public/smoketest-sprint4-trigger'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -130,11 +98,8 @@ export interface FileRouteTypes {
     | '/login'
     | '/maptest'
     | '/settings'
-    | '/smoketest'
     | '/admin/eisenpakketten'
     | '/projects/$projectId'
-    | '/api/public/smoketest-sprint4'
-    | '/api/public/smoketest-sprint4-trigger'
   id:
     | '__root__'
     | '/'
@@ -142,11 +107,8 @@ export interface FileRouteTypes {
     | '/login'
     | '/maptest'
     | '/settings'
-    | '/smoketest'
     | '/admin/eisenpakketten'
     | '/projects/$projectId'
-    | '/api/public/smoketest-sprint4'
-    | '/api/public/smoketest-sprint4-trigger'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -155,22 +117,12 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   MaptestRoute: typeof MaptestRoute
   SettingsRoute: typeof SettingsRoute
-  SmoketestRoute: typeof SmoketestRoute
   AdminEisenpakkettenRoute: typeof AdminEisenpakkettenRoute
   ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
-  ApiPublicSmoketestSprint4Route: typeof ApiPublicSmoketestSprint4Route
-  ApiPublicSmoketestSprint4TriggerRoute: typeof ApiPublicSmoketestSprint4TriggerRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/smoketest': {
-      id: '/smoketest'
-      path: '/smoketest'
-      fullPath: '/smoketest'
-      preLoaderRoute: typeof SmoketestRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -220,20 +172,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminEisenpakkettenRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/smoketest-sprint4-trigger': {
-      id: '/api/public/smoketest-sprint4-trigger'
-      path: '/api/public/smoketest-sprint4-trigger'
-      fullPath: '/api/public/smoketest-sprint4-trigger'
-      preLoaderRoute: typeof ApiPublicSmoketestSprint4TriggerRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/smoketest-sprint4': {
-      id: '/api/public/smoketest-sprint4'
-      path: '/api/public/smoketest-sprint4'
-      fullPath: '/api/public/smoketest-sprint4'
-      preLoaderRoute: typeof ApiPublicSmoketestSprint4RouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -243,11 +181,8 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   MaptestRoute: MaptestRoute,
   SettingsRoute: SettingsRoute,
-  SmoketestRoute: SmoketestRoute,
   AdminEisenpakkettenRoute: AdminEisenpakkettenRoute,
   ProjectsProjectIdRoute: ProjectsProjectIdRoute,
-  ApiPublicSmoketestSprint4Route: ApiPublicSmoketestSprint4Route,
-  ApiPublicSmoketestSprint4TriggerRoute: ApiPublicSmoketestSprint4TriggerRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
