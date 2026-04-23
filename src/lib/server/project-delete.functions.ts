@@ -6,6 +6,34 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const deleteProjectSchema = z.object({ project_id: z.string().uuid() });
 
+async function listAllPaths(bucket: string, prefix: string): Promise<string[]> {
+  const paths: string[] = [];
+
+  async function walk(folder: string) {
+    const { data, error } = await supabaseAdmin.storage.from(bucket).list(folder, {
+      limit: 100,
+      offset: 0,
+      sortBy: { column: "name", order: "asc" },
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    for (const item of data ?? []) {
+      const itemPath = folder ? `${folder}/${item.name}` : item.name;
+      if (item.metadata) {
+        paths.push(itemPath);
+      } else {
+        await walk(itemPath);
+      }
+    }
+  }
+
+  await walk(prefix);
+  return paths;
+}
+
 export const deleteProjectDeep = createServerFn({ method: "POST" })
   .middleware([withSupabaseAuth, requireSupabaseAuth])
   .inputValidator((input: unknown) => deleteProjectSchema.parse(input))
@@ -29,42 +57,11 @@ export const deleteProjectDeep = createServerFn({ method: "POST" })
       throw new Error("Geen toegang tot dit project");
     }
 
-    const { data: traces, error: traceErr } = await supabaseAdmin
-      .from("traces")
-      .select("id, source_file")
-      .eq("project_id", data.project_id);
-    if (traceErr) throw new Error(traceErr.message);
-
-    const { data: exportsRows, error: exportErr } = await supabaseAdmin
-      .from("exports")
-      .select("storage_path")
-      .eq("project_id", data.project_id);
-    if (exportErr) throw new Error(exportErr.message);
-
-    const { data: artifactRows, error: artifactErr } = await supabaseAdmin
-      .from("project_artifacts")
-      .select("storage_path")
-      .eq("project_id", data.project_id);
-    if (artifactErr) throw new Error(artifactErr.message);
-
-    const { data: requirementRows, error: reqErr } = await supabaseAdmin
-      .from("requirements_documents")
-      .select("storage_path")
-      .eq("project_id", data.project_id);
-    if (reqErr) throw new Error(reqErr.message);
-
-    const tracePaths = (traces ?? [])
-      .map((trace) => trace.source_file)
-      .filter((path): path is string => Boolean(path));
-
-    const exportPaths = [...new Set([
-      ...(exportsRows ?? []).map((row) => row.storage_path).filter((path): path is string => Boolean(path)),
-      ...(artifactRows ?? []).map((row) => row.storage_path).filter((path): path is string => Boolean(path)),
-    ])];
-
-    const requirementPaths = (requirementRows ?? [])
-      .map((row) => row.storage_path)
-      .filter((path): path is string => Boolean(path));
+    const [tracePaths, exportPaths, requirementPaths] = await Promise.all([
+      listAllPaths("traces", data.project_id),
+      listAllPaths("exports", data.project_id),
+      listAllPaths("requirements", data.project_id),
+    ]);
 
     const storageCleanup = await Promise.allSettled([
       tracePaths.length
@@ -87,7 +84,6 @@ export const deleteProjectDeep = createServerFn({ method: "POST" })
       }
     }
 
-    // Audit-log de delete (vóór de DELETE zelf, zodat user_id niet via FK wordt ge-NULLT).
     await supabaseAdmin.from("audit_log").insert({
       user_id: context.userId,
       action: "delete_project",
@@ -96,9 +92,6 @@ export const deleteProjectDeep = createServerFn({ method: "POST" })
       payload: { project_name: project.name },
     });
 
-    // DELETE met admin-client (bypasst RLS). We hebben org-toegang hierboven al geverifieerd.
-    // We gebruiken NIET de RPC, omdat die intern auth.uid() check doet — die is NULL
-    // onder de service-role key en zou "Niet ingelogd" terugsturen.
     const { data: deletedRows, error: deleteErr } = await supabaseAdmin
       .from("projects")
       .delete()
