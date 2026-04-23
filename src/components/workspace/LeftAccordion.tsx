@@ -140,6 +140,9 @@ export function LeftAccordion({ project }: { project: Project }) {
                     hasSegments={segDescriptions.length > 0}
                     onUploaded={() => {
                       qc.invalidateQueries({ queryKey: ["latest-trace", project.id] });
+                      qc.invalidateQueries({ queryKey: ["trek-parts"] });
+                      qc.invalidateQueries({ queryKey: ["segment-descriptions"] });
+                      qc.invalidateQueries({ queryKey: ["trace-description"] });
                     }}
                     onIngestKml={async (traceId, wkt4326) => {
                       await setGeom.mutateAsync({ traceId, wkt4326 });
