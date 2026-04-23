@@ -301,9 +301,18 @@ export function useExportBrondocumentV1() {
     mutationFn: async (traceId: string) => {
       return await exportBrondocumentV1Docx({ data: { trace_id: traceId } });
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
+      if (result?.url && typeof document !== "undefined") {
+        const link = document.createElement("a");
+        link.href = result.url;
+        link.download = result.filename ?? "brondocument.docx";
+        link.rel = "noopener";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
       qc.invalidateQueries({ queryKey: ["project-artifacts"] });
-      toast.success("Brondocument v1 klaar");
+      toast.success(`Brondocument gedownload: ${result?.filename ?? ""}`);
     },
     onError: (err: Error) => toast.error(err.message),
   });
@@ -353,9 +362,18 @@ export function useExportTrekDocx() {
     mutationFn: async (traceId: string) => {
       return await exportTrekHierarchyDocx({ data: { trace_id: traceId } });
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
+      if (result?.url && typeof document !== "undefined") {
+        const link = document.createElement("a");
+        link.href = result.url;
+        link.download = result.filename ?? "trek-plan.docx";
+        link.rel = "noopener";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
       qc.invalidateQueries({ queryKey: ["project-artifacts"] });
-      toast.success("Trek-DOCX klaar");
+      toast.success(`Trek-DOCX gedownload: ${result?.filename ?? ""}`);
     },
     onError: (err: Error) => toast.error(err.message),
   });
