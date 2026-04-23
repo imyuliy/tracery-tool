@@ -326,46 +326,166 @@ async function processBatch(input: BatchInput): Promise<SegmentNarrative[]> {
     }
   }
 
-  // Process per segment (sequentially within batch to keep memory small)
-  const out: SegmentNarrative[] = [];
-  for (let i = 0; i < batch.length; i++) {
-    const seg = batch[i];
-    const ctx = contexts[i];
-    const queryVec = contextEmbeddings[i] ?? null;
-
+  // Match eisen per segment (deterministisch, geen AI)
+  const segmentsWithEisen = batch.map((seg, i) => {
     const matches = matchEisen({
       segment: seg,
       candidates,
-      queryVec,
+      queryVec: contextEmbeddings[i] ?? null,
     });
+    return { seg, ctx: contexts[i], matches };
+  });
 
-    const { narrative, aiFlags, prompt_tokens, completion_tokens } =
-      await generateSegmentNarrative({
-        ai,
-        segment: seg,
-        context: ctx.summary,
-        eisen: matches,
-        project,
-      });
+  // ÉÉN AI-call voor de hele batch — JSON-array response
+  const userPrompt = buildBatchPrompt(segmentsWithEisen, project);
 
-    out.push({
+  let gen;
+  try {
+    gen = await ai.generate({
+      system: SCAN_V1_SYSTEM_PROMPT,
+      user: userPrompt,
+      maxTokens: MAX_TOKENS_PER_BATCH,
+    });
+  } catch (e) {
+    console.warn("[scan] batch AI call failed:", e);
+    // Fallback: lege narratives, behoud eisen-matches en auto-flags
+    return segmentsWithEisen.map(({ seg, ctx, matches }) => ({
       segment_id: seg.id,
       sequence: seg.sequence,
       km_start: Number(seg.km_start ?? 0),
       km_end: Number(seg.km_end ?? 0),
-      narrative_md: narrative,
+      narrative_md: `_Beschrijving niet gegenereerd: ${e instanceof Error ? e.message : "AI fout"}._`,
       context_summary: ctx.summary,
-      ai_aandacht: aiFlags.aandacht,
-      ai_aandacht_reden: aiFlags.reden,
-      ai_voorgestelde_techniek: aiFlags.techniek,
+      ai_aandacht: false,
+      ai_aandacht_reden: null,
+      ai_voorgestelde_techniek: null,
       aandacht_flags: ctx.autoFlags,
       aandacht_reden: ctx.autoReden,
       eisen_matches: matches,
-      prompt_tokens,
-      completion_tokens,
-    });
+      prompt_tokens: null,
+      completion_tokens: null,
+    }));
   }
+
+  const items = parseBatchResponse(gen.text, segmentsWithEisen.length);
+
+  // Token-allocatie: hele batch krijgt totalen, eerste segment ontvangt totaal
+  // (vereenvoudiging — exacte per-segment-tokens zijn niet beschikbaar bij batch).
+  const out: SegmentNarrative[] = segmentsWithEisen.map(({ seg, ctx, matches }, i) => {
+    const item = items[i] ?? {};
+    const allowedCodes = new Set(matches.map((m) => m.eis_code));
+    const rawNarrative = String(item.narrative_md ?? item.narrative ?? "");
+    const cleanedNarrative = rawNarrative.replace(
+      /\[EIS-([A-Za-z0-9._\-]+)\]/g,
+      (full, code) => (allowedCodes.has(code) ? full : ""),
+    );
+
+    return {
+      segment_id: seg.id,
+      sequence: seg.sequence,
+      km_start: Number(seg.km_start ?? 0),
+      km_end: Number(seg.km_end ?? 0),
+      narrative_md: cleanedNarrative || `_Geen beschrijving voor segment ${seg.sequence}._`,
+      context_summary: ctx.summary,
+      ai_aandacht: Boolean(item.aandacht ?? false),
+      ai_aandacht_reden: item.aandacht_reden ?? item.reden ?? null,
+      ai_voorgestelde_techniek: item.voorgestelde_techniek ?? item.techniek ?? null,
+      aandacht_flags: ctx.autoFlags,
+      aandacht_reden: ctx.autoReden,
+      eisen_matches: matches,
+      prompt_tokens: i === 0 ? gen.input_tokens : null,
+      completion_tokens: i === 0 ? gen.output_tokens : null,
+    };
+  });
+
   return out;
+}
+
+// ──────────────────────────────────────────────────────────────────
+// Batch-prompt + parser (Sprint 4.5 spec)
+// ──────────────────────────────────────────────────────────────────
+
+const SCAN_V1_SYSTEM_PROMPT = `Je bent een Nederlandse senior-elektrotechnisch ingenieur die per BGT-segment een korte, feitelijke beschrijving schrijft voor een MS-kabel ontwerptracé.
+
+REGELS:
+1. Schrijf in Nederlands, professioneel en zakelijk. 2-4 zinnen per segment.
+2. Beschrijf alléén wat in de context staat. NIETS verzinnen.
+3. Citeer eisen alleen via [EIS-<eis_code>] uit de meegeleverde lijst per segment. NOOIT eis-codes verzinnen.
+4. aandacht=true alleen bij: water-kruising, wegkruising hoofdweg, zeer korte segmenten <2m, ontbrekende beheerder, of expliciete auto-flag.
+5. voorgestelde_techniek: kies uit "open ontgraving", "gestuurde boring", "persing", of null bij twijfel.
+
+Output exact als JSON-array, één object per segment, volgorde identiek aan input. Elk object heeft velden:
+{ "narrative_md": string, "aandacht": boolean, "aandacht_reden": string|null, "voorgestelde_techniek": string|null }
+GEEN markdown-fences, GEEN omringende tekst, ALLEEN de JSON-array.`;
+
+function buildBatchPrompt(
+  items: Array<{
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    seg: any;
+    ctx: SegmentContext;
+    matches: EisenMatch[];
+  }>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  project: any,
+): string {
+  const segmentsBlock = items
+    .map(({ seg, ctx, matches }, i) => {
+      const eisenList =
+        matches.length === 0
+          ? "(geen eisen gematcht)"
+          : matches
+              .slice(0, 8)
+              .map(
+                (e) =>
+                  `[EIS-${e.eis_code}] ${e.eistitel} (${e.objecttype})`,
+              )
+              .join("; ");
+      return `## Segment ${i + 1} (sequence=${seg.sequence})
+Context: ${ctx.summary}
+Eisen: ${eisenList}`;
+    })
+    .join("\n\n");
+
+  return `# PROJECT
+${project.name} (${project.client ?? "?"})
+
+# ${items.length} SEGMENTEN
+${segmentsBlock}
+
+Genereer nu de JSON-array met ${items.length} objecten in dezelfde volgorde.`;
+}
+
+function parseBatchResponse(
+  text: string,
+  expectedCount: number,
+): Array<Record<string, unknown>> {
+  let cleaned = text.trim();
+  cleaned = cleaned.replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
+  const match = cleaned.match(/\[[\s\S]*\]/);
+  if (!match) {
+    console.warn(`[scan] no JSON array in batch response (len=${text.length})`);
+    return new Array(expectedCount).fill({});
+  }
+  try {
+    const arr = JSON.parse(match[0]);
+    if (!Array.isArray(arr)) return new Array(expectedCount).fill({});
+    if (arr.length !== expectedCount) {
+      console.warn(
+        `[scan] batch returned ${arr.length} items, expected ${expectedCount}`,
+      );
+    }
+    // Pad/truncate to expected count
+    const out: Array<Record<string, unknown>> = [];
+    for (let i = 0; i < expectedCount; i++) {
+      out.push(
+        arr[i] && typeof arr[i] === "object" ? (arr[i] as Record<string, unknown>) : {},
+      );
+    }
+    return out;
+  } catch (e) {
+    console.warn(`[scan] parseBatchResponse JSON error:`, e);
+    return new Array(expectedCount).fill({});
+  }
 }
 
 // ──────────────────────────────────────────────────────────────────
