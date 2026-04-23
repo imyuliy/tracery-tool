@@ -24,10 +24,10 @@ import type { Database } from "@/integrations/supabase/types";
 
 type SupabaseLike = SupabaseClient<Database>;
 
-const BATCH_SIZE = 25;
+const BATCH_SIZE = 12;
 const MAX_PARALLEL = 5;
 const MAX_SEGMENTS_DEFAULT = 1000;
-const MAX_TOKENS_PER_BATCH = 4000; // ruim voor 25-item JSON-array
+const MAX_TOKENS_PER_BATCH = 6000; // ruim voor 12-item JSON-array (~300 tok/item)
 // Env-cap (Stap 0 validatie): SCAN_MAX_SEGMENTS=1 om end-to-end flow te testen.
 function resolveMaxSegments(override?: number): number {
   if (typeof override === "number" && override > 0) return override;
@@ -467,31 +467,90 @@ function parseBatchResponse(
 ): Array<Record<string, unknown>> {
   let cleaned = text.trim();
   cleaned = cleaned.replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
-  const match = cleaned.match(/\[[\s\S]*\]/);
-  if (!match) {
-    console.warn(`[scan] no JSON array in batch response (len=${text.length})`);
+  const startIdx = cleaned.indexOf("[");
+  if (startIdx === -1) {
+    console.warn(
+      `[scan] no JSON array in batch response (len=${text.length}, head=${text.slice(0, 200)})`,
+    );
     return new Array(expectedCount).fill({});
   }
-  try {
-    const arr = JSON.parse(match[0]);
-    if (!Array.isArray(arr)) return new Array(expectedCount).fill({});
-    if (arr.length !== expectedCount) {
-      console.warn(
-        `[scan] batch returned ${arr.length} items, expected ${expectedCount}`,
-      );
+  // Try strict parse first
+  const endIdx = cleaned.lastIndexOf("]");
+  if (endIdx > startIdx) {
+    try {
+      const arr = JSON.parse(cleaned.slice(startIdx, endIdx + 1));
+      if (Array.isArray(arr)) {
+        if (arr.length !== expectedCount) {
+          console.warn(
+            `[scan] batch returned ${arr.length} items, expected ${expectedCount}`,
+          );
+        }
+        const out: Array<Record<string, unknown>> = [];
+        for (let i = 0; i < expectedCount; i++) {
+          out.push(
+            arr[i] && typeof arr[i] === "object"
+              ? (arr[i] as Record<string, unknown>)
+              : {},
+          );
+        }
+        return out;
+      }
+    } catch (e) {
+      console.warn(`[scan] strict JSON parse failed, trying recovery:`, e);
     }
-    // Pad/truncate to expected count
-    const out: Array<Record<string, unknown>> = [];
-    for (let i = 0; i < expectedCount; i++) {
-      out.push(
-        arr[i] && typeof arr[i] === "object" ? (arr[i] as Record<string, unknown>) : {},
-      );
-    }
-    return out;
-  } catch (e) {
-    console.warn(`[scan] parseBatchResponse JSON error:`, e);
-    return new Array(expectedCount).fill({});
   }
+  // Recovery: parse object-by-object so a truncated tail does not nuke valid items
+  const recovered = recoverJsonObjects(cleaned.slice(startIdx + 1));
+  console.warn(
+    `[scan] recovered ${recovered.length}/${expectedCount} items from malformed JSON`,
+  );
+  const out: Array<Record<string, unknown>> = [];
+  for (let i = 0; i < expectedCount; i++) {
+    out.push(recovered[i] ?? {});
+  }
+  return out;
+}
+
+// Walk through a JSON-array body and extract each top-level object.
+// Tolerates a missing trailing ]} so a truncated batch still yields N-1 items.
+function recoverJsonObjects(body: string): Array<Record<string, unknown>> {
+  const out: Array<Record<string, unknown>> = [];
+  let depth = 0;
+  let start = -1;
+  let inString = false;
+  let escape = false;
+  for (let i = 0; i < body.length; i++) {
+    const ch = body[i];
+    if (escape) {
+      escape = false;
+      continue;
+    }
+    if (ch === "\\") {
+      escape = true;
+      continue;
+    }
+    if (ch === '"') {
+      inString = !inString;
+      continue;
+    }
+    if (inString) continue;
+    if (ch === "{") {
+      if (depth === 0) start = i;
+      depth++;
+    } else if (ch === "}") {
+      depth--;
+      if (depth === 0 && start !== -1) {
+        try {
+          const obj = JSON.parse(body.slice(start, i + 1));
+          if (obj && typeof obj === "object") out.push(obj);
+        } catch {
+          /* skip malformed */
+        }
+        start = -1;
+      }
+    }
+  }
+  return out;
 }
 
 // ──────────────────────────────────────────────────────────────────
