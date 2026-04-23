@@ -514,6 +514,19 @@ function TraceSection({
   );
 }
 
+function StatusLine({ done, label }: { done: boolean; label: string }) {
+  return (
+    <div className="flex items-center gap-1.5 font-mono uppercase tracking-wider text-ink/70">
+      {done ? (
+        <Check className="h-3 w-3 text-blood" />
+      ) : (
+        <Circle className="h-3 w-3 text-ink/30" />
+      )}
+      <span className={done ? "text-ink" : "text-ink/50"}>{label}</span>
+    </div>
+  );
+}
+
 function ScopeSection({ scope }: { scope: Array<{ objecttype: string; in_scope: boolean }> }) {
   if (scope.length === 0)
     return (
