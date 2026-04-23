@@ -443,6 +443,36 @@ function TraceSection({
           Pipeline draait — BGT + omschrijving
         </p>
       )}
+      <div className="space-y-0.5 rounded-md border border-border bg-paper/40 px-2 py-1.5 text-[11px]">
+        <StatusLine
+          done={!!trace?.id}
+          label={
+            trace?.id
+              ? `KML geüpload${trace.length_m ? ` (${Math.round(trace.length_m)} m)` : ""}`
+              : "Geen KML"
+          }
+        />
+        <StatusLine
+          done={bgtSegmentCount > 0}
+          label={
+            bgtSegmentCount > 0
+              ? `${bgtSegmentCount} BGT-segmenten`
+              : "Nog niet gesegmenteerd"
+          }
+        />
+        <StatusLine
+          done={scanCount > 0}
+          label={
+            scanCount > 0 ? `${scanCount} beschrijvingen` : "Nog geen beschrijvingen"
+          }
+        />
+        <StatusLine
+          done={trekCount > 0}
+          label={
+            trekCount > 0 ? `${trekCount} treks ingedeeld` : "Nog geen trek-indeling"
+          }
+        />
+      </div>
       {trace?.id && (
         <>
           <Button
