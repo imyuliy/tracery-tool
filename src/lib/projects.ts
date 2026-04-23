@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { deleteProjectDeep } from "@/lib/server/project-delete.functions";
 
 export type Project = Database["public"]["Tables"]["projects"]["Row"];
 export type ProjectStatus = NonNullable<Project["status"]>;
@@ -148,51 +149,6 @@ export function useCreateProject() {
  * - Storage-objecten in buckets `traces` en `exports` (per trace_id-prefix) worden
  *   best-effort opgeruimd; falen daarvan blokkeert de delete niet.
  */
-async function cleanupProjectStorage(projectId: string) {
-  // Vraag eerst alle trace-ids op zodat we hun storage-prefixes kunnen leegmaken.
-  const { data: traces } = await supabase
-    .from("traces")
-    .select("id, source_file")
-    .eq("project_id", projectId);
-
-  const traceIds = (traces ?? []).map((t) => t.id);
-
-  // Best-effort: requirements documents storage paths
-  const { data: reqDocs } = await supabase
-    .from("requirements_documents")
-    .select("storage_path")
-    .eq("project_id", projectId);
-
-  const removeFromBucket = async (bucket: string, paths: string[]) => {
-    if (paths.length === 0) return;
-    const { error } = await supabase.storage.from(bucket).remove(paths);
-    if (error) console.warn(`[cleanup] ${bucket} remove failed:`, error.message);
-  };
-
-  // Traces bucket: source files
-  const tracePaths = (traces ?? [])
-    .map((t) => t.source_file)
-    .filter((p): p is string => !!p);
-  await removeFromBucket("traces", tracePaths);
-
-  // Exports bucket: list per trace prefix and delete
-  for (const tid of traceIds) {
-    const { data: list } = await supabase.storage.from("exports").list(tid, { limit: 1000 });
-    if (list && list.length > 0) {
-      await removeFromBucket(
-        "exports",
-        list.map((f) => `${tid}/${f.name}`),
-      );
-    }
-  }
-
-  // Requirements bucket
-  const reqPaths = (reqDocs ?? [])
-    .map((d) => d.storage_path)
-    .filter((p): p is string => !!p);
-  await removeFromBucket("requirements", reqPaths);
-}
-
 export function useDeleteProject() {
   const qc = useQueryClient();
   return useMutation({
@@ -207,25 +163,9 @@ export function useDeleteProject() {
       return { previousProjects };
     },
     mutationFn: async (projectId: string) => {
-      // 1) Storage best-effort opruimen (mag falen — DB-delete is leidend)
-      try {
-        await cleanupProjectStorage(projectId);
-      } catch (e) {
-        console.warn("[deleteProject] storage cleanup error:", e);
-      }
-
-      // 2) DB-delete via SECURITY DEFINER RPC met expliciete permissie-check.
-      //    Geeft heldere foutreden i.p.v. silent 0-rows-delete door RLS.
-      const { data, error } = await supabase.rpc("delete_project_with_cleanup", {
-        p_project_id: projectId,
-      });
-      if (error) throw error;
-      const result = Array.isArray(data) ? data[0] : data;
-      // Harde succes-check: deleted=true EN rows_affected===1.
-      // Vangt silent failures op waar de RPC `deleted=true` zou retourneren
-      // zonder dat de DELETE daadwerkelijk een rij raakte (trigger/FK).
-      if (!result?.deleted || (result as { rows_affected?: number })?.rows_affected !== 1) {
-        throw new Error(result?.reason ?? "Project kon niet worden verwijderd");
+      const result = await deleteProjectDeep({ data: { project_id: projectId } });
+      if (!result?.deleted || result.rows_affected !== 1) {
+        throw new Error("Project kon niet worden verwijderd");
       }
       return projectId;
     },
