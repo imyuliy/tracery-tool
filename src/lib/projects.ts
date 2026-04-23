@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { deleteProjectCascade } from "@/lib/server/project.functions";
 
 export type Project = Database["public"]["Tables"]["projects"]["Row"];
 export type ProjectStatus = NonNullable<Project["status"]>;
@@ -214,15 +215,9 @@ export function useDeleteProject() {
         console.warn("[deleteProject] storage cleanup error:", e);
       }
 
-      // 2) DB-delete; cascades doen de rest.
-      const { data, error } = await supabase
-        .from("projects")
-        .delete()
-        .eq("id", projectId)
-        .select("id")
-        .maybeSingle();
-      if (error) throw error;
-      if (!data?.id) {
+      // 2) DB-delete server-side; cascades doen de rest zonder client-RLS/FK issues.
+      const result = await deleteProjectCascade({ data: { project_id: projectId } });
+      if (!result?.id) {
         throw new Error("Project kon niet worden verwijderd.");
       }
       return projectId;
