@@ -5,8 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   getTraceMapData,
   segmentTraceByBgt,
-  generateTraceDescription,
-  exportTraceDescriptionDocx,
   type TraceMapData,
 } from "@/lib/server/trace.functions";
 import {
@@ -115,26 +113,8 @@ export function useLatestTrace(projectId: string) {
   });
 }
 
-// ─── Query: laatste trace_description-sectie ───────────────────────────
-export function useTraceDescription(traceId: string | null) {
-  return useQuery({
-    queryKey: ["trace-description", traceId],
-    enabled: !!traceId,
-    queryFn: async () => {
-      if (!traceId) return null;
-      const { data, error } = await supabase
-        .from("report_sections")
-        .select("*")
-        .eq("trace_id", traceId)
-        .eq("report_type", "trace_description")
-        .order("generated_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-  });
-}
+// (Sprint 5) useTraceDescription verwijderd — trace_description-flow is dead code.
+// Brondocument-flow vervangt deze.
 
 // ─── Query: project_artifacts (DOCX exports) ───────────────────────────
 export function useProjectArtifacts(projectId: string) {
@@ -218,37 +198,8 @@ export function useSegmentTrace() {
   });
 }
 
-// ─── Mutation: tracé-omschrijving genereren ────────────────────────────
-export function useGenerateTraceDescription() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (traceId: string) => {
-      return await generateTraceDescription({ data: { trace_id: traceId } });
-    },
-    onSuccess: (_r, traceId) => {
-      qc.invalidateQueries({ queryKey: ["trace-description", traceId] });
-      toast.success("Tracé-omschrijving gegenereerd");
-    },
-    onError: (err: Error) => toast.error(err.message),
-  });
-}
-
-// ─── Mutation: DOCX-export ─────────────────────────────────────────────
-export function useExportDocx() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (vars: { traceId: string; sectionId?: string }) => {
-      return await exportTraceDescriptionDocx({
-        data: { trace_id: vars.traceId, section_id: vars.sectionId },
-      });
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["project-artifacts"] });
-      toast.success("DOCX-export klaar");
-    },
-    onError: (err: Error) => toast.error(err.message),
-  });
-}
+// (Sprint 5) useGenerateTraceDescription + useExportDocx verwijderd —
+// trace_description / DOCX-export-flow is dead code (Brondocument-flow vervangt).
 
 // ─── Mutation: KML-ingest (zet geometry vanuit WKT 4326) ───────────────
 export function useSetTraceGeometryFromWkt() {

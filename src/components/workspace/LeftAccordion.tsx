@@ -13,7 +13,6 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   useActiveParameters,
   useGenerateSegmentScan,
-  useGenerateTraceDescription,
   useGenerateTrekParts,
   useLatestTrace,
   useProjectScope,
@@ -52,7 +51,6 @@ export function LeftAccordion({ project }: { project: Project }) {
   const { data: trekParts = [] } = useTrekParts(trace?.id ?? null);
   const segment = useSegmentTrace();
   const setGeom = useSetTraceGeometryFromWkt();
-  const generateDesc = useGenerateTraceDescription();
   const generateScan = useGenerateSegmentScan();
   const generateTrekParts = useGenerateTrekParts();
 
@@ -90,30 +88,9 @@ export function LeftAccordion({ project }: { project: Project }) {
   ];
   const completed = sections.filter((s) => s.complete).length;
 
-  // Sprint 4.6 — pipeline: BGT-segmentatie → scan → trek-part aggregatie.
-  // Sprint 4.7: niet meer auto-aangeroepen na KML-upload. Bewaard voor
-  // toekomstig gebruik vanuit de Brondocument-knop indien gewenst.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _runFullPipeline = useCallback(
-    async (traceId: string) => {
-      try {
-        await segment.mutateAsync(traceId);
-      } catch {
-        return;
-      }
-      try {
-        await generateScan.mutateAsync({ traceId });
-      } catch {
-        return;
-      }
-      try {
-        await generateTrekParts.mutateAsync(traceId);
-      } catch {
-        // toast al getoond
-      }
-    },
-    [segment, generateScan, generateTrekParts],
-  );
+  // (Sprint 5) _runFullPipeline verwijderd — Sprint 4.7 schakelde de auto-pipeline
+  // al uit; user triggert BGT-segmentatie / Brondocument expliciet.
+  void useCallback;
 
   return (
     <aside className="glass flex h-full w-full flex-col overflow-hidden rounded-xl shadow-xl shadow-ink/10">
@@ -164,7 +141,6 @@ export function LeftAccordion({ project }: { project: Project }) {
                       qc.invalidateQueries({ queryKey: ["latest-trace", project.id] });
                       qc.invalidateQueries({ queryKey: ["trek-parts"] });
                       qc.invalidateQueries({ queryKey: ["segment-descriptions"] });
-                      qc.invalidateQueries({ queryKey: ["trace-description"] });
                     }}
                     onIngestKml={async (traceId, wkt4326) => {
                       await setGeom.mutateAsync({ traceId, wkt4326 });
@@ -183,7 +159,6 @@ export function LeftAccordion({ project }: { project: Project }) {
                     generatingTreks={generateTrekParts.isPending}
                     ingesting={
                       setGeom.isPending ||
-                      generateDesc.isPending ||
                       generateScan.isPending ||
                       generateTrekParts.isPending
                     }
