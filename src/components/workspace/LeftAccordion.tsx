@@ -247,6 +247,9 @@ function TraceSection({
   projectId,
   trace,
   hasSegments,
+  bgtSegmentCount,
+  scanCount,
+  trekCount,
   onUploaded,
   onIngestKml,
   onSegment,
@@ -258,6 +261,9 @@ function TraceSection({
   projectId: string;
   trace: { id: string; source_file: string | null; length_m: number | null } | null | undefined;
   hasSegments: boolean;
+  bgtSegmentCount: number;
+  scanCount: number;
+  trekCount: number;
   onUploaded: () => void;
   onIngestKml: (traceId: string, wkt4326: string) => Promise<void>;
   onSegment: () => void;
