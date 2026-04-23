@@ -301,13 +301,14 @@ function TraceSection({
           .single();
         if (error) throw error;
 
-        // 3. Upload originele file (raw, voor audit).
+        // 3. Upload originele file (raw, voor audit). upsert=true zodat
+        // re-upload na "Vervang tracé" niet faalt op bestaande object-key.
         const path = `${projectId}/${traceRow.id}.${ext}`;
         const { error: upErr } = await supabase.storage
           .from("traces")
           .upload(path, file, {
             contentType: file.type || "application/octet-stream",
-            upsert: false,
+            upsert: true,
           });
         if (upErr) {
           await supabase.from("traces").delete().eq("id", traceRow.id);
@@ -320,6 +321,7 @@ function TraceSection({
         if (parsedWkt) {
           try {
             await onIngestKml(traceRow.id, parsedWkt);
+            setShowReplace(false);
             onUploaded();
           } catch (ingestErr) {
             await Promise.allSettled([
@@ -330,6 +332,7 @@ function TraceSection({
           }
         } else {
           toast.success("Tracé geüpload");
+          setShowReplace(false);
           onUploaded();
           toast.message("Alleen KML-parsing is momenteel actief.");
         }
