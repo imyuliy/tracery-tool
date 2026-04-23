@@ -75,22 +75,25 @@ export function LeftAccordion({ project }: { project: Project }) {
   const completed = sections.filter((s) => s.complete).length;
 
   // Sprint 4.6 — pipeline: BGT-segmentatie → scan → trek-part aggregatie.
-  const runFullPipeline = useCallback(
+  // Sprint 4.7: niet meer auto-aangeroepen na KML-upload. Bewaard voor
+  // toekomstig gebruik vanuit de Brondocument-knop indien gewenst.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _runFullPipeline = useCallback(
     async (traceId: string) => {
       try {
         await segment.mutateAsync(traceId);
       } catch {
-        return; // toast al getoond
+        return;
       }
       try {
         await generateScan.mutateAsync({ traceId });
       } catch {
-        return; // scan faalde — trek-parts heeft geen zin zonder scan
+        return;
       }
       try {
         await generateTrekParts.mutateAsync(traceId);
       } catch {
-        // toast al getoond — scan was succes, trek-parts kunnen handmatig
+        // toast al getoond
       }
     },
     [segment, generateScan, generateTrekParts],
@@ -146,8 +149,10 @@ export function LeftAccordion({ project }: { project: Project }) {
                     }}
                     onIngestKml={async (traceId, wkt4326) => {
                       await setGeom.mutateAsync({ traceId, wkt4326 });
-                      toast.success("Tracé ingelezen — pipeline draait");
-                      void runFullPipeline(traceId);
+                      toast.success("Tracé geüpload");
+                      // Sprint 4.7: geen auto-pipeline meer. User triggert
+                      // BGT-segmentatie/Brondocument expliciet via knoppen.
+                      // runFullPipeline blijft beschikbaar voor toekomstig gebruik.
                     }}
                     onSegment={() =>
                       trace && segment.mutate(trace.id)
