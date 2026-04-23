@@ -138,6 +138,87 @@ export function useCreateProject() {
   });
 }
 
+/**
+ * Verwijdert een project incl. alle gekoppelde data.
+ * - DB-cascades ruimen traces, segments, segment_descriptions, trek_part_descriptions,
+ *   clashes, utilities, permits, stakeholders, klic_requests, station_works,
+ *   switching_events, report_sections, design_parameters, project_eisen_scope,
+ *   exports en project_artifacts automatisch op.
+ * - audit_log + requirements_documents.project_id worden op NULL gezet (historie blijft).
+ * - Storage-objecten in buckets `traces` en `exports` (per trace_id-prefix) worden
+ *   best-effort opgeruimd; falen daarvan blokkeert de delete niet.
+ */
+async function cleanupProjectStorage(projectId: string) {
+  // Vraag eerst alle trace-ids op zodat we hun storage-prefixes kunnen leegmaken.
+  const { data: traces } = await supabase
+    .from("traces")
+    .select("id, source_file")
+    .eq("project_id", projectId);
+
+  const traceIds = (traces ?? []).map((t) => t.id);
+
+  // Best-effort: requirements documents storage paths
+  const { data: reqDocs } = await supabase
+    .from("requirements_documents")
+    .select("storage_path")
+    .eq("project_id", projectId);
+
+  const removeFromBucket = async (bucket: string, paths: string[]) => {
+    if (paths.length === 0) return;
+    const { error } = await supabase.storage.from(bucket).remove(paths);
+    if (error) console.warn(`[cleanup] ${bucket} remove failed:`, error.message);
+  };
+
+  // Traces bucket: source files
+  const tracePaths = (traces ?? [])
+    .map((t) => t.source_file)
+    .filter((p): p is string => !!p);
+  await removeFromBucket("traces", tracePaths);
+
+  // Exports bucket: list per trace prefix and delete
+  for (const tid of traceIds) {
+    const { data: list } = await supabase.storage.from("exports").list(tid, { limit: 1000 });
+    if (list && list.length > 0) {
+      await removeFromBucket(
+        "exports",
+        list.map((f) => `${tid}/${f.name}`),
+      );
+    }
+  }
+
+  // Requirements bucket
+  const reqPaths = (reqDocs ?? [])
+    .map((d) => d.storage_path)
+    .filter((p): p is string => !!p);
+  await removeFromBucket("requirements", reqPaths);
+}
+
+export function useDeleteProject() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (projectId: string) => {
+      // 1) Storage best-effort opruimen (mag falen — DB-delete is leidend)
+      try {
+        await cleanupProjectStorage(projectId);
+      } catch (e) {
+        console.warn("[deleteProject] storage cleanup error:", e);
+      }
+
+      // 2) DB-delete; cascades doen de rest.
+      const { error } = await supabase.from("projects").delete().eq("id", projectId);
+      if (error) throw error;
+      return projectId;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["projects"] });
+      toast.success("Project verwijderd");
+    },
+    onError: (err: Error) => {
+      toast.error(err.message ?? "Verwijderen mislukt");
+    },
+  });
+}
+
 export function formatRelativeDate(iso: string | null): string {
   if (!iso) return "";
   const d = new Date(iso);
