@@ -1,16 +1,28 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, FolderOpen, Building2 } from "lucide-react";
+import { Plus, FolderOpen, Building2, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { TopNav } from "@/components/nav/TopNav";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { displayName, useSupabaseAuth } from "@/lib/auth";
 import {
   PROJECT_STATUS_LABELS,
   formatRelativeDate,
   projectsQueryOptions,
+  useDeleteProject,
+  type Project,
 } from "@/lib/projects";
 import { NewProjectDialog } from "@/components/projects/NewProjectDialog";
 
@@ -79,57 +91,106 @@ function DashboardContent() {
           <EmptyState onCreate={() => setDialogOpen(true)} />
         ) : (
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {projects.map((p) => {
-              const status =
-                PROJECT_STATUS_LABELS[p.status ?? "draft"] ??
-                PROJECT_STATUS_LABELS.draft;
-              return (
-                <Link
-                  key={p.id}
-                  to="/projects/$projectId"
-                  params={{ projectId: p.id }}
-                  className="group"
-                >
-                  <Card className="h-full border-border bg-paper p-6 backdrop-blur-sm transition-all hover:border-blood/60 hover:bg-paper hover:shadow-[0_0_32px_-8px_oklch(0.60_0.22_24/0.4)]">
-                    <div className="flex items-start justify-between gap-3">
-                      <h2 className="font-display text-xl font-semibold leading-tight text-ink transition-colors group-hover:text-blood">
-                        {p.name}
-                      </h2>
-                      <span
-                        className={`shrink-0 rounded-full border px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-wider ${status.tone}`}
-                      >
-                        {status.label}
-                      </span>
-                    </div>
-                    <div className="mt-3 flex items-center gap-1.5 font-sans text-sm text-ink/60">
-                      <Building2 className="h-3.5 w-3.5" />
-                      <span>
-                        {p.client ?? "—"}
-                        {p.perceel ? ` · ${p.perceel}` : ""}
-                      </span>
-                    </div>
-                    {p.bto_reference && (
-                      <p className="mt-1 font-mono text-[10px] uppercase tracking-wider text-ink/40">
-                        {p.bto_reference}
-                      </p>
-                    )}
-                    <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
-                      <span className="rounded-full border border-blood/40 bg-blood/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-blood">
-                        {p.phase_state ?? "VO_fase_1"}
-                      </span>
-                      <p className="font-sans text-xs text-ink/40">
-                        {formatRelativeDate(p.created_at)}
-                      </p>
-                    </div>
-                  </Card>
-                </Link>
-              );
-            })}
+            {projects.map((p) => (
+              <ProjectCard key={p.id} project={p} />
+            ))}
           </div>
         )}
       </main>
 
       <NewProjectDialog open={dialogOpen} onOpenChange={setDialogOpen} />
+    </div>
+  );
+}
+
+function ProjectCard({ project: p }: { project: Project }) {
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const deleteMutation = useDeleteProject();
+  const status =
+    PROJECT_STATUS_LABELS[p.status ?? "draft"] ?? PROJECT_STATUS_LABELS.draft;
+
+  return (
+    <div className="group relative">
+      <Link
+        to="/projects/$projectId"
+        params={{ projectId: p.id }}
+        className="block"
+      >
+        <Card className="h-full border-border bg-paper p-6 backdrop-blur-sm transition-all hover:border-blood/60 hover:bg-paper hover:shadow-[0_0_32px_-8px_oklch(0.60_0.22_24/0.4)]">
+          <div className="flex items-start justify-between gap-3">
+            <h2 className="font-display text-xl font-semibold leading-tight text-ink transition-colors group-hover:text-blood">
+              {p.name}
+            </h2>
+            <span
+              className={`shrink-0 rounded-full border px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-wider ${status.tone}`}
+            >
+              {status.label}
+            </span>
+          </div>
+          <div className="mt-3 flex items-center gap-1.5 font-sans text-sm text-ink/60">
+            <Building2 className="h-3.5 w-3.5" />
+            <span>
+              {p.client ?? "—"}
+              {p.perceel ? ` · ${p.perceel}` : ""}
+            </span>
+          </div>
+          {p.bto_reference && (
+            <p className="mt-1 font-mono text-[10px] uppercase tracking-wider text-ink/40">
+              {p.bto_reference}
+            </p>
+          )}
+          <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
+            <span className="rounded-full border border-blood/40 bg-blood/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-blood">
+              {p.phase_state ?? "VO_fase_1"}
+            </span>
+            <p className="font-sans text-xs text-ink/40">
+              {formatRelativeDate(p.created_at)}
+            </p>
+          </div>
+        </Card>
+      </Link>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setConfirmOpen(true);
+          }}
+          aria-label="Project verwijderen"
+          className="absolute right-3 top-3 z-10 inline-flex h-7 w-7 items-center justify-center rounded-md border border-border bg-paper/80 text-ink/40 opacity-0 backdrop-blur-sm transition-all hover:border-destructive/60 hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Project verwijderen?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Je staat op het punt om <strong>{p.name}</strong> en alle
+              gekoppelde data te verwijderen: tracés, segmenten, scans,
+              trek-indelingen, eisen-scope, exports en artefacten. Deze actie
+              kan niet ongedaan worden gemaakt.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>
+              Annuleren
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deleteMutation.isPending}
+              onClick={async (e) => {
+                e.preventDefault();
+                await deleteMutation.mutateAsync(p.id);
+                setConfirmOpen(false);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteMutation.isPending ? "Verwijderen…" : "Definitief verwijderen"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
