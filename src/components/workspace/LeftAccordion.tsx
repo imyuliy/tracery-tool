@@ -1,8 +1,8 @@
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Upload, FileText, Loader2, GitBranch } from "lucide-react";
+import { Upload, FileText, Loader2, GitBranch, Check, Circle } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -55,6 +55,22 @@ export function LeftAccordion({ project }: { project: Project }) {
   const generateDesc = useGenerateTraceDescription();
   const generateScan = useGenerateSegmentScan();
   const generateTrekParts = useGenerateTrekParts();
+
+  // BGT-segmenttelling (los van scan-beschrijvingen) zodat we de status van
+  // segmentatie apart kunnen tonen in TraceSection.
+  const { data: bgtSegmentCount = 0 } = useQuery({
+    queryKey: ["bgt-segment-count", trace?.id ?? null],
+    enabled: !!trace?.id,
+    queryFn: async () => {
+      if (!trace?.id) return 0;
+      const { count } = await supabase
+        .from("segments")
+        .select("id", { count: "exact", head: true })
+        .eq("trace_id", trace.id)
+        .not("bgt_lokaal_id", "is", null);
+      return count ?? 0;
+    },
+  });
 
   const sections: Section[] = [
     { id: "project", title: "Projectinfo", complete: !!project.client },
@@ -141,6 +157,9 @@ export function LeftAccordion({ project }: { project: Project }) {
                     projectId={project.id}
                     trace={trace}
                     hasSegments={segDescriptions.length > 0}
+                    bgtSegmentCount={bgtSegmentCount}
+                    scanCount={segDescriptions.length}
+                    trekCount={trekParts.length}
                     onUploaded={() => {
                       qc.invalidateQueries({ queryKey: ["latest-trace", project.id] });
                       qc.invalidateQueries({ queryKey: ["trek-parts"] });
@@ -228,6 +247,9 @@ function TraceSection({
   projectId,
   trace,
   hasSegments,
+  bgtSegmentCount,
+  scanCount,
+  trekCount,
   onUploaded,
   onIngestKml,
   onSegment,
@@ -239,6 +261,9 @@ function TraceSection({
   projectId: string;
   trace: { id: string; source_file: string | null; length_m: number | null } | null | undefined;
   hasSegments: boolean;
+  bgtSegmentCount: number;
+  scanCount: number;
+  trekCount: number;
   onUploaded: () => void;
   onIngestKml: (traceId: string, wkt4326: string) => Promise<void>;
   onSegment: () => void;
@@ -418,6 +443,36 @@ function TraceSection({
           Pipeline draait — BGT + omschrijving
         </p>
       )}
+      <div className="space-y-0.5 rounded-md border border-border bg-paper/40 px-2 py-1.5 text-[11px]">
+        <StatusLine
+          done={!!trace?.id}
+          label={
+            trace?.id
+              ? `KML geüpload${trace.length_m ? ` (${Math.round(trace.length_m)} m)` : ""}`
+              : "Geen KML"
+          }
+        />
+        <StatusLine
+          done={bgtSegmentCount > 0}
+          label={
+            bgtSegmentCount > 0
+              ? `${bgtSegmentCount} BGT-segmenten`
+              : "Nog niet gesegmenteerd"
+          }
+        />
+        <StatusLine
+          done={scanCount > 0}
+          label={
+            scanCount > 0 ? `${scanCount} beschrijvingen` : "Nog geen beschrijvingen"
+          }
+        />
+        <StatusLine
+          done={trekCount > 0}
+          label={
+            trekCount > 0 ? `${trekCount} treks ingedeeld` : "Nog geen trek-indeling"
+          }
+        />
+      </div>
       {trace?.id && (
         <>
           <Button
@@ -455,6 +510,19 @@ function TraceSection({
           </Button>
         </>
       )}
+    </div>
+  );
+}
+
+function StatusLine({ done, label }: { done: boolean; label: string }) {
+  return (
+    <div className="flex items-center gap-1.5 font-mono uppercase tracking-wider text-ink/70">
+      {done ? (
+        <Check className="h-3 w-3 text-blood" />
+      ) : (
+        <Circle className="h-3 w-3 text-ink/30" />
+      )}
+      <span className={done ? "text-ink" : "text-ink/50"}>{label}</span>
     </div>
   );
 }
