@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Upload, FileText, Loader2 } from "lucide-react";
+import { Upload, FileText, Loader2, GitBranch } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -137,6 +137,7 @@ export function LeftAccordion({ project }: { project: Project }) {
                   <TraceSection
                     projectId={project.id}
                     trace={trace}
+                    hasSegments={segDescriptions.length > 0}
                     onUploaded={() => {
                       qc.invalidateQueries({ queryKey: ["latest-trace", project.id] });
                     }}
@@ -148,7 +149,11 @@ export function LeftAccordion({ project }: { project: Project }) {
                     onSegment={() =>
                       trace && segment.mutate(trace.id)
                     }
+                    onGenerateTreks={() =>
+                      trace && generateTrekParts.mutate(trace.id)
+                    }
                     segmenting={segment.isPending}
+                    generatingTreks={generateTrekParts.isPending}
                     ingesting={
                       setGeom.isPending ||
                       generateDesc.isPending ||
@@ -214,18 +219,24 @@ function ProjectSection({ project }: { project: Project }) {
 function TraceSection({
   projectId,
   trace,
+  hasSegments,
   onUploaded,
   onIngestKml,
   onSegment,
+  onGenerateTreks,
   segmenting,
+  generatingTreks,
   ingesting,
 }: {
   projectId: string;
   trace: { id: string; source_file: string | null; length_m: number | null } | null | undefined;
+  hasSegments: boolean;
   onUploaded: () => void;
   onIngestKml: (traceId: string, wkt4326: string) => Promise<void>;
   onSegment: () => void;
+  onGenerateTreks: () => void;
   segmenting: boolean;
+  generatingTreks: boolean;
   ingesting: boolean;
 }) {
   const [uploading, setUploading] = useState(false);
@@ -396,19 +407,41 @@ function TraceSection({
         </p>
       )}
       {trace?.id && (
-        <Button
-          size="sm"
-          variant="outline"
-          className="w-full"
-          onClick={onSegment}
-          disabled={segmenting || ingesting}
-        >
-          {segmenting ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          ) : (
-            "BGT-segmentatie opnieuw draaien"
-          )}
-        </Button>
+        <>
+          <Button
+            size="sm"
+            variant="outline"
+            className="w-full"
+            onClick={onSegment}
+            disabled={segmenting || ingesting}
+          >
+            {segmenting ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              "BGT-segmentatie opnieuw draaien"
+            )}
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            disabled={!hasSegments || generatingTreks}
+            onClick={onGenerateTreks}
+            className="w-full justify-start gap-2"
+            title={
+              !hasSegments
+                ? "Draai eerst BGT-segmentatie + brondocument-scan"
+                : "Aggregeer segmenten naar trek-blokken"
+            }
+          >
+            {generatingTreks ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <GitBranch className="h-3.5 w-3.5" />
+            )}
+            Treks indelen
+          </Button>
+        </>
       )}
     </div>
   );
