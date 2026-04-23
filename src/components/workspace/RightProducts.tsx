@@ -15,6 +15,7 @@ import {
   useGenerateTrekParts,
   useProductCatalog,
   useSegmentDescriptions,
+  useSegmentTrace,
   useTrekParts,
 } from "@/lib/workspace";
 
@@ -31,6 +32,7 @@ export function RightProducts({
   const { data: products = [], isLoading } = useProductCatalog();
   const generateScan = useGenerateSegmentScan();
   const generateTrekParts = useGenerateTrekParts();
+  const segment = useSegmentTrace();
   const exportBrondoc = useExportBrondocumentV1();
   const exportTrekDoc = useExportTrekDocx();
   const { data: segDescriptions = [] } = useSegmentDescriptions(traceId);
@@ -46,6 +48,14 @@ export function RightProducts({
       return;
     }
     try {
+      // 1) BGT-segmentatie — vereist voor zowel scan als treks.
+      const segRes = await supabase
+        .from("segments")
+        .select("id", { count: "exact", head: true })
+        .eq("trace_id", traceId)
+        .not("bgt_lokaal_id", "is", null);
+      const segmentCount = segRes.count ?? 0;
+
       const scanRes = await supabase
         .from("segment_descriptions")
         .select("id", { count: "exact", head: true })
@@ -58,13 +68,16 @@ export function RightProducts({
       const scanCount = scanRes.count ?? 0;
       const treksCount = treksRes.count ?? 0;
 
+      if (segmentCount === 0) {
+        await segment.mutateAsync(traceId);
+      }
       if (scanCount === 0) {
         await generateScan.mutateAsync({ traceId });
       }
       if (treksCount === 0) {
         await generateTrekParts.mutateAsync(traceId);
       }
-      if (scanCount > 0 && treksCount > 0) {
+      if (segmentCount > 0 && scanCount > 0 && treksCount > 0) {
         toast.message("Brondocument bestaat al — bekijk in de drawer onderaan.");
       }
     } catch (e) {
@@ -76,11 +89,12 @@ export function RightProducts({
   };
 
   const brondocLabel = !hasScan
-    ? "Brondocument genereren"
+    ? "Brondocument genereren (volledige scan)"
     : !hasTreks
       ? "Treks afmaken"
       : "Brondocument bekijken";
-  const brondocPending = generateScan.isPending || generateTrekParts.isPending;
+  const brondocPending =
+    segment.isPending || generateScan.isPending || generateTrekParts.isPending;
 
   return (
     <aside className="glass flex h-full w-full flex-col overflow-hidden rounded-xl shadow-xl shadow-ink/10">

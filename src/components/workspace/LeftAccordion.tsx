@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Upload, FileText, Loader2, GitBranch } from "lucide-react";
+import { Upload, FileText, Loader2, GitBranch, Check, Circle } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -55,6 +55,22 @@ export function LeftAccordion({ project }: { project: Project }) {
   const generateDesc = useGenerateTraceDescription();
   const generateScan = useGenerateSegmentScan();
   const generateTrekParts = useGenerateTrekParts();
+
+  // BGT-segmenttelling (los van scan-beschrijvingen) zodat we de status van
+  // segmentatie apart kunnen tonen in TraceSection.
+  const { data: bgtSegmentCount = 0 } = useQuery({
+    queryKey: ["bgt-segment-count", trace?.id ?? null],
+    enabled: !!trace?.id,
+    queryFn: async () => {
+      if (!trace?.id) return 0;
+      const { count } = await supabase
+        .from("segments")
+        .select("id", { count: "exact", head: true })
+        .eq("trace_id", trace.id)
+        .not("bgt_lokaal_id", "is", null);
+      return count ?? 0;
+    },
+  });
 
   const sections: Section[] = [
     { id: "project", title: "Projectinfo", complete: !!project.client },
@@ -141,6 +157,9 @@ export function LeftAccordion({ project }: { project: Project }) {
                     projectId={project.id}
                     trace={trace}
                     hasSegments={segDescriptions.length > 0}
+                    bgtSegmentCount={bgtSegmentCount}
+                    scanCount={segDescriptions.length}
+                    trekCount={trekParts.length}
                     onUploaded={() => {
                       qc.invalidateQueries({ queryKey: ["latest-trace", project.id] });
                       qc.invalidateQueries({ queryKey: ["trek-parts"] });
