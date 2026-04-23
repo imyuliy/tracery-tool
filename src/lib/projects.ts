@@ -221,7 +221,10 @@ export function useDeleteProject() {
       });
       if (error) throw error;
       const result = Array.isArray(data) ? data[0] : data;
-      if (!result?.deleted) {
+      // Harde succes-check: deleted=true EN rows_affected===1.
+      // Vangt silent failures op waar de RPC `deleted=true` zou retourneren
+      // zonder dat de DELETE daadwerkelijk een rij raakte (trigger/FK).
+      if (!result?.deleted || (result as { rows_affected?: number })?.rows_affected !== 1) {
         throw new Error(result?.reason ?? "Project kon niet worden verwijderd");
       }
       return projectId;

@@ -2330,6 +2330,7 @@ export type Database = {
           deleted: boolean
           project_name: string
           reason: string
+          rows_affected: number
         }[]
       }
       disablelongtransactions: { Args: never; Returns: string }
