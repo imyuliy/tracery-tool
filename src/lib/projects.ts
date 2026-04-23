@@ -196,6 +196,16 @@ async function cleanupProjectStorage(projectId: string) {
 export function useDeleteProject() {
   const qc = useQueryClient();
   return useMutation({
+    onMutate: async (projectId: string) => {
+      await qc.cancelQueries({ queryKey: ["projects"] });
+      const previousProjects = qc.getQueryData<Project[]>(["projects"]);
+
+      qc.setQueryData<Project[]>(["projects"], (current = []) =>
+        current.filter((project) => project.id !== projectId),
+      );
+
+      return { previousProjects };
+    },
     mutationFn: async (projectId: string) => {
       // 1) Storage best-effort opruimen (mag falen — DB-delete is leidend)
       try {
@@ -205,15 +215,27 @@ export function useDeleteProject() {
       }
 
       // 2) DB-delete; cascades doen de rest.
-      const { error } = await supabase.from("projects").delete().eq("id", projectId);
+      const { data, error } = await supabase
+        .from("projects")
+        .delete()
+        .eq("id", projectId)
+        .select("id")
+        .maybeSingle();
       if (error) throw error;
+      if (!data?.id) {
+        throw new Error("Project kon niet worden verwijderd.");
+      }
       return projectId;
     },
-    onSuccess: () => {
+    onSuccess: (projectId) => {
+      qc.removeQueries({ queryKey: ["projects", projectId] });
       qc.invalidateQueries({ queryKey: ["projects"] });
       toast.success("Project verwijderd");
     },
-    onError: (err: Error) => {
+    onError: (err: Error, _projectId, context) => {
+      if (context?.previousProjects) {
+        qc.setQueryData(["projects"], context.previousProjects);
+      }
       toast.error(err.message ?? "Verwijderen mislukt");
     },
   });
