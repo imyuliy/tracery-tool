@@ -374,7 +374,8 @@ function TraceSection({
           )}
           <button
             type="button"
-            className="mt-2 font-mono text-[10px] uppercase tracking-wider text-blood hover:text-ember"
+            disabled={uploading || ingesting}
+            className="mt-2 font-mono text-[10px] uppercase tracking-wider text-blood transition-colors hover:text-ember disabled:opacity-40"
             onClick={() => setShowReplace(true)}
           >
             Vervang tracé →
