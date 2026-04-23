@@ -2324,6 +2324,14 @@ export type Database = {
         Returns: number
       }
       current_org_id: { Args: never; Returns: string }
+      delete_project_with_cleanup: {
+        Args: { p_project_id: string }
+        Returns: {
+          deleted: boolean
+          project_name: string
+          reason: string
+        }[]
+      }
       disablelongtransactions: { Args: never; Returns: string }
       dropgeometrycolumn:
         | {

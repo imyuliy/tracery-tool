@@ -4,26 +4,22 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import {
   ChevronDown,
   ChevronUp,
-  Download,
   Loader2,
   AlertTriangle,
-  FileText,
   Layers,
   Route as RouteIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  useExportDocx,
   useGenerateTrekParts,
   useSegmentDescriptions,
-  useTraceDescription,
   useTrekParts,
 } from "@/lib/workspace";
 import { TrekBlock } from "./TrekBlock";
 import { GitBranch } from "lucide-react";
 
-type Tab = "trace" | "treks" | "segments";
+type Tab = "treks" | "segments";
 
 interface SegmentDescriptionRow {
   id: string;
@@ -73,10 +69,8 @@ export function BottomDrawer({
 }) {
   const [open, setOpen] = useState(true);
   const [tab, setTab] = useState<Tab>("treks");
-  const { data: section } = useTraceDescription(traceId);
   const { data: segDescriptions = [] } = useSegmentDescriptions(traceId);
   const { data: trekParts = [] } = useTrekParts(traceId);
-  const exportDocx = useExportDocx();
 
   const segmentCount = segDescriptions.length;
   const trekCount = trekParts.length;
@@ -112,15 +106,6 @@ export function BottomDrawer({
               badge={trekCount > 0 ? trekCount : undefined}
             />
             <TabButton
-              active={tab === "trace"}
-              onClick={() => {
-                setTab("trace");
-                setOpen(true);
-              }}
-              icon={<FileText className="h-3 w-3" />}
-              label="Tracé-omschrijving"
-            />
-            <TabButton
               active={tab === "segments"}
               onClick={() => {
                 setTab("segments");
@@ -132,36 +117,10 @@ export function BottomDrawer({
             />
           </div>
         </div>
-        {tab === "trace" && section && traceId && (
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            disabled={exportDocx.isPending}
-            onClick={() =>
-              exportDocx.mutate({ traceId, sectionId: section.id })
-            }
-            className="h-7 gap-1.5 text-xs"
-          >
-            {exportDocx.isPending ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
-            ) : (
-              <Download className="h-3 w-3" />
-            )}
-            DOCX
-          </Button>
-        )}
       </div>
       {open && (
         <div className="h-[calc(100%-2.5rem)] overflow-hidden">
-          {tab === "trace" ? (
-            <TraceTab
-              traceId={traceId}
-              section={section ?? null}
-              highlightedLokaalId={highlightedLokaalId}
-              onPillClick={onPillClick}
-            />
-          ) : tab === "treks" ? (
+          {tab === "treks" ? (
             <TreksTab
               traceId={traceId}
               treks={trekParts}
@@ -321,49 +280,7 @@ function TabButton({
 }
 
 // ───────────────────── Trace tab ─────────────────────
-function TraceTab({
-  traceId,
-  section,
-  highlightedLokaalId,
-  onPillClick,
-}: {
-  traceId: string | null;
-  section: { id: string; content_md: string; generated_at: string | null } | null;
-  highlightedLokaalId: string | null;
-  onPillClick: (lokaalId: string) => void;
-}) {
-  const rendered = useMemo(() => {
-    if (!section?.content_md) return null;
-    return renderMarkdownWithPills(section.content_md, {
-      highlightedLokaalId,
-      onPillClick,
-    });
-  }, [section?.content_md, highlightedLokaalId, onPillClick]);
-
-  return (
-    <div className="h-full overflow-y-auto px-6 py-4">
-      {!traceId ? (
-        <p className="font-sans text-sm text-ink/50">Geen tracé.</p>
-      ) : !section ? (
-        <p className="font-sans text-sm text-ink/50">
-          Nog geen tracé-omschrijving. Klik rechts op &ldquo;Tracé-omschrijving&rdquo;
-          om er een te genereren.
-        </p>
-      ) : (
-        <>
-          {section.generated_at && (
-            <p className="mb-3 font-mono text-[10px] uppercase tracking-wider text-ink/40">
-              Gegenereerd: {new Date(section.generated_at).toLocaleString("nl-NL")}
-            </p>
-          )}
-          <article className="prose prose-sm max-w-none font-sans text-sm leading-relaxed text-ink">
-            {rendered}
-          </article>
-        </>
-      )}
-    </div>
-  );
-}
+// (Sprint 5) TraceTab + renderMarkdownWithPills verwijderd — trace_description-flow is dead.
 
 // ───────────────────── Segments tab ─────────────────────
 type SegmentFilter = "all" | "aandacht";
@@ -634,35 +551,7 @@ function SegmentCard({
   );
 }
 
-// ───────────────────── Markdown helpers ─────────────────────
-function renderMarkdownWithPills(
-  md: string,
-  opts: {
-    highlightedLokaalId: string | null;
-    onPillClick: (lokaalId: string) => void;
-  },
-) {
-  const blocks = md.split(/\n\n+/);
-  return blocks.map((block, i) => {
-    const heading = /^(#{1,4})\s+(.+)$/.exec(block.trim());
-    if (heading) {
-      const text = heading[2];
-      return (
-        <h3
-          key={i}
-          className="mb-2 mt-3 font-display text-base font-semibold uppercase tracking-wider text-ink"
-        >
-          {renderInline(text, opts)}
-        </h3>
-      );
-    }
-    return (
-      <p key={i} className="mb-3 text-ink/85">
-        {renderInline(block, opts)}
-      </p>
-    );
-  });
-}
+// (Sprint 5) renderMarkdownWithPills verwijderd; renderInline blijft (SegmentCard).
 
 function renderInline(
   text: string,

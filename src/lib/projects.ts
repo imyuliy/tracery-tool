@@ -4,7 +4,6 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
-import { deleteProjectCascade } from "@/lib/server/project.functions";
 
 export type Project = Database["public"]["Tables"]["projects"]["Row"];
 export type ProjectStatus = NonNullable<Project["status"]>;
@@ -215,10 +214,15 @@ export function useDeleteProject() {
         console.warn("[deleteProject] storage cleanup error:", e);
       }
 
-      // 2) DB-delete server-side; cascades doen de rest zonder client-RLS/FK issues.
-      const result = await deleteProjectCascade({ data: { project_id: projectId } });
-      if (!result?.id) {
-        throw new Error("Project kon niet worden verwijderd.");
+      // 2) DB-delete via SECURITY DEFINER RPC met expliciete permissie-check.
+      //    Geeft heldere foutreden i.p.v. silent 0-rows-delete door RLS.
+      const { data, error } = await supabase.rpc("delete_project_with_cleanup", {
+        p_project_id: projectId,
+      });
+      if (error) throw error;
+      const result = Array.isArray(data) ? data[0] : data;
+      if (!result?.deleted) {
+        throw new Error(result?.reason ?? "Project kon niet worden verwijderd");
       }
       return projectId;
     },

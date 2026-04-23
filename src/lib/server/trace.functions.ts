@@ -1,16 +1,11 @@
-// De Tracémolen — Sprint 4 server-fns: BGT-segmentatie, tracé-omschrijving, .docx-export.
-// Dunne wrappers rond de pure helpers in trace.helpers.server.ts. De helpers
-// worden ook gedeeld met de smoke-test route (api.public.smoketest-sprint4.ts).
+// De Tracémolen — Sprint 4 server-fns: BGT-segmentatie + map-data + WKT-ingest.
+// Dunne wrappers rond de pure helpers in trace.helpers.server.ts.
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { Feature, FeatureCollection, Polygon } from "geojson";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { withSupabaseAuth } from "@/integrations/supabase/auth-client-middleware";
-import {
-  runSegmentTraceByBgt,
-  runGenerateTraceDescription,
-  runExportTraceDescriptionDocx,
-} from "./trace.helpers.server";
+import { runSegmentTraceByBgt } from "./trace.helpers.server";
 
 export const config = { maxDuration: 60 };
 
@@ -23,38 +18,6 @@ export const segmentTraceByBgt = createServerFn({ method: "POST" })
     return runSegmentTraceByBgt({
       supabase: context.supabase,
       traceId: data.trace_id,
-      userId: context.userId,
-    });
-  });
-
-const generateSchema = z.object({ trace_id: z.string().uuid() });
-
-// TODO: Remove in Sprint 5 — vervangen door brondocument-flow in Sprint 4.7.
-export const generateTraceDescription = createServerFn({ method: "POST" })
-  .middleware([withSupabaseAuth, requireSupabaseAuth])
-  .inputValidator((input: unknown) => generateSchema.parse(input))
-  .handler(async ({ data, context }) => {
-    return runGenerateTraceDescription({
-      supabase: context.supabase,
-      traceId: data.trace_id,
-      userId: context.userId,
-    });
-  });
-
-const exportSchema = z.object({
-  trace_id: z.string().uuid(),
-  section_id: z.string().uuid().optional(),
-});
-
-// TODO: Remove in Sprint 5 — vervangen door brondocument-flow in Sprint 4.7.
-export const exportTraceDescriptionDocx = createServerFn({ method: "POST" })
-  .middleware([withSupabaseAuth, requireSupabaseAuth])
-  .inputValidator((input: unknown) => exportSchema.parse(input))
-  .handler(async ({ data, context }) => {
-    return runExportTraceDescriptionDocx({
-      supabase: context.supabase,
-      traceId: data.trace_id,
-      sectionId: data.section_id,
       userId: context.userId,
     });
   });
@@ -86,8 +49,6 @@ export const getTraceMapData = createServerFn({ method: "POST" })
   });
 
 // ─── set_trace_geometry_from_wkt_4326 ──────────────────────────────────
-// Zet geometrie op een trace vanuit MultiLineString WKT in EPSG:4326
-// (bv. uit KML). RPC handelt transformatie naar 28992 + length_m af.
 const setGeomSchema = z.object({
   trace_id: z.string().uuid(),
   wkt_4326: z.string().min(20),
