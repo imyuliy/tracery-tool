@@ -177,16 +177,22 @@ function ProjectCard({ project: p }: { project: Project }) {
             <AlertDialogCancel disabled={deleteMutation.isPending}>
               Annuleren
             </AlertDialogCancel>
-            <AlertDialogAction
+            <Button
+              type="button"
+              variant="destructive"
               disabled={deleteMutation.isPending}
               onClick={() => {
-                setConfirmOpen(false);
-                deleteMutation.mutate(p.id);
+                console.log("[delete] click", p.id);
+                deleteMutation.mutate(p.id, {
+                  onSettled: (_data, error) => {
+                    console.log("[delete] settled", { error });
+                    setConfirmOpen(false);
+                  },
+                });
               }}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {deleteMutation.isPending ? "Verwijderen…" : "Definitief verwijderen"}
-            </AlertDialogAction>
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
