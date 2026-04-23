@@ -222,9 +222,12 @@ export function useDeleteProject() {
       }
       return projectId;
     },
-    onSuccess: (projectId) => {
+    onSuccess: async (projectId) => {
       qc.removeQueries({ queryKey: ["projects", projectId] });
-      qc.invalidateQueries({ queryKey: ["projects"] });
+      // Harde her-fetch: wacht tot de server-state opnieuw is geladen voordat
+      // we verder gaan, zodat het verwijderde project niet via een stale
+      // background-refetch terug in de lijst verschijnt.
+      await qc.refetchQueries({ queryKey: ["projects"], exact: true, type: "all" });
       toast.success("Project verwijderd");
     },
     onError: (err: Error, _projectId, context) => {
