@@ -477,7 +477,7 @@ function headerCell(text: string, widthDxa?: number): TableCell {
 
 function statusCell(status: string, widthDxa?: number): TableCell {
   const fill = STATUS_COLORS[status] ?? "959DA5";
-  const label = STATUS_LABELS[status] ?? status;
+  const label = STATUS_CELL_LABELS[status] ?? status;
   return new TableCell({
     borders: BORDERS,
     width: widthDxa ? { size: widthDxa, type: WidthType.DXA } : undefined,
