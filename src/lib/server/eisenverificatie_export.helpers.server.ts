@@ -518,8 +518,8 @@ function buildSummaryTable(
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function buildVerificationTable(items: any[]): Table {
-  // total = 9026 dxa available roughly; use these widths
-  const widths = [1100, 3000, 1700, 900, 1226, 1100]; // sum = 9026
+  // 7 kolommen, sum = 9026 dxa
+  const widths = [1000, 2700, 1500, 800, 1100, 1100, 826];
   const headerRow = new TableRow({
     children: [
       "Eis-code",
@@ -528,6 +528,7 @@ function buildVerificationTable(items: any[]): Table {
       "Confidence",
       "Treks",
       "Verificatie",
+      "Review",
     ].map((t, i) => headerCell(t, widths[i])),
   });
   const dataRows = items.map((v) => {
@@ -539,17 +540,18 @@ function buildVerificationTable(items: any[]): Table {
         ? "—"
         : treks.map((i: number) => i + 1).join(", ");
     const conf =
-      v.confidence === null || v.confidence === undefined
+      v.ai_confidence === null || v.ai_confidence === undefined
         ? "—"
-        : `${Math.round(Number(v.confidence) * 100)}%`;
+        : `${Math.round(Number(v.ai_confidence) * 100)}%`;
     return new TableRow({
       children: [
         cell(e.eis_code ?? "—", widths[0]),
         cell(String(e.eistitel ?? "—").substring(0, 220), widths[1]),
-        statusCell(v.status, widths[2]),
+        statusCell(v.effective_status, widths[2]),
         cell(conf, widths[3]),
         cell(trekStr, widths[4]),
         cell(String(v.verificatiemethode ?? "—").substring(0, 80), widths[5]),
+        cell(v.is_overridden ? "✓ Handmatig" : "AI", widths[6]),
       ],
     });
   });
