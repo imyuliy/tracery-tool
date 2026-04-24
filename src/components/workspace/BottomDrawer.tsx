@@ -71,9 +71,11 @@ export function BottomDrawer({
   const [tab, setTab] = useState<Tab>("treks");
   const { data: segDescriptions = [] } = useSegmentDescriptions(traceId);
   const { data: trekParts = [] } = useTrekParts(traceId);
+  const { data: verifications = [] } = useEisVerifications(traceId);
 
   const segmentCount = segDescriptions.length;
   const trekCount = trekParts.length;
+  const eisenCount = verifications.length;
 
   return (
     <div
@@ -115,12 +117,22 @@ export function BottomDrawer({
               label="Per-segment scan"
               badge={segmentCount > 0 ? segmentCount : undefined}
             />
+            <TabButton
+              active={tab === "eisen"}
+              onClick={() => {
+                setTab("eisen");
+                setOpen(true);
+              }}
+              icon={<ClipboardCheck className="h-3 w-3" />}
+              label="Eisen"
+              badge={eisenCount > 0 ? eisenCount : undefined}
+            />
           </div>
         </div>
       </div>
       {open && (
         <div className="h-[calc(100%-2.5rem)] overflow-hidden">
-          {tab === "treks" ? (
+          {tab === "treks" && (
             <TreksTab
               traceId={traceId}
               treks={trekParts}
@@ -128,12 +140,19 @@ export function BottomDrawer({
               selectedTrekIdx={selectedTrekIdx}
               onSelectTrek={onSelectTrek}
             />
-          ) : (
+          )}
+          {tab === "segments" && (
             <SegmentsTab
               traceId={traceId}
               rows={segDescriptions as SegmentDescriptionRow[]}
               highlightedLokaalId={highlightedLokaalId}
               onPillClick={onPillClick}
+            />
+          )}
+          {tab === "eisen" && (
+            <TrekEisenPanel
+              traceId={traceId}
+              selectedTrekIdx={selectedTrekIdx}
             />
           )}
         </div>
