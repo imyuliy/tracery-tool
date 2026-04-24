@@ -90,13 +90,16 @@ export async function runExportEisenverificatieDocx(opts: {
     }
   }
 
-  // Verifications + eisen
+  // Verifications via effective-view (Sprint 5.3 — incl. override-velden)
   const { data: verifications, error: vErr } = await supabase
-    .from("eis_verifications")
+    .from("v_eis_verifications_effective")
     .select(
-      `id, status, onderbouwing_md, confidence, geraakte_trek_idx,
-       verificatiemethode, generated_at, eis_id,
-       eis:eisen(eis_code, eistitel, eistekst, objecttype, fase, brondocument)`,
+      `id, ai_status, ai_onderbouwing_md, ai_confidence,
+       override_status, override_reason_md, override_at, is_overridden,
+       effective_status,
+       geraakte_trek_idx, verificatiemethode, generated_at, eis_id,
+       eis:eisen(eis_code, eistitel, eistekst, objecttype, fase, brondocument),
+       override_user:user_profiles!eis_verifications_override_by_fkey(full_name)`,
     )
     .eq("trace_id", traceId)
     .order("generated_at", { ascending: false });
@@ -119,8 +122,8 @@ export async function runExportEisenverificatieDocx(opts: {
   // sort within each objecttype by status priority then eis_code
   for (const [k, arr] of grouped) {
     arr.sort((a, b) => {
-      const ai = STATUS_ORDER.indexOf(a.status);
-      const bi = STATUS_ORDER.indexOf(b.status);
+      const ai = STATUS_ORDER.indexOf(a.effective_status);
+      const bi = STATUS_ORDER.indexOf(b.effective_status);
       if (ai !== bi) return ai - bi;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const ac: string = (a.eis as any)?.eis_code ?? "";
@@ -131,9 +134,11 @@ export async function runExportEisenverificatieDocx(opts: {
     grouped.set(k, arr);
   }
 
-  // Status summary
+  // Status summary obv effective_status
   const summary: Record<string, number> = {};
-  for (const v of verifications) summary[v.status] = (summary[v.status] ?? 0) + 1;
+  for (const v of verifications)
+    summary[v.effective_status ?? "onbekend"] =
+      (summary[v.effective_status ?? "onbekend"] ?? 0) + 1;
 
   const dateStr = new Date().toLocaleDateString("nl-NL", {
     day: "2-digit",
@@ -193,9 +198,11 @@ export async function runExportEisenverificatieDocx(opts: {
       new Paragraph({ text: "" }),
     );
 
-    // Detail-blokken voor problematische eisen
+    // Detail-blokken voor problematische eisen (obv effective_status)
     const problematic = items.filter(
-      (v) => v.status === "voldoet_niet" || v.status === "twijfelachtig",
+      (v) =>
+        v.effective_status === "voldoet_niet" ||
+        v.effective_status === "twijfelachtig",
     );
     if (problematic.length > 0) {
       children.push(
@@ -215,10 +222,19 @@ export async function runExportEisenverificatieDocx(opts: {
                 bold: true,
               }),
               new TextRun({
-                text: `[${STATUS_LABELS[v.status]}]`,
+                text: `[${STATUS_LABELS[v.effective_status] ?? v.effective_status}]`,
                 bold: true,
-                color: STATUS_COLORS[v.status] ?? "000000",
+                color: STATUS_COLORS[v.effective_status] ?? "000000",
               }),
+              ...(v.is_overridden
+                ? [
+                    new TextRun({
+                      text: "  · ✓ Handmatig gereviewed",
+                      italics: true,
+                      color: "1F6FEB",
+                    }),
+                  ]
+                : []),
             ],
           }),
         );
@@ -235,13 +251,52 @@ export async function runExportEisenverificatieDocx(opts: {
             }),
           );
         }
-        children.push(
-          new Paragraph({
-            children: [new TextRun({ text: "Onderbouwing: ", bold: true })],
-          }),
-          new Paragraph({ text: v.onderbouwing_md ?? "—" }),
-          new Paragraph({ text: "" }),
-        );
+        if (v.is_overridden) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const ru: any = v.override_user;
+          children.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: `AI-oordeel oorspronkelijk: ${STATUS_LABELS[v.ai_status] ?? v.ai_status}`,
+                  italics: true,
+                  color: "666666",
+                }),
+              ],
+            }),
+            new Paragraph({
+              children: [
+                new TextRun({ text: "AI-onderbouwing: ", bold: true }),
+                new TextRun({ text: v.ai_onderbouwing_md ?? "—", italics: true }),
+              ],
+            }),
+            new Paragraph({
+              children: [
+                new TextRun({ text: "Handmatige review: ", bold: true }),
+                new TextRun({
+                  text: `door ${ru?.full_name ?? "onbekende gebruiker"} op ${
+                    v.override_at
+                      ? new Date(v.override_at).toLocaleDateString("nl-NL")
+                      : "—"
+                  }`,
+                }),
+              ],
+            }),
+            new Paragraph({
+              children: [new TextRun({ text: "Override-motivatie: ", bold: true })],
+            }),
+            new Paragraph({ text: v.override_reason_md ?? "—" }),
+            new Paragraph({ text: "" }),
+          );
+        } else {
+          children.push(
+            new Paragraph({
+              children: [new TextRun({ text: "AI-onderbouwing: ", bold: true })],
+            }),
+            new Paragraph({ text: v.ai_onderbouwing_md ?? "—" }),
+            new Paragraph({ text: "" }),
+          );
+        }
       }
     }
   }
@@ -330,6 +385,7 @@ export async function runExportEisenverificatieDocx(opts: {
       file_size_bytes: buffer.byteLength,
       eisen_count: verifications.length,
       status_summary: summary,
+      overrides_count: verifications.filter((v) => v.is_overridden).length,
     },
   });
 
@@ -462,8 +518,8 @@ function buildSummaryTable(
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function buildVerificationTable(items: any[]): Table {
-  // total = 9026 dxa available roughly; use these widths
-  const widths = [1100, 3000, 1700, 900, 1226, 1100]; // sum = 9026
+  // 7 kolommen, sum = 9026 dxa
+  const widths = [1000, 2700, 1500, 800, 1100, 1100, 826];
   const headerRow = new TableRow({
     children: [
       "Eis-code",
@@ -472,6 +528,7 @@ function buildVerificationTable(items: any[]): Table {
       "Confidence",
       "Treks",
       "Verificatie",
+      "Review",
     ].map((t, i) => headerCell(t, widths[i])),
   });
   const dataRows = items.map((v) => {
@@ -483,17 +540,18 @@ function buildVerificationTable(items: any[]): Table {
         ? "—"
         : treks.map((i: number) => i + 1).join(", ");
     const conf =
-      v.confidence === null || v.confidence === undefined
+      v.ai_confidence === null || v.ai_confidence === undefined
         ? "—"
-        : `${Math.round(Number(v.confidence) * 100)}%`;
+        : `${Math.round(Number(v.ai_confidence) * 100)}%`;
     return new TableRow({
       children: [
         cell(e.eis_code ?? "—", widths[0]),
         cell(String(e.eistitel ?? "—").substring(0, 220), widths[1]),
-        statusCell(v.status, widths[2]),
+        statusCell(v.effective_status, widths[2]),
         cell(conf, widths[3]),
         cell(trekStr, widths[4]),
         cell(String(v.verificatiemethode ?? "—").substring(0, 80), widths[5]),
+        cell(v.is_overridden ? "✓ Handmatig" : "AI", widths[6]),
       ],
     });
   });

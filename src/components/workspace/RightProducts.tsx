@@ -196,7 +196,10 @@ export function RightProducts({
                   const canRun = hasScan && hasTreks;
                   const summaryText = (() => {
                     const s: Record<string, number> = {};
-                    for (const v of verifications) s[v.status] = (s[v.status] ?? 0) + 1;
+                    for (const v of verifications) {
+                      const st = v.effective_status ?? "onbekend";
+                      s[st] = (s[st] ?? 0) + 1;
+                    }
                     const parts: string[] = [];
                     if (s.voldoet) parts.push(`${s.voldoet} ✓`);
                     if (s.twijfelachtig) parts.push(`${s.twijfelachtig} ?`);

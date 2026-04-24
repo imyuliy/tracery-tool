@@ -399,6 +399,10 @@ export type Database = {
           id: string
           model: string | null
           onderbouwing_md: string
+          override_at: string | null
+          override_by: string | null
+          override_reason_md: string | null
+          override_status: string | null
           prompt_tokens: number | null
           reviewed_at: string | null
           reviewed_by: string | null
@@ -419,6 +423,10 @@ export type Database = {
           id?: string
           model?: string | null
           onderbouwing_md: string
+          override_at?: string | null
+          override_by?: string | null
+          override_reason_md?: string | null
+          override_status?: string | null
           prompt_tokens?: number | null
           reviewed_at?: string | null
           reviewed_by?: string | null
@@ -439,6 +447,10 @@ export type Database = {
           id?: string
           model?: string | null
           onderbouwing_md?: string
+          override_at?: string | null
+          override_by?: string | null
+          override_reason_md?: string | null
+          override_status?: string | null
           prompt_tokens?: number | null
           reviewed_at?: string | null
           reviewed_by?: string | null
@@ -465,6 +477,13 @@ export type Database = {
           {
             foreignKeyName: "eis_verifications_generated_by_fkey"
             columns: ["generated_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eis_verifications_override_by_fkey"
+            columns: ["override_by"]
             isOneToOne: false
             referencedRelation: "user_profiles"
             referencedColumns: ["id"]
@@ -2143,6 +2162,111 @@ export type Database = {
         }
         Relationships: []
       }
+      v_eis_verifications_effective: {
+        Row: {
+          ai_confidence: number | null
+          ai_onderbouwing_md: string | null
+          ai_status: string | null
+          effective_status: string | null
+          eis_id: string | null
+          eisenpakket_version_id: string | null
+          generated_at: string | null
+          generated_by: string | null
+          geraakte_segment_ids: string[] | null
+          geraakte_trek_idx: number[] | null
+          id: string | null
+          is_overridden: boolean | null
+          model: string | null
+          override_at: string | null
+          override_by: string | null
+          override_reason_md: string | null
+          override_status: string | null
+          trace_id: string | null
+          verificatiemethode: string | null
+          version: number | null
+        }
+        Insert: {
+          ai_confidence?: number | null
+          ai_onderbouwing_md?: string | null
+          ai_status?: string | null
+          effective_status?: never
+          eis_id?: string | null
+          eisenpakket_version_id?: string | null
+          generated_at?: string | null
+          generated_by?: string | null
+          geraakte_segment_ids?: string[] | null
+          geraakte_trek_idx?: number[] | null
+          id?: string | null
+          is_overridden?: never
+          model?: string | null
+          override_at?: string | null
+          override_by?: string | null
+          override_reason_md?: string | null
+          override_status?: string | null
+          trace_id?: string | null
+          verificatiemethode?: string | null
+          version?: number | null
+        }
+        Update: {
+          ai_confidence?: number | null
+          ai_onderbouwing_md?: string | null
+          ai_status?: string | null
+          effective_status?: never
+          eis_id?: string | null
+          eisenpakket_version_id?: string | null
+          generated_at?: string | null
+          generated_by?: string | null
+          geraakte_segment_ids?: string[] | null
+          geraakte_trek_idx?: number[] | null
+          id?: string | null
+          is_overridden?: never
+          model?: string | null
+          override_at?: string | null
+          override_by?: string | null
+          override_reason_md?: string | null
+          override_status?: string | null
+          trace_id?: string | null
+          verificatiemethode?: string | null
+          version?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eis_verifications_eis_id_fkey"
+            columns: ["eis_id"]
+            isOneToOne: false
+            referencedRelation: "eisen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eis_verifications_eisenpakket_version_id_fkey"
+            columns: ["eisenpakket_version_id"]
+            isOneToOne: false
+            referencedRelation: "eisenpakket_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eis_verifications_generated_by_fkey"
+            columns: ["generated_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eis_verifications_override_by_fkey"
+            columns: ["override_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eis_verifications_trace_id_fkey"
+            columns: ["trace_id"]
+            isOneToOne: false
+            referencedRelation: "traces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_eisen_coverage: {
         Row: {
           aantal_eisen_geciteerd: number | null
@@ -2652,6 +2776,43 @@ export type Database = {
           segment_id: string
           sequence: number
         }[]
+      }
+      set_eis_verification_override: {
+        Args: {
+          p_override_status: string
+          p_reason_md: string
+          p_verification_id: string
+        }
+        Returns: {
+          completion_tokens: number | null
+          confidence: number | null
+          eis_id: string
+          eisenpakket_version_id: string
+          generated_at: string
+          generated_by: string | null
+          geraakte_segment_ids: string[]
+          geraakte_trek_idx: number[]
+          id: string
+          model: string | null
+          onderbouwing_md: string
+          override_at: string | null
+          override_by: string | null
+          override_reason_md: string | null
+          override_status: string | null
+          prompt_tokens: number | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          trace_id: string
+          verificatiemethode: string | null
+          version: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "eis_verifications"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       set_trace_geometry_from_wkt_4326: {
         Args: { p_trace_id: string; p_wkt: string }

@@ -404,7 +404,7 @@ export function useTrekSegments(traceId: string | null, partIdx: number | null) 
   });
 }
 
-// ─── Query: eisenverificaties per trace (Sprint 5.2) ───────────────────
+// ─── Query: eisenverificaties per trace (Sprint 5.3 — view + override) ─
 export function useEisVerifications(traceId: string | null) {
   return useQuery({
     queryKey: ["eis-verifications", traceId],
@@ -413,17 +413,56 @@ export function useEisVerifications(traceId: string | null) {
     queryFn: async () => {
       if (!traceId) return [];
       const { data, error } = await supabase
-        .from("eis_verifications")
+        .from("v_eis_verifications_effective")
         .select(
-          `id, trace_id, eis_id, status, onderbouwing_md, confidence,
-           geraakte_trek_idx, verificatiemethode, generated_at,
-           eis:eisen(eis_code, eistitel, objecttype, fase, brondocument)`,
+          `id, trace_id, eis_id, version,
+           ai_status, ai_onderbouwing_md, ai_confidence,
+           override_status, override_reason_md, override_by, override_at,
+           effective_status, is_overridden,
+           verificatiemethode, geraakte_trek_idx, geraakte_segment_ids,
+           generated_at, model,
+           eis:eisen(eis_code, eistitel, eistekst, objecttype, fase, brondocument, verificatiemethode),
+           override_user:user_profiles!eis_verifications_override_by_fkey(full_name)`,
         )
         .eq("trace_id", traceId)
         .order("generated_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
     },
+  });
+}
+
+// ─── Mutation: override op eisenverificatie zetten/wissen (Sprint 5.3) ─
+export function useSetEisVerificationOverride() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (args: {
+      verificationId: string;
+      overrideStatus: string | null;
+      reasonMd: string | null;
+    }) => {
+      const { data, error } = await supabase.rpc(
+        "set_eis_verification_override",
+        {
+          p_verification_id: args.verificationId,
+          // RPC accepteert null (gemodelleerd in Postgres) maar codegen markeert
+          // de params als string — cast om type te bypassen.
+          p_override_status: args.overrideStatus as string,
+          p_reason_md: args.reasonMd as string,
+        },
+      );
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_data, vars) => {
+      qc.invalidateQueries({ queryKey: ["eis-verifications"] });
+      toast.success(
+        vars.overrideStatus
+          ? "Override opgeslagen"
+          : "Override verwijderd — AI-status actief",
+      );
+    },
+    onError: (err: Error) => toast.error(err.message),
   });
 }
 
