@@ -385,6 +385,7 @@ export async function runExportEisenverificatieDocx(opts: {
       file_size_bytes: buffer.byteLength,
       eisen_count: verifications.length,
       status_summary: summary,
+      overrides_count: verifications.filter((v) => v.is_overridden).length,
     },
   });
 
