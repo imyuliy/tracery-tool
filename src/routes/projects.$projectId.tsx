@@ -5,12 +5,12 @@ import {
   useRouter,
 } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { Card } from "@/components/ui/card";
 import { projectQueryOptions } from "@/lib/projects";
-import { useLatestTrace, useTraceMapData, useTrekParts, useTrekSegments } from "@/lib/workspace";
+import { useLatestTrace, useTraceMapData, useTrekParts, useTrekPlan, useTrekSegments } from "@/lib/workspace";
 import { WorkspaceHeader } from "@/components/workspace/WorkspaceHeader";
 import { LeftAccordion } from "@/components/workspace/LeftAccordion";
 import { MapPanel } from "@/components/workspace/MapPanel";
@@ -86,6 +86,18 @@ function Workspace() {
   const [selectedTrekIdx, setSelectedTrekIdx] = useState<number | null>(null);
   const { data: trekSegmentIds = [] } = useTrekSegments(traceId, selectedTrekIdx);
   const { data: trekParts = [] } = useTrekParts(traceId);
+  const { data: trekPlan = [] } = useTrekPlan(traceId);
+
+  const trekPartsWithLabels = useMemo(
+    () =>
+      trekParts.map((t) => ({
+        ...t,
+        label:
+          trekPlan.find((p) => p.part_idx === t.part_idx)?.display_name ??
+          `Trek ${t.part_idx + 1}`,
+      })),
+    [trekParts, trekPlan],
+  );
 
   const handleSegmentClick = useCallback(
     (props: { bgt_lokaal_id: string }) => {
@@ -124,7 +136,7 @@ function Workspace() {
         isLoading={mapLoading}
         highlightedLokaalId={highlightedLokaalId}
         highlightedSegmentIds={trekSegmentIds}
-        trekParts={trekParts}
+        trekParts={trekPartsWithLabels}
         onSegmentClick={handleSegmentClick}
       />
 

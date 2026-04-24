@@ -64,6 +64,15 @@ export async function runExportTrekHierarchyDocx(opts: {
     throw new Error("Geen trek-omschrijvingen. Draai eerst de scan.");
   }
 
+  // Trek-plan labels (Sprint 6) — fallback "Trek N" als rij ontbreekt
+  const { data: planRows } = await supabase
+    .from("trek_plan")
+    .select("part_idx, display_name")
+    .eq("trace_id", traceId);
+  const labelFor = (partIdx: number): string =>
+    planRows?.find((p) => p.part_idx === partIdx)?.display_name ??
+    `Trek ${partIdx + 1}`;
+
   // Segment-mappings (om per trek de segmenten op te halen)
   const { data: mapRows, error: mErr } = await supabase.rpc(
     "segments_with_part_idx",
@@ -144,7 +153,7 @@ export async function runExportTrekHierarchyDocx(opts: {
       text: `Het tracé bestaat uit ${treks.length} natuurlijke trekken met een totale lengte van ${Math.round(totalLen)}m. ${aandachtTreks} trekken zijn als aandachtspunt gemarkeerd.`,
     }),
     new Paragraph({ text: "" }),
-    buildTrekIndex(treks),
+    buildTrekIndex(treks, labelFor),
     new Paragraph({ text: "" }),
   );
 
@@ -156,7 +165,7 @@ export async function runExportTrekHierarchyDocx(opts: {
     children.push(
       new Paragraph({ children: [new PageBreak()] }),
       new Paragraph({
-        text: `Trek ${trek.part_idx + 1}  (km ${km0} – ${km1}, ${Math.round(Number(trek.length_m))}m)`,
+        text: `${labelFor(trek.part_idx)}  (km ${km0} – ${km1}, ${Math.round(Number(trek.length_m))}m)`,
         heading: HeadingLevel.HEADING_2,
       }),
     );
@@ -384,7 +393,7 @@ function headerCell(text: string): TableCell {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function buildTrekIndex(treks: any[]): Table {
+function buildTrekIndex(treks: any[], labelFor: (n: number) => string): Table {
   const header = new TableRow({
     children: ["Trek", "km-bereik", "Lengte", "Segmenten", "Aandacht"].map(
       headerCell,
@@ -395,7 +404,7 @@ function buildTrekIndex(treks: any[]): Table {
     (t: any) =>
       new TableRow({
         children: [
-          cell(`Trek ${t.part_idx + 1}`),
+          cell(labelFor(t.part_idx)),
           cell(
             `${Number(t.start_km).toFixed(3)} – ${Number(t.end_km).toFixed(3)}`,
           ),

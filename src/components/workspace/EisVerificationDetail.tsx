@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useSetEisVerificationOverride } from "@/lib/workspace";
+import { trekLabel, useSetEisVerificationOverride, useTrekPlan } from "@/lib/workspace";
 
 const STATUS_OPTIONS = [
   { value: "voldoet", label: "Voldoet" },
@@ -25,6 +25,10 @@ const STATUS_OPTIONS = [
 export function EisVerificationDetail({ verification }: { verification: any }) {
   const v = verification;
   const override = useSetEisVerificationOverride();
+  const { data: trekPlan = [] } = useTrekPlan(v?.trace_id ?? null);
+  const trekNames = (Array.isArray(v?.geraakte_trek_idx) ? v.geraakte_trek_idx : [])
+    .map((idx: number) => trekLabel(trekPlan, idx))
+    .join(", ");
 
   const aiStatus: string = v.ai_status ?? "onbekend";
   const initial = v.override_status ?? aiStatus;
@@ -90,6 +94,11 @@ export function EisVerificationDetail({ verification }: { verification: any }) {
               {v.eis.eistekst}
             </p>
           </details>
+        )}
+        {trekNames && (
+          <p className="mt-1 font-mono text-[10px] text-ink/60">
+            Geraakte treks: {trekNames}
+          </p>
         )}
       </div>
 

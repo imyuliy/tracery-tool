@@ -17,6 +17,7 @@ import {
   useGenerateTrekParts,
   useSegmentDescriptions,
   useTrekParts,
+  useTrekPlan,
 } from "@/lib/workspace";
 import { TrekBlock } from "./TrekBlock";
 import { TrekEisenPanel } from "./TrekEisenPanel";
@@ -181,6 +182,7 @@ function TreksTab({
 }) {
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
   const generateTrekParts = useGenerateTrekParts();
+  const { data: trekPlan = [] } = useTrekPlan(traceId);
   if (!traceId) {
     return <p className="px-6 py-4 font-sans text-sm text-ink/50">Geen tracé.</p>;
   }
@@ -239,10 +241,13 @@ function TreksTab({
       {treks.map((trek) => {
         const isHighlighted = selectedTrekIdx === trek.part_idx;
         const isExpanded = expanded.has(trek.part_idx);
+        const planRow = trekPlan.find((p) => p.part_idx === trek.part_idx);
         return (
           <TrekBlock
             key={trek.id}
             trek={trek}
+            trekPlanId={planRow?.id}
+            displayName={planRow?.display_name}
             isHighlighted={isHighlighted}
             isExpanded={isExpanded}
             onToggleExpand={() => {

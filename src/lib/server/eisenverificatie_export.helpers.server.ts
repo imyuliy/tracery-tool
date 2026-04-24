@@ -119,6 +119,15 @@ export async function runExportEisenverificatieDocx(opts: {
     throw new Error("Geen eisenverificaties gevonden — run eerst de verificatie.");
   }
 
+  // Trek-plan labels (Sprint 6)
+  const { data: planRows } = await supabase
+    .from("trek_plan")
+    .select("part_idx, display_name")
+    .eq("trace_id", traceId);
+  const labelFor = (partIdx: number): string =>
+    planRows?.find((p) => p.part_idx === partIdx)?.display_name ??
+    `Trek ${partIdx + 1}`;
+
   // Group per objecttype
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const grouped = new Map<string, any[]>();
@@ -205,7 +214,7 @@ export async function runExportEisenverificatieDocx(opts: {
         ],
       }),
       new Paragraph({ text: "" }),
-      buildVerificationTable(items),
+      buildVerificationTable(items, labelFor),
       new Paragraph({ text: "" }),
     );
 
@@ -538,7 +547,7 @@ function buildSummaryTable(
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function buildVerificationTable(items: any[]): Table {
+function buildVerificationTable(items: any[], labelFor: (n: number) => string): Table {
   // 7 kolommen, sum = 9026 dxa
   const widths = [1000, 2700, 1500, 800, 1100, 1100, 826];
   const headerRow = new TableRow({
@@ -559,7 +568,7 @@ function buildVerificationTable(items: any[]): Table {
     const trekStr =
       treks.length === 0
         ? "—"
-        : treks.map((i: number) => i + 1).join(", ");
+        : treks.map((i: number) => labelFor(i)).join(", ");
     const conf =
       v.ai_confidence === null || v.ai_confidence === undefined
         ? "—"
