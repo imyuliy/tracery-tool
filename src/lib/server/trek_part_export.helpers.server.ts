@@ -85,7 +85,7 @@ export async function runExportTrekHierarchyDocx(opts: {
       `id, segment_id, narrative_md, ai_aandacht, ai_aandacht_reden,
        ai_voorgestelde_techniek, eisen_matches,
        segment:segments (sequence, km_start, km_end, length_m,
-         bgt_feature_type, bgt_subtype, beheerder, bgt_lokaal_id)`,
+         bgt_feature_type, bgt_type, bgt_subtype, beheerder, bgt_lokaal_id)`,
     )
     .eq("trace_id", traceId);
   if (dErr) throw new Error(`Descriptions: ${dErr.message}`);
