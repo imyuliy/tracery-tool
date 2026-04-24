@@ -198,9 +198,11 @@ export async function runExportEisenverificatieDocx(opts: {
       new Paragraph({ text: "" }),
     );
 
-    // Detail-blokken voor problematische eisen
+    // Detail-blokken voor problematische eisen (obv effective_status)
     const problematic = items.filter(
-      (v) => v.status === "voldoet_niet" || v.status === "twijfelachtig",
+      (v) =>
+        v.effective_status === "voldoet_niet" ||
+        v.effective_status === "twijfelachtig",
     );
     if (problematic.length > 0) {
       children.push(
@@ -220,10 +222,19 @@ export async function runExportEisenverificatieDocx(opts: {
                 bold: true,
               }),
               new TextRun({
-                text: `[${STATUS_LABELS[v.status]}]`,
+                text: `[${STATUS_LABELS[v.effective_status] ?? v.effective_status}]`,
                 bold: true,
-                color: STATUS_COLORS[v.status] ?? "000000",
+                color: STATUS_COLORS[v.effective_status] ?? "000000",
               }),
+              ...(v.is_overridden
+                ? [
+                    new TextRun({
+                      text: "  · ✓ Handmatig gereviewed",
+                      italics: true,
+                      color: "1F6FEB",
+                    }),
+                  ]
+                : []),
             ],
           }),
         );
@@ -240,13 +251,52 @@ export async function runExportEisenverificatieDocx(opts: {
             }),
           );
         }
-        children.push(
-          new Paragraph({
-            children: [new TextRun({ text: "Onderbouwing: ", bold: true })],
-          }),
-          new Paragraph({ text: v.onderbouwing_md ?? "—" }),
-          new Paragraph({ text: "" }),
-        );
+        if (v.is_overridden) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const ru: any = v.override_user;
+          children.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: `AI-oordeel oorspronkelijk: ${STATUS_LABELS[v.ai_status] ?? v.ai_status}`,
+                  italics: true,
+                  color: "666666",
+                }),
+              ],
+            }),
+            new Paragraph({
+              children: [
+                new TextRun({ text: "AI-onderbouwing: ", bold: true }),
+                new TextRun({ text: v.ai_onderbouwing_md ?? "—", italics: true }),
+              ],
+            }),
+            new Paragraph({
+              children: [
+                new TextRun({ text: "Handmatige review: ", bold: true }),
+                new TextRun({
+                  text: `door ${ru?.full_name ?? "onbekende gebruiker"} op ${
+                    v.override_at
+                      ? new Date(v.override_at).toLocaleDateString("nl-NL")
+                      : "—"
+                  }`,
+                }),
+              ],
+            }),
+            new Paragraph({
+              children: [new TextRun({ text: "Override-motivatie: ", bold: true })],
+            }),
+            new Paragraph({ text: v.override_reason_md ?? "—" }),
+            new Paragraph({ text: "" }),
+          );
+        } else {
+          children.push(
+            new Paragraph({
+              children: [new TextRun({ text: "AI-onderbouwing: ", bold: true })],
+            }),
+            new Paragraph({ text: v.ai_onderbouwing_md ?? "—" }),
+            new Paragraph({ text: "" }),
+          );
+        }
       }
     }
   }
