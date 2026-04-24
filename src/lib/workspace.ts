@@ -383,6 +383,63 @@ export function useExportTrekDocx() {
   });
 }
 
+// ─── Query: trek_plan (rename-only, Sprint 6) ──────────────────────────
+export function useTrekPlan(traceId: string | null) {
+  return useQuery({
+    queryKey: ["trek-plan", traceId],
+    enabled: !!traceId,
+    staleTime: 30_000,
+    queryFn: async () => {
+      if (!traceId) return [];
+      // Idempotente init — vult deterministische default-rows aan.
+      const { error: ensureErr } = await supabase.rpc("trek_plan_ensure", {
+        p_trace_id: traceId,
+      });
+      if (ensureErr) throw ensureErr;
+
+      const { data, error } = await supabase
+        .from("trek_plan")
+        .select(
+          "id, trace_id, part_idx, display_name, source, updated_at, updated_by",
+        )
+        .eq("trace_id", traceId)
+        .order("part_idx", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+// ─── Mutation: trek hernoemen (Sprint 6) ──────────────────────────────
+export function useRenameTrek() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (args: { trekPlanId: string; newName: string }) => {
+      const { data, error } = await supabase.rpc("trek_plan_rename", {
+        p_trek_plan_id: args.trekPlanId,
+        p_new_name: args.newName,
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["trek-plan"] });
+      qc.invalidateQueries({ queryKey: ["trek-parts"] });
+      toast.success("Trek-naam opgeslagen");
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
+// ─── Helper: deterministische trek-label met fallback ──────────────────
+export function trekLabel(
+  plan: Array<{ part_idx: number; display_name: string }> | undefined,
+  partIdx: number,
+): string {
+  const hit = plan?.find((p) => p.part_idx === partIdx);
+  return hit?.display_name ?? `Trek ${partIdx + 1}`;
+}
+
 // ─── Query: segmenten van één trek (voor map-highlight) ────────────────
 export function useTrekSegments(traceId: string | null, partIdx: number | null) {
   return useQuery({
