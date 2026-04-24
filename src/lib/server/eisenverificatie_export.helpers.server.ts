@@ -43,12 +43,23 @@ const STATUS_COLORS: Record<string, string> = {
   onbekend: "6F42C1",
 };
 
+// Plain labels — voor inline tekst (zonder symbolen, renderen netjes in vrije text).
 const STATUS_LABELS: Record<string, string> = {
   voldoet: "Voldoet",
   twijfelachtig: "Twijfelachtig",
   voldoet_niet: "Voldoet niet",
   nvt: "N.v.t.",
   onbekend: "Onbekend",
+};
+
+// Cell-labels — gebruikt in status-cellen (witte tekst op gekleurde achtergrond),
+// waar de symbolen wel goed renderen.
+const STATUS_CELL_LABELS: Record<string, string> = {
+  voldoet: "✓ Voldoet",
+  twijfelachtig: "? Twijfelachtig",
+  voldoet_niet: "✗ Voldoet niet",
+  nvt: "– N.v.t.",
+  onbekend: "? Onbekend",
 };
 
 const STATUS_ORDER = ["voldoet_niet", "twijfelachtig", "onbekend", "voldoet", "nvt"];
