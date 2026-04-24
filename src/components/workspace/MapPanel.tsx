@@ -42,6 +42,7 @@ export interface MapPanelProps {
     start_point_4326: unknown;
     end_point_4326?: unknown;
     length_m: number;
+    label?: string;
   }>;
   onSegmentClick: (props: {
     bgt_lokaal_id: string;
@@ -248,7 +249,10 @@ export function MapPanel({
           .map((t) => ({
             type: "Feature" as const,
             geometry: t.start_point_4326 as GeoJSON.Point,
-            properties: { part_idx: t.part_idx },
+            properties: {
+              part_idx: t.part_idx,
+              label: t.label ?? `Trek ${t.part_idx + 1}`,
+            },
           })),
       };
       setOrAdd("trek-labels", labelFC);
@@ -258,11 +262,7 @@ export function MapPanel({
           type: "symbol",
           source: "trek-labels",
           layout: {
-            "text-field": [
-              "concat",
-              "Trek ",
-              ["to-string", ["+", ["get", "part_idx"], 1]],
-            ],
+            "text-field": ["get", "label"],
             "text-size": 12,
             "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
             "text-offset": [0, -1.4],
