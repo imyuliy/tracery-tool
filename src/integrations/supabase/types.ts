@@ -386,6 +386,105 @@ export type Database = {
           },
         ]
       }
+      eis_verifications: {
+        Row: {
+          completion_tokens: number | null
+          confidence: number | null
+          eis_id: string
+          eisenpakket_version_id: string
+          generated_at: string
+          generated_by: string | null
+          geraakte_segment_ids: string[]
+          geraakte_trek_idx: number[]
+          id: string
+          model: string | null
+          onderbouwing_md: string
+          prompt_tokens: number | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          trace_id: string
+          verificatiemethode: string | null
+          version: number
+        }
+        Insert: {
+          completion_tokens?: number | null
+          confidence?: number | null
+          eis_id: string
+          eisenpakket_version_id: string
+          generated_at?: string
+          generated_by?: string | null
+          geraakte_segment_ids?: string[]
+          geraakte_trek_idx?: number[]
+          id?: string
+          model?: string | null
+          onderbouwing_md: string
+          prompt_tokens?: number | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status: string
+          trace_id: string
+          verificatiemethode?: string | null
+          version?: number
+        }
+        Update: {
+          completion_tokens?: number | null
+          confidence?: number | null
+          eis_id?: string
+          eisenpakket_version_id?: string
+          generated_at?: string
+          generated_by?: string | null
+          geraakte_segment_ids?: string[]
+          geraakte_trek_idx?: number[]
+          id?: string
+          model?: string | null
+          onderbouwing_md?: string
+          prompt_tokens?: number | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          trace_id?: string
+          verificatiemethode?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eis_verifications_eis_id_fkey"
+            columns: ["eis_id"]
+            isOneToOne: false
+            referencedRelation: "eisen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eis_verifications_eisenpakket_version_id_fkey"
+            columns: ["eisenpakket_version_id"]
+            isOneToOne: false
+            referencedRelation: "eisenpakket_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eis_verifications_generated_by_fkey"
+            columns: ["generated_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eis_verifications_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eis_verifications_trace_id_fkey"
+            columns: ["trace_id"]
+            isOneToOne: false
+            referencedRelation: "traces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       eisen: {
         Row: {
           bron_prefix: string | null
@@ -2364,6 +2463,24 @@ export type Database = {
           }
         | { Args: { schema_name: string; table_name: string }; Returns: string }
         | { Args: { table_name: string }; Returns: string }
+      eis_verification_context: {
+        Args: { p_trace_id: string }
+        Returns: {
+          bgt_verdeling_agg: Json
+          brondocument: string
+          eis_code: string
+          eis_id: string
+          eistekst: string
+          eistitel: string
+          fase: string
+          geraakte_segment_ids: string[]
+          geraakte_trek_idx: number[]
+          hit_count: number
+          objecttype: string
+          sample_narratives: string[]
+          verificatiemethode: string
+        }[]
+      }
       eisen_for_project: {
         Args: { p_project_id: string }
         Returns: {
