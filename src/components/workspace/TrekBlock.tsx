@@ -1,6 +1,9 @@
 // De Tracémolen — Sprint 4.6 trek-block (primary view).
-import { ChevronRight, AlertTriangle, MapPin } from "lucide-react";
-import type { ReactNode } from "react";
+// Sprint 6: inline rename via trek_plan.
+import { ChevronRight, AlertTriangle, MapPin, Pencil, Check, X as XIcon } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
+import { Input } from "@/components/ui/input";
+import { useRenameTrek } from "@/lib/workspace";
 
 interface TrekRow {
   id: string;
@@ -17,47 +20,136 @@ interface TrekRow {
   bgt_verdeling: any;
 }
 
-export function TrekBlock({
-  trek,
-  isExpanded,
-  onToggleExpand,
-  onTrekClick,
-  isHighlighted,
-}: {
+interface Props {
   trek: TrekRow;
+  trekPlanId?: string;
+  displayName?: string;
   isExpanded: boolean;
   onToggleExpand: () => void;
   onTrekClick: () => void;
   isHighlighted: boolean;
-}) {
+}
+
+export function TrekBlock({
+  trek,
+  trekPlanId,
+  displayName,
+  isExpanded,
+  onToggleExpand,
+  onTrekClick,
+  isHighlighted,
+}: Props) {
   const eisen = trek.van_toepassing_eisen ?? [];
   const reden = trek.aandacht_reden ?? [];
   const km0 = Number(trek.start_km).toFixed(3);
   const km1 = Number(trek.end_km).toFixed(3);
   const len = Math.round(Number(trek.length_m));
 
+  const fallbackName = `Trek ${trek.part_idx + 1}`;
+  const effectiveName = displayName ?? fallbackName;
+  const rename = useRenameTrek();
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(effectiveName);
+
+  useEffect(() => {
+    setDraft(effectiveName);
+  }, [effectiveName]);
+
+  const trimmed = draft.trim();
+  const canSave =
+    !!trekPlanId &&
+    trimmed.length >= 1 &&
+    trimmed.length <= 80 &&
+    trimmed !== effectiveName;
+
+  const handleSave = () => {
+    if (!canSave || !trekPlanId) return;
+    rename.mutate(
+      { trekPlanId, newName: trimmed },
+      { onSuccess: () => setEditing(false) },
+    );
+  };
+
+  const handleCancel = () => {
+    setEditing(false);
+    setDraft(effectiveName);
+  };
+
   return (
     <article
-      className={`rounded-lg border p-4 shadow-sm transition-all ${
+      className={`group rounded-lg border p-4 shadow-sm transition-all ${
         isHighlighted
           ? "border-blood bg-blood/5 shadow-[0_0_12px_-4px_oklch(0.58_0.22_24/0.4)]"
           : "border-border bg-paper/50 hover:border-ink/30"
       }`}
     >
       <header className="mb-2 flex items-start justify-between gap-2">
-        <button
-          type="button"
-          onClick={onTrekClick}
-          className="flex flex-1 items-center gap-2 text-left"
-        >
+        <div className="flex flex-1 items-center gap-2">
           <MapPin className="h-4 w-4 text-blood" />
-          <h3 className="font-display text-sm font-semibold text-ink">
-            Trek {trek.part_idx + 1}
-          </h3>
-          <span className="font-mono text-[11px] text-ink/60">
-            km {km0} – {km1} · {len}m · {trek.segment_count} BGT
-          </span>
-        </button>
+          {editing ? (
+            <div className="flex flex-1 items-center gap-1.5">
+              <Input
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleSave();
+                  }
+                  if (e.key === "Escape") {
+                    e.preventDefault();
+                    handleCancel();
+                  }
+                }}
+                autoFocus
+                maxLength={80}
+                className="h-7 font-display text-sm"
+              />
+              <button
+                type="button"
+                disabled={!canSave || rename.isPending}
+                onClick={handleSave}
+                className="rounded p-1 text-ink/60 hover:bg-blood/10 hover:text-blood disabled:opacity-40"
+                title="Opslaan"
+              >
+                <Check className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="rounded p-1 text-ink/60 hover:bg-ink/10"
+                title="Annuleren"
+              >
+                <XIcon className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={onTrekClick}
+                className="text-left"
+              >
+                <h3 className="font-display text-sm font-semibold text-ink">
+                  {effectiveName}
+                </h3>
+              </button>
+              {trekPlanId && (
+                <button
+                  type="button"
+                  onClick={() => setEditing(true)}
+                  className="rounded p-1 text-ink/40 opacity-0 transition-opacity hover:text-ink group-hover:opacity-100"
+                  title="Naam wijzigen"
+                >
+                  <Pencil className="h-3 w-3" />
+                </button>
+              )}
+              <span className="ml-auto font-mono text-[11px] text-ink/60">
+                km {km0} – {km1} · {len}m · {trek.segment_count} BGT
+              </span>
+            </>
+          )}
+        </div>
         {trek.aandacht_flag && (
           <span
             className="inline-flex items-center gap-1 rounded-full bg-blood/15 px-2 py-0.5 text-[10px] font-medium text-blood"
@@ -108,9 +200,7 @@ export function TrekBlock({
         BGT-verdeling
       </button>
 
-      {isExpanded && (
-        <BgtBreakdown verdeling={trek.bgt_verdeling} />
-      )}
+      {isExpanded && <BgtBreakdown verdeling={trek.bgt_verdeling} />}
     </article>
   );
 }
