@@ -309,7 +309,7 @@ function renderTrekMarkdown(
 }
 
 function labelBgt(s: SegmentInTrek): string {
-  const t = s.bgt_feature_type || "onbekend";
+  const t = s.bgt_type ?? s.bgt_feature_type ?? "onbekend";
   return s.bgt_subtype ? `${t} (${s.bgt_subtype})` : t;
 }
 
