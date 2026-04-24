@@ -37,6 +37,12 @@ export interface MapPanelProps {
   isLoading: boolean;
   highlightedLokaalId: string | null;
   highlightedSegmentIds?: string[];
+  trekParts?: Array<{
+    part_idx: number;
+    start_point_4326: unknown;
+    end_point_4326?: unknown;
+    length_m: number;
+  }>;
   onSegmentClick: (props: {
     bgt_lokaal_id: string;
     bgt_feature_type: string;
@@ -51,6 +57,7 @@ export function MapPanel({
   isLoading,
   highlightedLokaalId,
   highlightedSegmentIds,
+  trekParts,
   onSegmentClick,
 }: MapPanelProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
