@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { useEisVerifications } from "@/lib/workspace";
+import { trekLabel, useEisVerifications, useTrekPlan } from "@/lib/workspace";
 import { EisVerificationDetail } from "./EisVerificationDetail";
 
 const STATUS_ICON: Record<string, typeof CheckCircle2> = {
@@ -62,6 +62,7 @@ interface Props {
 
 export function TrekEisenPanel({ traceId, selectedTrekIdx }: Props) {
   const { data: verifications = [], isLoading } = useEisVerifications(traceId);
+  const { data: trekPlan = [] } = useTrekPlan(traceId);
   const [selectedVerificationId, setSelectedVerificationId] = useState<
     string | null
   >(null);
@@ -111,7 +112,8 @@ export function TrekEisenPanel({ traceId, selectedTrekIdx }: Props) {
   if (!ordered.length) {
     return (
       <div className="px-4 py-3 font-sans text-xs text-ink/60">
-        Geen eisen gekoppeld aan trek {selectedTrekIdx !== null ? selectedTrekIdx + 1 : "?"} —
+        Geen eisen gekoppeld aan{" "}
+        {selectedTrekIdx !== null ? trekLabel(trekPlan, selectedTrekIdx) : "deze trek"} —
         alle {verifications.length} eisen staan bij andere treks.
       </div>
     );
@@ -124,7 +126,7 @@ export function TrekEisenPanel({ traceId, selectedTrekIdx }: Props) {
         <div className="sticky top-0 z-10 border-b border-border bg-paper/95 px-3 py-2 backdrop-blur">
           <p className="font-mono text-[10px] uppercase tracking-wider text-ink/60">
             {selectedTrekIdx !== null
-              ? `Trek ${selectedTrekIdx + 1}`
+              ? trekLabel(trekPlan, selectedTrekIdx)
               : "Alle treks"}
             {" · "}
             {ordered.length} eisen
