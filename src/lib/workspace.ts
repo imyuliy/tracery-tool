@@ -445,8 +445,10 @@ export function useSetEisVerificationOverride() {
         "set_eis_verification_override",
         {
           p_verification_id: args.verificationId,
-          p_override_status: args.overrideStatus,
-          p_reason_md: args.reasonMd,
+          // RPC accepteert null (gemodelleerd in Postgres) maar codegen markeert
+          // de params als string — cast om type te bypassen.
+          p_override_status: args.overrideStatus as string,
+          p_reason_md: args.reasonMd as string,
         },
       );
       if (error) throw error;
