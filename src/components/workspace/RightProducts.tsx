@@ -192,6 +192,96 @@ export function RightProducts({
                   );
                 }
 
+                if (p.code === "eisenverificatie" && isActive) {
+                  const canRun = hasScan && hasTreks;
+                  const summaryText = (() => {
+                    const s: Record<string, number> = {};
+                    for (const v of verifications) s[v.status] = (s[v.status] ?? 0) + 1;
+                    const parts: string[] = [];
+                    if (s.voldoet) parts.push(`${s.voldoet} ✓`);
+                    if (s.twijfelachtig) parts.push(`${s.twijfelachtig} ?`);
+                    if (s.voldoet_niet) parts.push(`${s.voldoet_niet} ✗`);
+                    if (s.nvt) parts.push(`${s.nvt} n.v.t.`);
+                    if (s.onbekend) parts.push(`${s.onbekend} onbekend`);
+                    return parts.join(" · ") || "—";
+                  })();
+
+                  const buttonNode = (
+                    <Button
+                      type="button"
+                      variant={hasVerifications ? "outline" : "default"}
+                      size="sm"
+                      disabled={!traceId || !canRun || runEisen.isPending}
+                      onClick={() => {
+                        if (!traceId) return;
+                        if (!canRun) {
+                          toast.error("Run eerst het brondocument (scan + treks).");
+                          return;
+                        }
+                        runEisen.mutate(traceId);
+                      }}
+                      className="w-full justify-start gap-2.5 px-3"
+                    >
+                      <span className="font-mono text-[10px] text-paper/70">
+                        0{idx + 1}
+                      </span>
+                      {runEisen.isPending ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : hasVerifications ? (
+                        <Eye className="h-3.5 w-3.5" />
+                      ) : (
+                        <ClipboardCheck className="h-3.5 w-3.5" />
+                      )}
+                      <span className="truncate text-xs">
+                        {hasVerifications
+                          ? "Eisenverificatie bijwerken"
+                          : "Eisenverificatie genereren"}
+                      </span>
+                    </Button>
+                  );
+
+                  return (
+                    <li key={p.code} className="space-y-1.5">
+                      {canRun ? (
+                        buttonNode
+                      ) : (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div>{buttonNode}</div>
+                          </TooltipTrigger>
+                          <TooltipContent side="left">
+                            Run eerst brondocument
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                      {hasVerifications && (
+                        <div className="flex flex-col gap-1 pl-2">
+                          <p className="font-mono text-[9px] uppercase tracking-wider text-ink/50">
+                            {verifications.length} eisen · {summaryText}
+                          </p>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            disabled={!traceId || exportEisen.isPending}
+                            onClick={() =>
+                              traceId && exportEisen.mutate(traceId)
+                            }
+                            className="h-7 justify-start gap-1.5 text-[11px]"
+                          >
+                            {exportEisen.isPending ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <Download className="h-3 w-3" />
+                            )}
+                            Eisenverificatie .docx
+                          </Button>
+                        </div>
+                      )}
+                    </li>
+                  );
+                }
+
                 // Locked / dead products
                 return (
                   <li key={p.code}>
