@@ -37,6 +37,12 @@ export interface MapPanelProps {
   isLoading: boolean;
   highlightedLokaalId: string | null;
   highlightedSegmentIds?: string[];
+  trekParts?: Array<{
+    part_idx: number;
+    start_point_4326: unknown;
+    end_point_4326?: unknown;
+    length_m: number;
+  }>;
   onSegmentClick: (props: {
     bgt_lokaal_id: string;
     bgt_feature_type: string;
@@ -51,6 +57,7 @@ export function MapPanel({
   isLoading,
   highlightedLokaalId,
   highlightedSegmentIds,
+  trekParts,
   onSegmentClick,
 }: MapPanelProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -232,6 +239,47 @@ export function MapPanel({
       });
     }
 
+    // Trek-label points — symbol layer "Trek N" op start_point_4326.
+    if (trekParts && trekParts.length > 0) {
+      const labelFC: GeoJSON.FeatureCollection = {
+        type: "FeatureCollection",
+        features: trekParts
+          .filter((t) => t.start_point_4326)
+          .map((t) => ({
+            type: "Feature" as const,
+            geometry: t.start_point_4326 as GeoJSON.Point,
+            properties: { part_idx: t.part_idx },
+          })),
+      };
+      setOrAdd("trek-labels", labelFC);
+      if (!m.getLayer("trek-labels-text") && m.getSource("trek-labels")) {
+        m.addLayer({
+          id: "trek-labels-text",
+          type: "symbol",
+          source: "trek-labels",
+          layout: {
+            "text-field": [
+              "concat",
+              "Trek ",
+              ["to-string", ["+", ["get", "part_idx"], 1]],
+            ],
+            "text-size": 12,
+            "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
+            "text-offset": [0, -1.4],
+            "text-anchor": "bottom",
+            "text-allow-overlap": false,
+            "text-ignore-placement": false,
+          },
+          paint: {
+            "text-color": "#111111",
+            "text-halo-color": "#FFFFFF",
+            "text-halo-width": 2,
+            "text-halo-blur": 0.5,
+          },
+        });
+      }
+    }
+
     // Fit to bbox.
     const bbox = data.bbox_4326;
     if (bbox?.coordinates?.[0]) {
@@ -244,7 +292,7 @@ export function MapPanel({
       ];
       m.fitBounds(bounds, { padding: 50, duration: 600, maxZoom: 18 });
     }
-  }, [data, ready, highlightedLokaalId, onSegmentClick]);
+  }, [data, ready, highlightedLokaalId, trekParts, onSegmentClick]);
 
   // Update highlight paint when highlightedLokaalId or trek-selection changes.
   useEffect(() => {

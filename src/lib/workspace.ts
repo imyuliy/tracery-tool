@@ -316,7 +316,7 @@ export function useExportBrondocumentV1() {
         document.body.removeChild(link);
       }
       qc.invalidateQueries({ queryKey: ["project-artifacts"] });
-      toast.success(`Brondocument gedownload: ${result?.filename ?? ""}`);
+      toast.success(`Brondocument gedownload: ${result?.filename ?? "bestand"}`);
     },
     onError: (err: Error) => toast.error(err.message),
   });
@@ -377,7 +377,7 @@ export function useExportTrekDocx() {
         document.body.removeChild(link);
       }
       qc.invalidateQueries({ queryKey: ["project-artifacts"] });
-      toast.success(`Trek-DOCX gedownload: ${result?.filename ?? ""}`);
+      toast.success(`Trek-DOCX gedownload: ${result?.filename ?? "bestand"}`);
     },
     onError: (err: Error) => toast.error(err.message),
   });
@@ -457,7 +457,7 @@ export function useSetEisVerificationOverride() {
     onSuccess: (_data, vars) => {
       qc.invalidateQueries({ queryKey: ["eis-verifications"] });
       toast.success(
-        vars.overrideStatus
+        vars?.overrideStatus
           ? "Override opgeslagen"
           : "Override verwijderd — AI-status actief",
       );
@@ -504,7 +504,7 @@ export function useExportEisenverificatieDocx() {
         document.body.removeChild(link);
       }
       qc.invalidateQueries({ queryKey: ["project-artifacts"] });
-      toast.success(`Eisenverificatie gedownload: ${result?.filename ?? ""}`);
+      toast.success(`Eisenverificatie gedownload: ${result?.filename ?? "bestand"}`);
     },
     onError: (err: Error) => toast.error(err.message),
   });
