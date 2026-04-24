@@ -2524,8 +2524,12 @@ export type Database = {
       segments_with_part_idx: {
         Args: { p_trace_id: string }
         Returns: {
+          beheerder: string
           bgt_feature_type: string
           bgt_subtype: string
+          bgt_type: string
+          km_end: number
+          km_start: number
           length_m: number
           part_idx: number
           segment_id: string

@@ -30,6 +30,7 @@ interface SegmentMappingRow {
   sequence: number;
   part_idx: number;
   bgt_feature_type: string | null;
+  bgt_type: string | null;
   bgt_subtype: string | null;
   length_m: number | string;
 }
@@ -49,6 +50,7 @@ interface SegmentInTrek {
   sequence: number;
   part_idx: number;
   bgt_feature_type: string;
+  bgt_type: string | null;
   bgt_subtype: string | null;
   length_m: number;
   narrative_md: string;
@@ -128,6 +130,7 @@ export async function runGenerateTrekPartDescriptions(opts: {
       sequence: m.sequence,
       part_idx: m.part_idx,
       bgt_feature_type: m.bgt_feature_type ?? "onbekend",
+      bgt_type: m.bgt_type ?? null,
       bgt_subtype: m.bgt_subtype,
       length_m: Number(m.length_m ?? 0),
       narrative_md: desc?.narrative_md ?? "",
@@ -217,10 +220,10 @@ function buildTrekRow(args: {
 }) {
   const { part, segments, traceId } = args;
 
-  // BGT-verdeling: meters per type
+  // BGT-verdeling: meters per functie (bgt_type), fallback op feature_type.
   const bgtVerdeling: Record<string, number> = {};
   for (const s of segments) {
-    const key = (s.bgt_feature_type || "onbekend").toLowerCase() + "_m";
+    const key = (s.bgt_type ?? s.bgt_feature_type ?? "onbekend").toLowerCase() + "_m";
     bgtVerdeling[key] = (bgtVerdeling[key] ?? 0) + s.length_m;
   }
   for (const k of Object.keys(bgtVerdeling)) {
@@ -306,7 +309,7 @@ function renderTrekMarkdown(
 }
 
 function labelBgt(s: SegmentInTrek): string {
-  const t = s.bgt_feature_type || "onbekend";
+  const t = s.bgt_type ?? s.bgt_feature_type ?? "onbekend";
   return s.bgt_subtype ? `${t} (${s.bgt_subtype})` : t;
 }
 
