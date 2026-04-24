@@ -15,6 +15,10 @@ import {
   generateTrekPartDescriptions,
   exportTrekHierarchyDocx,
 } from "@/lib/server/trek_part.functions";
+import {
+  runEisenverificatie,
+  exportEisenverificatieDocx,
+} from "@/lib/server/eisenverificatie.functions";
 
 export type PhaseState =
   | "VO_fase_1"
@@ -397,5 +401,72 @@ export function useTrekSegments(traceId: string | null, partIdx: number | null) 
       }>;
       return rows.filter((r) => r.part_idx === partIdx).map((r) => r.segment_id);
     },
+  });
+}
+
+// ─── Query: eisenverificaties per trace (Sprint 5.2) ───────────────────
+export function useEisVerifications(traceId: string | null) {
+  return useQuery({
+    queryKey: ["eis-verifications", traceId],
+    enabled: !!traceId,
+    staleTime: 30_000,
+    queryFn: async () => {
+      if (!traceId) return [];
+      const { data, error } = await supabase
+        .from("eis_verifications")
+        .select(
+          `id, trace_id, eis_id, status, onderbouwing_md, confidence,
+           geraakte_trek_idx, verificatiemethode, generated_at,
+           eis:eisen(eis_code, eistitel, objecttype, fase, brondocument)`,
+        )
+        .eq("trace_id", traceId)
+        .order("generated_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+// ─── Mutation: eisenverificatie genereren (Sprint 5.2) ─────────────────
+export function useRunEisenverificatie() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (traceId: string) => {
+      return await runEisenverificatie({ data: { trace_id: traceId } });
+    },
+    onSuccess: (result, traceId) => {
+      qc.invalidateQueries({ queryKey: ["eis-verifications", traceId] });
+      const s = result?.status_summary ?? {};
+      toast.success(
+        `Eisenverificatie klaar: ${result?.eisen_verified ?? 0} eisen · ` +
+          `${s.voldoet ?? 0} voldoet · ${s.twijfelachtig ?? 0} twijfel · ` +
+          `${s.voldoet_niet ?? 0} voldoet niet`,
+      );
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
+// ─── Mutation: eisenverificatie DOCX-export (Sprint 5.2) ───────────────
+export function useExportEisenverificatieDocx() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (traceId: string) => {
+      return await exportEisenverificatieDocx({ data: { trace_id: traceId } });
+    },
+    onSuccess: (result) => {
+      if (result?.url && typeof document !== "undefined") {
+        const link = document.createElement("a");
+        link.href = result.url;
+        link.download = result.filename ?? "eisenverificatie.docx";
+        link.rel = "noopener";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+      qc.invalidateQueries({ queryKey: ["project-artifacts"] });
+      toast.success(`Eisenverificatie gedownload: ${result?.filename ?? ""}`);
+    },
+    onError: (err: Error) => toast.error(err.message),
   });
 }

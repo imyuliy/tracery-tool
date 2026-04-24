@@ -1,4 +1,4 @@
-import { Loader2, Sparkles, Lock, Download, Eye } from "lucide-react";
+import { Loader2, Sparkles, Lock, Download, Eye, ClipboardCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,19 +10,20 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import {
   useExportBrondocumentV1,
+  useExportEisenverificatieDocx,
   useExportTrekDocx,
+  useEisVerifications,
   useGenerateSegmentScan,
   useGenerateTrekParts,
   useProductCatalog,
+  useRunEisenverificatie,
   useSegmentDescriptions,
   useSegmentTrace,
   useTrekParts,
 } from "@/lib/workspace";
 
-// Sprint 4.7: brondocument is het enige actieve product. trace_description
-// blijft als dead code in de catalog (is_active=false) en wordt hier niet
-// meer getoond.
-const ENABLED_CODES = new Set(["brondocument"]);
+// Sprint 5.2: brondocument + eisenverificatie zijn actief.
+const ENABLED_CODES = new Set(["brondocument", "eisenverificatie"]);
 
 export function RightProducts({
   traceId,
@@ -35,10 +36,14 @@ export function RightProducts({
   const segment = useSegmentTrace();
   const exportBrondoc = useExportBrondocumentV1();
   const exportTrekDoc = useExportTrekDocx();
+  const runEisen = useRunEisenverificatie();
+  const exportEisen = useExportEisenverificatieDocx();
   const { data: segDescriptions = [] } = useSegmentDescriptions(traceId);
   const { data: trekParts = [] } = useTrekParts(traceId);
+  const { data: verifications = [] } = useEisVerifications(traceId);
   const hasScan = segDescriptions.length > 0;
   const hasTreks = trekParts.length > 0;
+  const hasVerifications = verifications.length > 0;
 
   // Sprint 4.7: één brondocument-knop die zowel scan als treks idempotent
   // start, op basis van wat er al in de DB staat.
@@ -181,6 +186,96 @@ export function RightProducts({
                               Per-trek .docx
                             </Button>
                           )}
+                        </div>
+                      )}
+                    </li>
+                  );
+                }
+
+                if (p.code === "eisenverificatie" && isActive) {
+                  const canRun = hasScan && hasTreks;
+                  const summaryText = (() => {
+                    const s: Record<string, number> = {};
+                    for (const v of verifications) s[v.status] = (s[v.status] ?? 0) + 1;
+                    const parts: string[] = [];
+                    if (s.voldoet) parts.push(`${s.voldoet} ✓`);
+                    if (s.twijfelachtig) parts.push(`${s.twijfelachtig} ?`);
+                    if (s.voldoet_niet) parts.push(`${s.voldoet_niet} ✗`);
+                    if (s.nvt) parts.push(`${s.nvt} n.v.t.`);
+                    if (s.onbekend) parts.push(`${s.onbekend} onbekend`);
+                    return parts.join(" · ") || "—";
+                  })();
+
+                  const buttonNode = (
+                    <Button
+                      type="button"
+                      variant={hasVerifications ? "outline" : "default"}
+                      size="sm"
+                      disabled={!traceId || !canRun || runEisen.isPending}
+                      onClick={() => {
+                        if (!traceId) return;
+                        if (!canRun) {
+                          toast.error("Run eerst het brondocument (scan + treks).");
+                          return;
+                        }
+                        runEisen.mutate(traceId);
+                      }}
+                      className="w-full justify-start gap-2.5 px-3"
+                    >
+                      <span className="font-mono text-[10px] text-paper/70">
+                        0{idx + 1}
+                      </span>
+                      {runEisen.isPending ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : hasVerifications ? (
+                        <Eye className="h-3.5 w-3.5" />
+                      ) : (
+                        <ClipboardCheck className="h-3.5 w-3.5" />
+                      )}
+                      <span className="truncate text-xs">
+                        {hasVerifications
+                          ? "Eisenverificatie bijwerken"
+                          : "Eisenverificatie genereren"}
+                      </span>
+                    </Button>
+                  );
+
+                  return (
+                    <li key={p.code} className="space-y-1.5">
+                      {canRun ? (
+                        buttonNode
+                      ) : (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div>{buttonNode}</div>
+                          </TooltipTrigger>
+                          <TooltipContent side="left">
+                            Run eerst brondocument
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                      {hasVerifications && (
+                        <div className="flex flex-col gap-1 pl-2">
+                          <p className="font-mono text-[9px] uppercase tracking-wider text-ink/50">
+                            {verifications.length} eisen · {summaryText}
+                          </p>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            disabled={!traceId || exportEisen.isPending}
+                            onClick={() =>
+                              traceId && exportEisen.mutate(traceId)
+                            }
+                            className="h-7 justify-start gap-1.5 text-[11px]"
+                          >
+                            {exportEisen.isPending ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <Download className="h-3 w-3" />
+                            )}
+                            Eisenverificatie .docx
+                          </Button>
                         </div>
                       )}
                     </li>
