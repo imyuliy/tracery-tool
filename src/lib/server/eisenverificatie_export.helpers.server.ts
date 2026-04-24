@@ -211,9 +211,15 @@ export async function runExportEisenverificatieDocx(opts: {
           heading: HeadingLevel.HEADING_3,
         }),
       );
-      for (const v of problematic) {
+      for (let pIdx = 0; pIdx < problematic.length; pIdx++) {
+        const v = problematic[pIdx];
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const e: any = v.eis;
+        if (pIdx > 0) {
+          children.push(
+            new Paragraph({ spacing: { before: 200, after: 80 } }),
+          );
+        }
         children.push(
           new Paragraph({
             children: [
@@ -229,7 +235,7 @@ export async function runExportEisenverificatieDocx(opts: {
               ...(v.is_overridden
                 ? [
                     new TextRun({
-                      text: "  · ✓ Handmatig gereviewed",
+                      text: "  · Handmatig gereviewed",
                       italics: true,
                       color: "1F6FEB",
                     }),
@@ -276,7 +282,13 @@ export async function runExportEisenverificatieDocx(opts: {
                 new TextRun({
                   text: `door ${ru?.full_name ?? "onbekende gebruiker"} op ${
                     v.override_at
-                      ? new Date(v.override_at).toLocaleDateString("nl-NL")
+                      ? new Date(v.override_at).toLocaleString("nl-NL", {
+                          day: "2-digit",
+                          month: "long",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
                       : "—"
                   }`,
                 }),
@@ -286,7 +298,6 @@ export async function runExportEisenverificatieDocx(opts: {
               children: [new TextRun({ text: "Override-motivatie: ", bold: true })],
             }),
             new Paragraph({ text: v.override_reason_md ?? "—" }),
-            new Paragraph({ text: "" }),
           );
         } else {
           children.push(
@@ -294,7 +305,6 @@ export async function runExportEisenverificatieDocx(opts: {
               children: [new TextRun({ text: "AI-onderbouwing: ", bold: true })],
             }),
             new Paragraph({ text: v.ai_onderbouwing_md ?? "—" }),
-            new Paragraph({ text: "" }),
           );
         }
       }
