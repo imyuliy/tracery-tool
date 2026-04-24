@@ -36,10 +36,14 @@ export function RightProducts({
   const segment = useSegmentTrace();
   const exportBrondoc = useExportBrondocumentV1();
   const exportTrekDoc = useExportTrekDocx();
+  const runEisen = useRunEisenverificatie();
+  const exportEisen = useExportEisenverificatieDocx();
   const { data: segDescriptions = [] } = useSegmentDescriptions(traceId);
   const { data: trekParts = [] } = useTrekParts(traceId);
+  const { data: verifications = [] } = useEisVerifications(traceId);
   const hasScan = segDescriptions.length > 0;
   const hasTreks = trekParts.length > 0;
+  const hasVerifications = verifications.length > 0;
 
   // Sprint 4.7: één brondocument-knop die zowel scan als treks idempotent
   // start, op basis van wat er al in de DB staat.
