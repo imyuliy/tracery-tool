@@ -6,20 +6,23 @@ import {
   ChevronUp,
   Loader2,
   AlertTriangle,
+  ClipboardCheck,
   Layers,
   Route as RouteIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  useEisVerifications,
   useGenerateTrekParts,
   useSegmentDescriptions,
   useTrekParts,
 } from "@/lib/workspace";
 import { TrekBlock } from "./TrekBlock";
+import { TrekEisenPanel } from "./TrekEisenPanel";
 import { GitBranch } from "lucide-react";
 
-type Tab = "treks" | "segments";
+type Tab = "treks" | "segments" | "eisen";
 
 interface SegmentDescriptionRow {
   id: string;
