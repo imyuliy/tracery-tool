@@ -30,6 +30,7 @@ interface SegmentMappingRow {
   sequence: number;
   part_idx: number;
   bgt_feature_type: string | null;
+  bgt_type: string | null;
   bgt_subtype: string | null;
   length_m: number | string;
 }
