@@ -2026,6 +2026,54 @@ export type Database = {
           },
         ]
       }
+      trek_plan: {
+        Row: {
+          display_name: string
+          id: string
+          notes: string | null
+          part_idx: number
+          source: string
+          trace_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          display_name: string
+          id?: string
+          notes?: string | null
+          part_idx: number
+          source?: string
+          trace_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          display_name?: string
+          id?: string
+          notes?: string | null
+          part_idx?: number
+          source?: string
+          trace_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trek_plan_trace_id_fkey"
+            columns: ["trace_id"]
+            isOneToOne: false
+            referencedRelation: "traces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trek_plan_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_profiles: {
         Row: {
           avatar_url: string | null
@@ -2406,6 +2454,35 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "segments_trace_id_fkey"
+            columns: ["trace_id"]
+            isOneToOne: false
+            referencedRelation: "traces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_trek_plan_labels: {
+        Row: {
+          display_name: string | null
+          part_idx: number | null
+          trace_id: string | null
+          trek_plan_id: string | null
+        }
+        Insert: {
+          display_name?: string | null
+          part_idx?: number | null
+          trace_id?: string | null
+          trek_plan_id?: string | null
+        }
+        Update: {
+          display_name?: string | null
+          part_idx?: number | null
+          trace_id?: string | null
+          trek_plan_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trek_plan_trace_id_fkey"
             columns: ["trace_id"]
             isOneToOne: false
             referencedRelation: "traces"
@@ -3426,6 +3503,44 @@ export type Database = {
           start_km: number
           start_point_4326: unknown
         }[]
+      }
+      trek_plan_ensure: {
+        Args: { p_trace_id: string }
+        Returns: {
+          display_name: string
+          id: string
+          notes: string | null
+          part_idx: number
+          source: string
+          trace_id: string
+          updated_at: string
+          updated_by: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "trek_plan"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      trek_plan_rename: {
+        Args: { p_new_name: string; p_trek_plan_id: string }
+        Returns: {
+          display_name: string
+          id: string
+          notes: string | null
+          part_idx: number
+          source: string
+          trace_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "trek_plan"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       unlockrows: { Args: { "": string }; Returns: number }
       updategeometrysrid: {
