@@ -90,13 +90,16 @@ export async function runExportEisenverificatieDocx(opts: {
     }
   }
 
-  // Verifications + eisen
+  // Verifications via effective-view (Sprint 5.3 — incl. override-velden)
   const { data: verifications, error: vErr } = await supabase
-    .from("eis_verifications")
+    .from("v_eis_verifications_effective")
     .select(
-      `id, status, onderbouwing_md, confidence, geraakte_trek_idx,
-       verificatiemethode, generated_at, eis_id,
-       eis:eisen(eis_code, eistitel, eistekst, objecttype, fase, brondocument)`,
+      `id, ai_status, ai_onderbouwing_md, ai_confidence,
+       override_status, override_reason_md, override_at, is_overridden,
+       effective_status,
+       geraakte_trek_idx, verificatiemethode, generated_at, eis_id,
+       eis:eisen(eis_code, eistitel, eistekst, objecttype, fase, brondocument),
+       override_user:user_profiles!eis_verifications_override_by_fkey(full_name)`,
     )
     .eq("trace_id", traceId)
     .order("generated_at", { ascending: false });
@@ -119,8 +122,8 @@ export async function runExportEisenverificatieDocx(opts: {
   // sort within each objecttype by status priority then eis_code
   for (const [k, arr] of grouped) {
     arr.sort((a, b) => {
-      const ai = STATUS_ORDER.indexOf(a.status);
-      const bi = STATUS_ORDER.indexOf(b.status);
+      const ai = STATUS_ORDER.indexOf(a.effective_status);
+      const bi = STATUS_ORDER.indexOf(b.effective_status);
       if (ai !== bi) return ai - bi;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const ac: string = (a.eis as any)?.eis_code ?? "";
@@ -131,9 +134,11 @@ export async function runExportEisenverificatieDocx(opts: {
     grouped.set(k, arr);
   }
 
-  // Status summary
+  // Status summary obv effective_status
   const summary: Record<string, number> = {};
-  for (const v of verifications) summary[v.status] = (summary[v.status] ?? 0) + 1;
+  for (const v of verifications)
+    summary[v.effective_status ?? "onbekend"] =
+      (summary[v.effective_status ?? "onbekend"] ?? 0) + 1;
 
   const dateStr = new Date().toLocaleDateString("nl-NL", {
     day: "2-digit",
