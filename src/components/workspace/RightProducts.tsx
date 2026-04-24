@@ -1,4 +1,4 @@
-import { Loader2, Sparkles, Lock, Download, Eye } from "lucide-react";
+import { Loader2, Sparkles, Lock, Download, Eye, ClipboardCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,19 +10,20 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import {
   useExportBrondocumentV1,
+  useExportEisenverificatieDocx,
   useExportTrekDocx,
+  useEisVerifications,
   useGenerateSegmentScan,
   useGenerateTrekParts,
   useProductCatalog,
+  useRunEisenverificatie,
   useSegmentDescriptions,
   useSegmentTrace,
   useTrekParts,
 } from "@/lib/workspace";
 
-// Sprint 4.7: brondocument is het enige actieve product. trace_description
-// blijft als dead code in de catalog (is_active=false) en wordt hier niet
-// meer getoond.
-const ENABLED_CODES = new Set(["brondocument"]);
+// Sprint 5.2: brondocument + eisenverificatie zijn actief.
+const ENABLED_CODES = new Set(["brondocument", "eisenverificatie"]);
 
 export function RightProducts({
   traceId,
