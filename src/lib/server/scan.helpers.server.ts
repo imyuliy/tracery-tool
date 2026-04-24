@@ -420,6 +420,14 @@ REGELS:
 4. aandacht=true alleen bij: water-kruising, wegkruising hoofdweg, zeer korte segmenten <2m, ontbrekende beheerder, of expliciete auto-flag.
 5. voorgestelde_techniek: kies uit "open ontgraving", "gestuurde boring", "persing", of null bij twijfel.
 
+INTERPRETATIE VAN BGT-SIGNALEN:
+Per segment krijg je: functie (rijbaan/voetpad/fietspad/parkeervlak/berm/begroeidterreindeel/...) en verharding (gesloten verharding/open verharding/onverhard/half-verhard).
+- functie 'rijbaan' + verharding 'gesloten verharding' → "asfaltweg"; technieken: gestuurde boring of persing aanbevolen
+- functie 'voetpad' + verharding 'open verharding' → "betegeld voetpad/stoep"; open ontgraving meestal afdoende
+- functie 'fietspad' + verharding 'gesloten verharding' → "geasfalteerd fietspad"; boring aanbevolen
+- verharding 'onverhard' of functie 'berm'/'begroeidterreindeel' → grondwerk; open ontgraving bijna altijd
+Benoem in elke narrative expliciet de functie én de verharding (niet generiek "wegdeel-segment").
+
 Output exact als JSON-array, één object per segment, volgorde identiek aan input. Elk object heeft velden:
 { "narrative_md": string, "aandacht": boolean, "aandacht_reden": string|null, "voorgestelde_techniek": string|null }
 GEEN markdown-fences, GEEN omringende tekst, ALLEEN de JSON-array.`;
