@@ -220,10 +220,10 @@ function buildTrekRow(args: {
 }) {
   const { part, segments, traceId } = args;
 
-  // BGT-verdeling: meters per type
+  // BGT-verdeling: meters per functie (bgt_type), fallback op feature_type.
   const bgtVerdeling: Record<string, number> = {};
   for (const s of segments) {
-    const key = (s.bgt_feature_type || "onbekend").toLowerCase() + "_m";
+    const key = (s.bgt_type ?? s.bgt_feature_type ?? "onbekend").toLowerCase() + "_m";
     bgtVerdeling[key] = (bgtVerdeling[key] ?? 0) + s.length_m;
   }
   for (const k of Object.keys(bgtVerdeling)) {
