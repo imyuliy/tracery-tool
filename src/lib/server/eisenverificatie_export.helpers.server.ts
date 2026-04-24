@@ -44,11 +44,11 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  voldoet: "✓ Voldoet",
-  twijfelachtig: "? Twijfelachtig",
-  voldoet_niet: "✗ Voldoet niet",
-  nvt: "– N.v.t.",
-  onbekend: "? Onbekend",
+  voldoet: "Voldoet",
+  twijfelachtig: "Twijfelachtig",
+  voldoet_niet: "Voldoet niet",
+  nvt: "N.v.t.",
+  onbekend: "Onbekend",
 };
 
 const STATUS_ORDER = ["voldoet_niet", "twijfelachtig", "onbekend", "voldoet", "nvt"];
