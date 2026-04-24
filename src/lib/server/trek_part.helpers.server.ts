@@ -130,6 +130,7 @@ export async function runGenerateTrekPartDescriptions(opts: {
       sequence: m.sequence,
       part_idx: m.part_idx,
       bgt_feature_type: m.bgt_feature_type ?? "onbekend",
+      bgt_type: m.bgt_type ?? null,
       bgt_subtype: m.bgt_subtype,
       length_m: Number(m.length_m ?? 0),
       narrative_md: desc?.narrative_md ?? "",
