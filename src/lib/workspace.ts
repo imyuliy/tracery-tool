@@ -15,6 +15,10 @@ import {
   generateTrekPartDescriptions,
   exportTrekHierarchyDocx,
 } from "@/lib/server/trek_part.functions";
+import {
+  runEisenverificatie,
+  exportEisenverificatieDocx,
+} from "@/lib/server/eisenverificatie.functions";
 
 export type PhaseState =
   | "VO_fase_1"
