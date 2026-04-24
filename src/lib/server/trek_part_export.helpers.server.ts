@@ -414,7 +414,7 @@ function buildTrekIndex(treks: any[]): Table {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function buildTrekSegmentTable(rows: any[]): Table {
   const header = new TableRow({
-    children: ["#", "km", "BGT-type", "Beschrijving", "Aandacht"].map(headerCell),
+    children: ["#", "m-range", "Functie", "Verharding", "Beschrijving", "Aandacht"].map(headerCell),
   });
   const dataRows = rows.map((d) => {
     const seg = d.segment ?? {};
@@ -423,9 +423,10 @@ function buildTrekSegmentTable(rows: any[]): Table {
       children: [
         cell(String(seg.sequence ?? "?")),
         cell(
-          `${Number(seg.km_start ?? 0).toFixed(0)}–${Number(seg.km_end ?? 0).toFixed(0)}m`,
+          `${Math.round((Number(seg.km_start) ?? 0) * 1000)}–${Math.round((Number(seg.km_end) ?? 0) * 1000)} m`,
         ),
-        cell(seg.bgt_feature_type ?? "—"),
+        cell(seg.bgt_type ?? seg.bgt_feature_type ?? "—"),
+        cell(seg.bgt_subtype ?? "—"),
         cell((d.narrative_md ?? "").substring(0, 280)),
         cell(aandacht ? "⚠" : ""),
       ],
