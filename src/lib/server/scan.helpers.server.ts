@@ -572,14 +572,13 @@ function buildSegmentContext(seg: any): SegmentContext {
 
   const length = Math.round(Number(seg.length_m ?? 0));
   const km = `${Number(seg.km_start ?? 0).toFixed(0)}-${Number(seg.km_end ?? 0).toFixed(0)}m`;
-  // View levert bgt_type; rest van pipeline gebruikt bgt_feature_type — alias.
-  const bgtFeatureType = seg.bgt_feature_type ?? seg.bgt_type ?? null;
-  const bgt = `${bgtFeatureType ?? "?"}${seg.bgt_subtype ? ` (${seg.bgt_subtype})` : ""}`;
+  // Functie = bgt_type (rijbaan/voetpad/fietspad/...). Collection = bgt_feature_type ("wegdeel").
+  const functie = seg.bgt_type ?? seg.bgt_feature_type ?? "onbekend";
+  const verharding = seg.bgt_subtype ?? "onbekend";
   const beheerder = seg.beheerder ? `, beheerder ${seg.beheerder}` : "";
   const fysiek = seg.bgt_fysiek_voorkomen
     ? `, oppervlak ${seg.bgt_fysiek_voorkomen}`
     : "";
-  const nearby = (seg.nearby_features ?? {}) as Record<string, unknown>;
   const nearbyParts: string[] = [];
   if (Number(seg.pand_count ?? 0) > 0)
     nearbyParts.push(`${seg.pand_count} panden binnen 5m`);
@@ -589,7 +588,7 @@ function buildSegmentContext(seg: any): SegmentContext {
     nearbyParts.push(`${seg.wegkruising_count} wegkruisingen`);
   const nearbyStr = nearbyParts.length > 0 ? `. Omgeving: ${nearbyParts.join(", ")}` : "";
 
-  const summary = `Segment ${seg.sequence} (km ${km}, lengte ${length}m): ${bgt}${fysiek}${beheerder}${nearbyStr}.${
+  const summary = `Segment ${seg.sequence} (km ${km}, lengte ${length}m): functie ${functie}, verharding ${verharding}${fysiek}${beheerder}${nearbyStr}.${
     flags.length > 0 ? ` Auto-flags: ${flags.join(", ")}.` : ""
   }`;
 
