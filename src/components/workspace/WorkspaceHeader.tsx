@@ -1,4 +1,4 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Cog } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { PhaseWidget } from "./PhaseWidget";
 import type { Project } from "@/lib/projects";
@@ -16,8 +16,8 @@ export function WorkspaceHeader({ project }: { project: Project }) {
         </Link>
         <div className="h-6 w-px bg-border" />
         <div className="flex items-center gap-3">
-          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-blood font-display text-sm font-bold text-paper shadow-[0_0_16px_-4px_oklch(0.58_0.22_24/0.6)]">
-            T
+          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-blood text-paper shadow-[0_0_16px_-4px_oklch(0.58_0.22_24/0.6)]">
+            <Cog className="h-4 w-4" strokeWidth={2.5} />
           </div>
           <div className="flex flex-col">
             <h1 className="font-display text-base font-semibold leading-tight tracking-tight text-ink">

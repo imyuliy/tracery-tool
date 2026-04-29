@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { LogOut, Settings, ChevronDown, BookOpen } from "lucide-react";
+import { LogOut, Settings, ChevronDown, BookOpen, Cog } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { displayName, useSupabaseAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -31,8 +31,8 @@ export function TopNav() {
           to="/dashboard"
           className="inline-flex items-center gap-2.5 font-display text-xl font-semibold tracking-tight text-ink transition-colors hover:text-blood"
         >
-          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-blood font-display text-sm font-bold text-paper shadow-[0_0_16px_-2px_oklch(0.60_0.22_24/0.6)]">
-            T
+          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-blood text-paper shadow-[0_0_16px_-2px_oklch(0.60_0.22_24/0.6)]">
+            <Cog className="h-4 w-4" strokeWidth={2.5} />
           </span>
           De Tracémolen
         </Link>
