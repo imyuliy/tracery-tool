@@ -16,9 +16,7 @@ export function WorkspaceHeader({ project }: { project: Project }) {
         </Link>
         <div className="h-6 w-px bg-border" />
         <div className="flex items-center gap-3">
-          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-blood text-paper shadow-[0_0_16px_-4px_oklch(0.58_0.22_24/0.6)]">
-            <Cog className="h-4 w-4" strokeWidth={2.5} />
-          </div>
+          <Cog className="h-7 w-7 text-blood drop-shadow-[0_0_10px_oklch(0.60_0.22_24/0.55)]" strokeWidth={1.75} />
           <div className="flex flex-col">
             <h1 className="font-display text-base font-semibold leading-tight tracking-tight text-ink">
               {project.name}
