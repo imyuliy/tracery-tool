@@ -29,11 +29,9 @@ export function TopNav() {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
         <Link
           to="/dashboard"
-          className="inline-flex items-center gap-2.5 font-display text-xl font-semibold tracking-tight text-ink transition-colors hover:text-blood"
+          className="group inline-flex items-center gap-2.5 font-display text-xl font-semibold tracking-tight text-ink transition-colors hover:text-blood"
         >
-          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-blood text-paper shadow-[0_0_16px_-2px_oklch(0.60_0.22_24/0.6)]">
-            <Cog className="h-4 w-4" strokeWidth={2.5} />
-          </span>
+          <Cog className="h-7 w-7 text-blood drop-shadow-[0_0_10px_oklch(0.60_0.22_24/0.55)] transition-transform duration-700 ease-out group-hover:rotate-90" strokeWidth={1.75} />
           De Tracémolen
         </Link>
 
